@@ -9,11 +9,20 @@ type
    
    MutSpecError = object of Exception
 
+let helpText = """
+Usage: vektor -o:<output file> -e:<line element id>=<new value> [-e ...] <input file>
+vektor: a tool for anonymizing Vektis EI standard compliant declaration files.
+It lets you specify an input file, a line element type and a value and then 
+creates a copy of the given file with all line elements of the given type 
+set to the specified value.
+"""
+
 var 
    mutationParams: seq[string] = @[]
    mutations: seq[Mutation]
    inputfile: string = nil
    outputPath: string = nil
+   showHelp: bool = false
 
 proc description(doctype: DocumentType): string =
    "$#v$#.$#" % [doctype.name, intToStr(doctype.formatVersion), intToStr(doctype.formatSubVersion)]
@@ -90,39 +99,43 @@ for kind, key, value in getopt():
    case kind
    of cmdLongoption, cmdShortOption:
       case key 
-      of "m", "mutation":
+      of "e", "element":
          mutationParams.add(value)
       of "o", "outputPath":
-         outputPath = value;
+         outputPath = value
+      of "h", "help":
+         showHelp = true
    of cmdArgument:
       inputfile = key
    of cmdEnd: assert(false) # cannot happen
 
-if isNil(inputfile) or inputfile.len == 0:
-   quit("You need to specify an input file")
-elif mutationParams.len == 0:
-   quit("You need to specify a mutation parameter (e.g. -m:0416=20190101).")
+if showHelp:
+   echo helpText
 else:
-   if isNil(outputPath) or outputPath.len == 0:
-      quit("No output file specified (-o:filename).")
+   if isNil(inputfile) or inputfile.len == 0:
+      quit("You need to specify an input file")
+   elif mutationParams.len == 0:
+      quit("You need to specify an element parameter (e.g. -e:0416=20190101).")
    else:
-      let input = newFileStream(inputfile, fmRead)
-      var line: string = ""
-      if input.readLine(line):
-         if line.startswith("01"):
-            try:
-               let doctype = fetch_doctype(line)
-               mutations = lc[createMutation(doctype, mut) | (mut <- mutationParams), Mutation]
-               var outputFile: File
-               if open(outputFile, outputPath, fmWrite):
-                  mutateAndWrite(line, outputFile)
-                  while input.readLine(line):
+      if isNil(outputPath) or outputPath.len == 0:
+         quit("No output file specified (-o:filename).")
+      else:
+         let input = newFileStream(inputfile, fmRead)
+         var line: string = ""
+         if input.readLine(line):
+            if line.startswith("01"):
+               try:
+                  let doctype = fetch_doctype(line)
+                  mutations = lc[createMutation(doctype, mut) | (mut <- mutationParams), Mutation]
+                  var outputFile: File
+                  if open(outputFile, outputPath, fmWrite):
                      mutateAndWrite(line, outputFile)
-                  close(outputFile)
-            except Exception:
-               quit(getCurrentExceptionMsg())
-         else:
-            quit("File is not a Vektis format (first two characters should be 01)")
-      input.close
+                     while input.readLine(line):
+                        mutateAndWrite(line, outputFile)
+                     close(outputFile)
+               except Exception:
+                  quit(getCurrentExceptionMsg())
+            else:
+               quit("File is not a Vektis format (first two characters should be 01)")
+         input.close
    
-echo "Done."
