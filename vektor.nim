@@ -2,12 +2,13 @@ import os, parseopt2, strutils, sequtils, json, future, streams
 import "doctypes"
 
 type
-   Mutation = object
+   FieldSpec = object
       lineId: string
       leType: LineElementType
       value: string
    
-   MutSpecError = object of Exception
+   FieldSpecError = object of Exception
+   
    TCommand = enum
       cmdModify, cmdPrint
 
@@ -18,14 +19,20 @@ It lets you specify an input file, a line element type and a value and then
 creates a copy of the given file with all line elements of the given type 
 set to the specified value.
 """
+let blanksSet: set[char] = { ' ' }
 
 var 
-   mutationParams: seq[string] = @[]
-   mutations: seq[Mutation]
+   targetFieldsArg: string
+   targetFields: seq[FieldSpec] = @[]
+   filterFieldsArg: string
+   filterFields: seq[FieldSpec] = @[]
    inputfile: string = nil
    outputPath: string = nil
    showHelp: bool = false
    command: TCommand = cmdModify
+   docType: DocumentType
+   lineType: LineType
+   lineId: string
 
 proc description(doctype: DocumentType): string =
    "$# v$#.$#" % [doctype.name, intToStr(doctype.formatVersion), intToStr(doctype.formatSubVersion)]
@@ -35,50 +42,50 @@ proc show(message: string) =
       echo message
    else: discard
 
+proc stripBlanks(source: string): string =
+   strip(source, true, true, blanksSet)
+
 proc fetch_doctype(line: string): DocumentType =
    let typeId = parseInt(line[2 .. 4])
    let version = parseInt(line[5 .. 6])
    let subversion = parseInt(line[7 .. 8])
    get_doctype(typeId, version, subversion)
 
-proc getLineType(doctype: DocumentType, lineId: string, mutSpec: string): LineType =
+proc getLineType(doctype: DocumentType, lineId: string): LineType =
    let lineTypes = filter(doctype.lineTypes, proc(lt: LineType): bool = lt.lineId == lineId)
    if lineTypes.len == 0:
-      raise newException(MutSpecError, "Invalid line ID [$#] for document type $# specified in mutation parameter $#" % [lineId, description(doctype), mutSpec])
+      raise newException(FieldSpecError, "Invalid line ID [$#] for document type $# specified." % [lineId, description(doctype)])
    else:
       result = lineTypes[0]
 
-proc getLineElementType(doctype: DocumentType, ltype: LineType, leId: string, mutSpec: string): LineElementType =
-   let leTypes = filter(ltype.lineElementTypes, proc(le: LineElementType): bool = le.lineElementId == leId)
+proc getLineElementType(doctype: DocumentType, ltype: LineType, leId: string, targetFieldsArg: string): LineElementType =
+   let leTypes = filter(ltype.lineElementTypes, proc(le: LineElementType): bool = le.lineElementId == (ltype.lineId & leId))
    if leTypes.len == 0:
-      raise newException(MutSpecError, "Invalid line element ID [$#] for document type $# specified in mutation parameter $#" % [leId, description(doctype), mutSpec])
+      raise newException(FieldSpecError, "Invalid line element ID [$#] for document type $# specified in field parameter $#" % [leId, description(doctype), targetFieldsArg])
    else:
       result = leTypes[0]
 
-proc createMutation(doctype: DocumentType, mutSpec: string): Mutation =
-   let items: seq[string] = split(mutSpec, '=', 1)
+proc createFieldSpec(doctype: DocumentType, targetFieldsArg: string): FieldSpec =
+   let items: seq[string] = split(targetFieldsArg, '=', 1)
    let leId = items[0]
    var value: string = nil
-   let lnId = leId[0..1]
-   if leId.len != 4 or not leId.isDigit():
-      raise newException(MutSpecError, "Line element ID in parameter: $# is not 4 digits." % [ mutSpec])
+   if leId.len != 2 or not leId.isDigit():
+      raise newException(FieldSpecError, "Invalid line element id: $#" % [ leId])
    else:
-      let lineType = getLineType(doctype, lnId, mutSpec)
-      let elemType = getLineElementType(doctype, lineType, leId, mutSpec)
-      
+      let elemType = getLineElementType(doctype, lineType, leId, targetFieldsArg)
       # if a value was specified
       if items.len > 1:
          value = items[1]
          if value.len > elemType.length:
-            raise newException(MutSpecError, "Specified value '$#' too large for element $#[$#] (max. length: $#)" % [value, leId, elemType.description, intToStr(elemType.length)])
+            raise newException(FieldSpecError, "Specified value '$#' too large for element $#[$#] (max. length: $#)" % [value, leId, elemType.description, intToStr(elemType.length)])
          elif elemType.fieldType == "N" and not isDigit(value):
-            raise newException(MutSpecError, "Invalid value '$#' for element $#[$#] (must be numerical)" % [value, leId, elemType.description, intToStr(elemType.length)])
+            raise newException(FieldSpecError, "Invalid value '$#' for element $#[$#] (must be numerical)" % [value, leId, elemType.description, intToStr(elemType.length)])
          show("Set element $# ($# - $#) to value: '$#'" % [leId, lineType.name, elemType.description, value])
-         result = Mutation(lineId: lnId, leType: elemType, value: value)
+         result = FieldSpec(lineId: lineId, leType: elemType, value: value)
       # no value was specified, indicating the empty value
       else: 
          show("Set element $# ($# - $#) to empty value" % [leId, lineType.name, elemType.description])
-         result = Mutation(lineId: lnId, leType: elemType)
+         result = FieldSpec(lineId: lineId, leType: elemType)
       
 
 proc writeToFile(buf: seq[char], file: File) = 
@@ -92,46 +99,59 @@ proc elementValue(fieldType: string, value: string, length: int): string =
       let number = if isNil(value): 0 else: parseInt(value)
       result = intToStr(number, length)
    else:
-      let alphanum = if isNil(value): "" else: value
+      let alphanum = if isNil(value): "" else: stripBlanks(value)
       result = alphanum & spaces(length - alphanum.len)
 
-proc applyMutation(mut: Mutation, line: string, buf: var openArray[char]) =
-   if mut.lineId == line[0..1]:
-      let leType = mut.leType
+proc applyFieldSpec(fieldSpec: FieldSpec, line: string, buf: var openArray[char]) =
+   if fieldSpec.lineId == line[0..1]:
+      let leType = fieldSpec.leType
       let start: int = leType.startPosition-1
       let length = leType.length
-      var newValue = elementValue(leType.fieldType, mut.value, length)
+      var newValue = elementValue(leType.fieldType, fieldSpec.value, length)
       assert newValue.len == length
       let newValueSeq = toSeq(newValue.items)
       for i in 0..(newValueSeq.len-1):
          buf[start+i] = newValueSeq[i]
 
-proc printLineElement(mut: Mutation, line: string) =
-   if mut.lineId == line[0..1]:
-      echo "Printing line."
+proc getFieldValue(fSpec: FieldSpec, line: string): string =
+   let et = fSpec.leType
+   let start = et.startPosition-1
+   let fin = start + et.length-1
+   line[start..fin]
 
 proc printLine(line: string) = 
-   for mutation in mutations:
-      printLineElement(mutation, line)
+   if line.startsWith(lineId):
+      stdout.write("| ")
+      for field in targetFields:
+         stdout.write(getFieldValue(field, line))
+         stdout.write(" | ")
+      stdout.write("\n")
 
 proc mutateAndWrite(line: var string, file: File) =
    var buf = toSeq(line.mitems)
-   for mutation in mutations:
-      applyMutation(mutation, line, buf)
+   for field in targetFields:
+      applyFieldSpec(field, line, buf)
    writeToFile(buf, file)
+
+proc fieldSpecsFromString(doctype: DocumentType, source: string): seq[FieldSpec] =
+   lc[createFieldSpec(doctype, item) | (item <- source.split(',')), FieldSpec]
 
 for kind, key, value in getopt():
    case kind
    of cmdLongoption, cmdShortOption:
       case key 
       of "e", "element":
-         mutationParams.add(value)
+         targetFieldsArg = value
+      of "f", "filter":
+         filterFieldsArg = value
       of "o", "outputPath":
          outputPath = value
       of "h", "help":
          showHelp = true
       of "p", "print":
          command = cmdPrint
+      of "l", "lineId":
+         lineId = value
    of cmdArgument:
       inputfile = key
    of cmdEnd: assert(false) # cannot happen
@@ -139,14 +159,16 @@ for kind, key, value in getopt():
 if showHelp:
    echo helpText
 else:
+   if isNil(lineId):
+      quit("You need to specify a line id (e.g. -l:04)")   
    if isNil(inputfile) or inputfile.len == 0:
       quit("You need to specify an input file")
    elif not existsFile(inputfile):
       quit("Specified input file not found: '$#'" % [inputfile])
-   elif mutationParams.len == 0:
-      quit("You need to specify an element parameter (e.g. -e:0416=20190101).")
+   elif targetFieldsArg.len == 0:
+      quit("You need to specify an element parameter (e.g. -e:16=20190101).")
    else:
-      if isNil(outputPath) or outputPath.len == 0:
+      if command == cmdModify and (isNil(outputPath) or outputPath.len == 0):
          quit("No output file specified (-o:filename).")
       else:
          let input = newFileStream(inputfile, fmRead)
@@ -154,9 +176,13 @@ else:
          if input.readLine(line):
             if line.startswith("01"):
                try:
-                  let doctype = fetch_doctype(line)
-                  show("Document type: $#" % [description(doctype)])
-                  mutations = lc[createMutation(doctype, mut) | (mut <- mutationParams), Mutation]
+                  docType = fetch_doctype(line)
+                  show("Document type: $#" % [description(docType)])
+                  lineType = getLineType(docType, lineId)
+                  targetFields = fieldSpecsFromString(docType, targetFieldsArg)
+                  if not isNil filterFieldsArg:
+                     filterFields = fieldSpecsFromString(docType, filterFieldsArg)
+                  else: discard
                   if command == cmdModify:
                      var outputFile: File
                      if open(outputFile, outputPath, fmWrite):
