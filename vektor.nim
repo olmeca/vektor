@@ -1,5 +1,5 @@
-import os, parseopt2, strutils, sequtils, json, future, streams
-import "doctypes"
+import os, parseopt2, strutils, sequtils, json, future, streams, random
+import "doctypes", "names"
 
 type
    FieldSpec = object
@@ -139,7 +139,11 @@ proc elementValue(fieldType: string, value: string, length: int): string =
       let number = if isNil(value): 0 else: parseInt(mytrim(value, length))
       result = intToStr(number, length)
    else:
-      let alphanum = if isNil(value): "" else: mytrim(stripBlanks(value), length)
+      var alphanum: string = nil
+      if value == "@name":
+         alphanum = get_random()
+      else:
+         alphanum = if isNil(value): "" else: mytrim(stripBlanks(value), length)
       result = alphanum & spaces(length - alphanum.len)
    #log("elementValue -> '$#', $#" % [result, intToStr(result.len)])
 
@@ -220,6 +224,8 @@ proc readCommand(cmdString: string) =
    else:
       quit("Invalid command: '$#'" % [cmdString])
    commandWasRead = true
+
+randomize()
 
 for kind, key, value in getopt():
    case kind
