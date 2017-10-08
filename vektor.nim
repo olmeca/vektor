@@ -1,4 +1,4 @@
-import os, parseopt2, strutils, sequtils, json, future, streams, random
+import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times
 import "doctypes", "names"
 
 type
@@ -11,7 +11,7 @@ type
    VektisFormatError = object of Exception
    
    TCommand = enum
-      cmdModify, cmdPrint, cmdInfo, cmdHelp
+      cmdModify, cmdQuery, cmdInfo, cmdHelp
 
 let helpText = """
    Vektor: a tool for analyzing and modifying Vektis EI declaration files.
@@ -30,6 +30,27 @@ let
    debtorRecordVersionEndIndex = 299
    debtorRecordDocumentTypeName = "SB311"
    debtorRecordLineId = "03"
+   kVektisDateFormat = "yyyyMMdd"
+   
+   elementSpecPattern = peg"""#
+   Pattern <- ^ ElementSpec !.
+   ElementSpec <-  {ElementId} '=' {ElementValue} / {ElementId}
+   ElementId <- \d \d
+   ElementValue <- .*
+   """
+
+   elementSpecsPattern = peg"""#
+   Pattern <- ^ ElementsSpec !.
+   ElementsSpec <- ElementSpec ElementSpecSeparator ElementsSpec / ElementSpec
+   ElementSpec <- {(!ElementSpecSeparator .)+}
+   ElementSpecSeparator <- ','
+   """
+   
+   randomDatePattern = peg"""#
+   Pattern <- ^ RandomDateSpec !.
+   RandomDateSpec <- '@date:' {Date} '-' {Date}
+   Date <- \d \d \d \d \d \d \d \d
+   """
 
 var 
    targetFieldsArg: string
@@ -55,9 +76,24 @@ proc description(doctype: DocumentType): string =
    "$# v$#.$#   $#" % [doctype.name, intToStr(doctype.formatVersion), intToStr(doctype.formatSubVersion), doctype.description]
 
 proc show(message: string) =
-   if command != cmdPrint:
+   if command != cmdQuery:
       echo message
    else: discard
+
+
+proc parseVektisDate(dateString: string): TimeInfo =
+   try:
+      result = parse(dateString, kVektisDateFormat)
+   except Exception:
+      raise newException(ValueError, "Invalid date format: '$#'" % [dateString])
+
+proc randomDateString(fromDate: string, toDate: string): string =
+   let fromSeconds = parseVektisDate(fromDate).toTime().toSeconds()
+   let toSeconds = parseVektisDate(toDate).toTime().toSeconds()
+   let randomSeconds = random(toSeconds-fromSeconds) + fromSeconds
+   let randomDate = fromSeconds(randomSeconds).getLocalTime()
+   format(randomDate, kVektisDateFormat)
+   
 
 proc stripBlanks(source: string): string =
    strip(source, true, true, blanksSet)
@@ -133,11 +169,16 @@ proc writeToFile(buf: seq[char], file: File) =
 proc mytrim(value: string, length: int): string = 
    result = if value.len > length: value[0..length-1] else: value
    
-proc elementValue(fieldType: string, value: string, length: int): string = 
+proc elementValue(leType: LineElementType, value: string): string = 
    #log("elementValue: value='$#', length=$#" % [if isNil(value): "" else: value, intToStr(length)])
-   if fieldType == "N":
-      let number = if isNil(value): 0 else: parseInt(mytrim(value, length))
-      result = intToStr(number, length)
+   let length = leType.length
+   if leType.fieldType == "N":
+      var number: int
+      if leType.isDate and value =~ randomDatePattern:
+         result = randomDateString(matches[0], matches[1])
+      else:
+         number = if isNil(value): 0 else: parseInt(mytrim(value, length))
+         result = intToStr(number, length)
    else:
       var alphanum: string = nil
       if value == "@name":
@@ -152,7 +193,7 @@ proc mutate(fieldSpec: FieldSpec, line: string, buf: var openArray[char]) =
       let leType = getLineElementType(docType, getLineType(line), fieldSpec.leTypeId)
       let start: int = leType.startPosition-1
       let length = leType.length
-      var newValue = elementValue(leType.fieldType, fieldSpec.value, length)
+      var newValue = elementValue(leType, fieldSpec.value)
       assert newValue.len == length
       let newValueSeq = toSeq(newValue.items)
       # Nim range is inclusive
@@ -215,15 +256,31 @@ proc readCommand(cmdString: string) =
    case cmdString
    of "info":
       command = cmdInfo
-   of "print":
-      command = cmdPrint
-   of "modify":
+   of "show":
+      command = cmdQuery
+   of "copy":
       command = cmdModify
    of "help":
       command = cmdHelp
    else:
-      quit("Invalid command: '$#'" % [cmdString])
+      quit("Please specify one of the following commands: info, show, copy or help.")
    commandWasRead = true
+
+proc readElementSpec(spec: string): FieldSpec =
+   echo "readElementSpec:", spec
+   if spec =~ elementSpecPattern:
+      result = FieldSpec(lineId: lineId, leTypeId: matches[0], value: matches[1])
+   else:
+      raise newException(FieldSpecError, "Invalid line element specification: $#" % [spec])
+
+proc readFieldSpecs(value: string, fields: var seq[FieldSpec], argName: string) = 
+   if commandWasRead:
+      if value =~ elementSpecsPattern:
+         fields = lc[readElementSpec(s)|(s <- matches, not isNil(s)), FieldSpec]
+      else:
+         quit("Invalid elements specification in argument ($#)." % [argName])
+   else:
+      quit("Command is missing.")
 
 randomize()
 
@@ -231,18 +288,12 @@ for kind, key, value in getopt():
    case kind
    of cmdLongoption, cmdShortOption:
       case key 
-      of "e", "element":
-         targetFieldsArg = value
+      of "e", "elements":
+         readFieldSpecs(value, targetFields, "-e, --elements")
       of "f", "filter":
          filterFieldsArg = value
       of "o", "outputPath":
          outputPath = value
-      of "h", "help":
-         command = cmdHelp
-      of "p", "print":
-         command = cmdPrint
-      of "i", "info":
-         command = cmdInfo
       of "v", "version":
          readVersion(value)
       of "d", "doctypename":
@@ -265,12 +316,12 @@ elif command == cmdInfo:
 else:
    if isNil(lineId):
       quit("You need to specify a line id (e.g. -l:04)")   
+   if not isDigit(lineId):
+      quit("Invalid line id (should be e.g. -l:04)")   
    if isNil(inputfile) or inputfile.len == 0:
       quit("You need to specify an input file")
    elif not existsFile(inputfile):
       quit("Specified input file not found: '$#'" % [inputfile])
-   elif targetFieldsArg.len == 0:
-      quit("You need to specify an element parameter (e.g. -e:16=20190101).")
    else:
       if command == cmdModify and (isNil(outputPath) or outputPath.len == 0):
          quit("No output file specified (-o:filename).")
@@ -282,10 +333,6 @@ else:
                try:
                   docType = fetch_doctype(line)
                   show("Document type: $#" % [description(docType)])
-                  targetFields = fieldSpecsFromString(docType, targetFieldsArg)
-                  if not isNil filterFieldsArg:
-                     filterFields = fieldSpecsFromString(docType, filterFieldsArg)
-                  else: discard
                   if command == cmdModify:
                      var outputFile: File
                      if open(outputFile, outputPath, fmWrite):
@@ -293,8 +340,7 @@ else:
                         while input.readLine(line):
                            mutateAndWrite(line, outputFile)
                         close(outputFile)
-                  elif command == cmdPrint:
-                     echo "Printing"
+                  elif command == cmdQuery:
                      printLine(line)
                      while input.readLine(line):
                         printLine(line)

@@ -23459,6 +23459,8 @@ let doctypes_json_string = """
 let typesJson = parseJson(doctypes_json_string)
 let types = lc[to(node, DocumentType) | (node <- typesJson), DocumentType]
 
+proc isDate*(leType: LineElementType): bool =
+   leType.length == 8 and leType.code.startsWith("DAT")
 
 proc get_doctype*(typeId: int, version: int, subversion: int): DocumentType = 
    let matches = filter(types, proc(t: DocumentType): bool = t.vektisEICode == typeId and t.formatVersion == version and t.formatSubVersion == subversion)
