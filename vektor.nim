@@ -1,4 +1,4 @@
-import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times
+import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables
 import "doctypes", "names"
 
 type
@@ -9,9 +9,16 @@ type
    
    FieldSpecError = object of Exception
    VektisFormatError = object of Exception
+   NotFoundError = object of Exception
    
    TCommand = enum
       cmdModify, cmdQuery, cmdInfo, cmdHelp
+
+   TRecordRef = ref object
+      lineType: LineType
+      line: string
+      sublines: TableRef[string, TRecordRef]
+      
 
 let helpText = """
    Vektor: a tool for analyzing and modifying Vektis EI declaration files.
@@ -35,7 +42,7 @@ let
    elementSpecPattern = peg"""#
    Pattern <- ^ ElementSpec !.
    ElementSpec <-  {ElementId} '=' {ElementValue} / {ElementId}
-   ElementId <- \d \d
+   ElementId <- \d \d \d \d
    ElementValue <- .*
    """
 
@@ -63,11 +70,15 @@ var
    docType: DocumentType
    lineTypeDetermined: bool = false
    lineType: LineType
-   lineId: string
    optDocTypeName: string = nil
    optVersion: int = -1
    optSubversion: int = -1
    commandWasRead: bool = false
+   recordRoot: TRecordRef = nil
+   recordCursor: TRecordRef = nil
+   # only lines of leaf line type or its parents
+   # will trigger printing of previous leaf
+   leafLineType: LineType
 
 proc log(message: string) =
    stdout.write(message & "\n")
@@ -80,6 +91,50 @@ proc show(message: string) =
       echo message
    else: discard
 
+proc createRecord(line: string): TRecordRef =
+   let lineType = docType.getLineType(line[0..1])
+   TRecordRef(lineType: linetype, line: line, sublines: newTable[string, TRecordRef]())
+
+
+proc find[T](seq1: var seq[T], pred: proc(item: T): bool {.closure.}): T =
+   for i in 0 .. <len(seq1):
+      if pred(seq1[i]):
+         return seq1[i]
+   raise newException(NotFoundError, "Not found.")
+
+proc isSubRecord(doctype: DocumentType, subject: LineType, reference: LineType): bool =
+   if isNil(subject.parentLineId):
+      false
+   else:
+      let parent = doctype.getLineType(subject.parentLineId)
+      parent.lineId == reference.lineId or isSubRecord(doctype, parent, reference)
+
+proc registerLineId(lineId: string) =
+   let lineType = docType.getLineType(lineId)
+   if docType.isSubRecord(lineType, leafLineType):
+      leafLineType = lineType
+   else: discard
+
+proc recordWithLineId(record: TRecordRef, lineId: string): TRecordRef =
+   if record.lineType.lineId == lineId:
+      result = record
+   elif record.sublines.len == 0:
+      raise newException(NotFoundError, "No record found with line id $#" % [lineId])
+   else:
+      for sub in record.sublines.values:
+         let found = recordWithLineId(sub, lineId)
+         if not isNil(found):
+            result = found
+            break
+         else: discard
+
+proc setCurrentRecord(child: TRecordRef) =
+   if isNil(recordRoot):
+      recordRoot = child
+   else:
+      let parent = recordWithLineId(recordRoot, child.lineType.parentLineId)
+      parent.sublines[child.lineType.lineId] = child
+   recordCursor = child
 
 proc parseVektisDate(dateString: string): TimeInfo =
    try:
@@ -105,7 +160,7 @@ proc fetch_doctype(line: string): DocumentType =
    get_doctype(typeId, version, subversion)
 
 proc fetchDebtorRecordDummyType(version: int): DocumentType =
-   get_doctype_by_name(debtorRecordDocumentTypeName, version, 0)
+   getDebtorRecordType(version, 0)
 
 proc getLineType(doctype: DocumentType, lineId: string): LineType =
    let lineTypes = filter(doctype.lineTypes, proc(lt: LineType): bool = lt.lineId == lineId)
@@ -115,7 +170,8 @@ proc getLineType(doctype: DocumentType, lineId: string): LineType =
       result = lineTypes[0]
 
 proc getLineElementType(doctype: DocumentType, ltype: LineType, leId: string): LineElementType =
-   let leTypes = filter(ltype.lineElementTypes, proc(le: LineElementType): bool = le.lineElementId == (ltype.lineId & leId))
+   #echo "getLineElementType: ", leId, " in line ", ltype.lineId
+   let leTypes = filter(ltype.lineElementTypes, proc(le: LineElementType): bool = le.lineElementId == leId)
    if leTypes.len == 0:
       raise newException(FieldSpecError, "Invalid line element ID [$#] for document type $# specified in field parameter $#" % [leId, description(doctype), targetFieldsArg])
    else:
@@ -144,10 +200,12 @@ proc getLineType(line: string): LineType =
    else: discard
    result = lineType
 
-proc createFieldSpec(doctype: DocumentType, targetFieldsArg: string): FieldSpec =
-   let items: seq[string] = split(targetFieldsArg, '=', 1)
+proc createFieldSpec(doctype: DocumentType, elemSpec: string): FieldSpec =
+   let items: seq[string] = split(elemSpec, '=', 1)
    let leId = items[0]
+   let lineId = leId[0..1]
    var value: string = nil
+   echo "createFieldSpec: line: ", lineId, ", el: ", leId
    if leId.len != 2 or not leId.isDigit():
       raise newException(FieldSpecError, "Invalid line element id: $#" % [ leId])
    else:
@@ -200,17 +258,18 @@ proc mutate(fieldSpec: FieldSpec, line: string, buf: var openArray[char]) =
       for i in 0..(length-1):
          buf[start+i] = newValueSeq[i]
 
-proc getFieldValue(fSpec: FieldSpec, line: string): string =
-   let et = getLineElementType(docType, getLineType(line), fSpec.leTypeId)
-   let start = et.startPosition-1
-   let fin = start + et.length-1
-   line[start..fin]
+proc getFieldValue(fSpec: FieldSpec): string =
+   let lineRecord = recordRoot.recordWithLineId(fSpec.lineId)
+   let leType = getLineElementType(docType, lineRecord.lineType, fSpec.leTypeId)
+   let start = leType.startPosition-1
+   let fin = start + leType.length-1
+   lineRecord.line[start..fin]
 
 proc printLine(line: string) = 
-   if line.startsWith(lineId):
+   if line.startsWith(leafLineType.lineId):
       stdout.write("| ")
       for field in targetFields:
-         stdout.write(getFieldValue(field, line))
+         stdout.write(getFieldValue(field))
          stdout.write(" | ")
       stdout.write("\n")
 
@@ -267,9 +326,12 @@ proc readCommand(cmdString: string) =
    commandWasRead = true
 
 proc readElementSpec(spec: string): FieldSpec =
-   echo "readElementSpec:", spec
    if spec =~ elementSpecPattern:
-      result = FieldSpec(lineId: lineId, leTypeId: matches[0], value: matches[1])
+      let leTypeId = matches[0]
+      let value = matches[1]
+      let lineId = leTypeId[0..1]
+      registerLineId(lineId)
+      result = FieldSpec(lineId: lineId, leTypeId: leTypeId, value: value)
    else:
       raise newException(FieldSpecError, "Invalid line element specification: $#" % [spec])
 
@@ -289,7 +351,7 @@ for kind, key, value in getopt():
    of cmdLongoption, cmdShortOption:
       case key 
       of "e", "elements":
-         readFieldSpecs(value, targetFields, "-e, --elements")
+         targetFieldsArg = value
       of "f", "filter":
          filterFieldsArg = value
       of "o", "outputPath":
@@ -298,8 +360,6 @@ for kind, key, value in getopt():
          readVersion(value)
       of "d", "doctypename":
          optDocTypeName = value
-      of "l", "lineId":
-         lineId = value
    of cmdArgument:
       if commandWasRead:
          inputfile = key
@@ -314,14 +374,12 @@ elif command == cmdHelp:
 elif command == cmdInfo:
    showTypes()
 else:
-   if isNil(lineId):
-      quit("You need to specify a line id (e.g. -l:04)")   
-   if not isDigit(lineId):
-      quit("Invalid line id (should be e.g. -l:04)")   
    if isNil(inputfile) or inputfile.len == 0:
       quit("You need to specify an input file")
    elif not existsFile(inputfile):
       quit("Specified input file not found: '$#'" % [inputfile])
+   elif isNil(targetFieldsArg) or targetFieldsArg.len == 0:
+      quit("You need to specify line elements (-e:0203,0207 or --elements 0203,0207 )")
    else:
       if command == cmdModify and (isNil(outputPath) or outputPath.len == 0):
          quit("No output file specified (-o:filename).")
@@ -332,17 +390,22 @@ else:
             if line.startswith("01"):
                try:
                   docType = fetch_doctype(line)
+                  let lineType = docType.getLineType("01")
+                  setCurrentRecord(createRecord(line))
+                  leafLineType = lineType
                   show("Document type: $#" % [description(docType)])
+                  readFieldSpecs(targetFieldsArg, targetFields, "-e, --elements")
                   if command == cmdModify:
                      var outputFile: File
                      if open(outputFile, outputPath, fmWrite):
                         mutateAndWrite(line, outputFile)
                         while input.readLine(line):
+                           setCurrentRecord(createRecord(line))
                            mutateAndWrite(line, outputFile)
                         close(outputFile)
                   elif command == cmdQuery:
-                     printLine(line)
                      while input.readLine(line):
+                        setCurrentRecord(createRecord(line))
                         printLine(line)
                   else:
                      quit("Unknown command.")
