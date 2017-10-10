@@ -35,7 +35,6 @@ let
    blanksSet: set[char] = { ' ' }
    debtorRecordVersionStartIndex = 298
    debtorRecordVersionEndIndex = 299
-   debtorRecordDocumentTypeName = "SB311"
    debtorRecordLineId = "03"
    kVektisDateFormat = "yyyyMMdd"
    
@@ -79,12 +78,19 @@ var
    # only lines of leaf line type or its parents
    # will trigger printing of previous leaf
    leafLineType: LineType
+   gWritingToFile: bool = false
 
 proc log(message: string) =
    stdout.write(message & "\n")
 
 proc description(doctype: DocumentType): string =
    "$# v$#.$#   $#" % [doctype.name, intToStr(doctype.formatVersion), intToStr(doctype.formatSubVersion), doctype.description]
+
+proc toString(fs: FieldSpec): string = 
+   "FieldSpec lId: $#, leId: $#, value: $#" % [fs.lineId, fs.leTypeId, fs.value]
+
+proc toString(rRef: TRecordRef): string = 
+   "TRecordRef[lt: $#]" % [rRef.lineType.lineId]
 
 proc show(message: string) =
    if command != cmdQuery:
@@ -104,10 +110,10 @@ proc find[T](seq1: var seq[T], pred: proc(item: T): bool {.closure.}): T =
 
 proc isSubRecord(doctype: DocumentType, subject: LineType, reference: LineType): bool =
    if isNil(subject.parentLineId):
-      false
+      result = false
    else:
       let parent = doctype.getLineType(subject.parentLineId)
-      parent.lineId == reference.lineId or isSubRecord(doctype, parent, reference)
+      result = parent.lineId == reference.lineId or isSubRecord(doctype, parent, reference)
 
 proc registerLineId(lineId: string) =
    let lineType = docType.getLineType(lineId)
@@ -218,11 +224,11 @@ proc createFieldSpec(doctype: DocumentType, elemSpec: string): FieldSpec =
          result = FieldSpec(lineId: lineId, leTypeId: leId)
       
 
-proc writeToFile(buf: seq[char], file: File) = 
+proc writeToStream(buf: seq[char], stream: Stream) = 
    for c in buf:
-      file.write(c)
-   file.write('\r')
-   file.write('\l')
+      stream.write(c)
+   stream.write('\r')
+   stream.write('\l')
 
 proc mytrim(value: string, length: int): string = 
    result = if value.len > length: value[0..length-1] else: value
@@ -247,7 +253,8 @@ proc elementValue(leType: LineElementType, value: string): string =
    #log("elementValue -> '$#', $#" % [result, intToStr(result.len)])
 
 proc mutate(fieldSpec: FieldSpec, line: string, buf: var openArray[char]) =
-   if fieldSpec.lineId == line[0..1]:
+   let lineLineId = line[0..1]
+   if fieldSpec.lineId == lineLineId:
       let leType = getLineElementType(docType, getLineType(line), fieldSpec.leTypeId)
       let start: int = leType.startPosition-1
       let length = leType.length
@@ -265,6 +272,7 @@ proc getFieldValue(fSpec: FieldSpec): string =
    let fin = start + leType.length-1
    lineRecord.line[start..fin]
 
+
 proc printLine(line: string) = 
    if line.startsWith(leafLineType.lineId):
       stdout.write("| ")
@@ -273,11 +281,11 @@ proc printLine(line: string) =
          stdout.write(" | ")
       stdout.write("\n")
 
-proc mutateAndWrite(line: var string, file: File) =
+proc mutateAndWrite(line: var string, outStream: Stream) =
    var buf = toSeq(line.mitems)
    for field in targetFields:
       mutate(field, line, buf)
-   writeToFile(buf, file)
+   writeToStream(buf, outStream)
 
 proc fieldSpecsFromString(doctype: DocumentType, source: string): seq[FieldSpec] =
    lc[createFieldSpec(doctype, item) | (item <- source.split(',')), FieldSpec]
@@ -396,13 +404,15 @@ else:
                   show("Document type: $#" % [description(docType)])
                   readFieldSpecs(targetFieldsArg, targetFields, "-e, --elements")
                   if command == cmdModify:
-                     var outputFile: File
-                     if open(outputFile, outputPath, fmWrite):
-                        mutateAndWrite(line, outputFile)
+                     var outStream: Stream = newFileStream(outputPath, fmWrite)
+                     if not isNil(outStream):
+                        mutateAndWrite(line, outStream)
                         while input.readLine(line):
                            setCurrentRecord(createRecord(line))
-                           mutateAndWrite(line, outputFile)
-                        close(outputFile)
+                           mutateAndWrite(line, outStream)
+                        outStream.close()
+                     else:
+                        quit("Could not create file '$#'" % [outputPath])
                   elif command == cmdQuery:
                      while input.readLine(line):
                         setCurrentRecord(createRecord(line))

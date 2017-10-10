@@ -974,7 +974,7 @@ let doctypes_json_string = """
       {
         "length": 310,
         "lineId": "98",
-        "parentLineId": "04",
+        "parentLineId": "01",
         "name": "CommentaarRecord",
         "lineElementTypes": [
           {
@@ -1871,7 +1871,7 @@ let doctypes_json_string = """
       {
         "length": 360,
         "lineId": "98",
-        "parentLineId": "04",
+        "parentLineId": "01",
         "name": "CommentaarRecord",
         "lineElementTypes": [
           {
@@ -3144,7 +3144,7 @@ let doctypes_json_string = """
       {
         "length": 310,
         "lineId": "98",
-        "parentLineId": "04",
+        "parentLineId": "01",
         "name": "CommentaarRecord",
         "lineElementTypes": [
           {
