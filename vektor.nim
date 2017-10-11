@@ -12,7 +12,7 @@ type
    NotFoundError = object of Exception
    
    TCommand = enum
-      cmdModify, cmdQuery, cmdInfo, cmdHelp
+      cmdCopy, cmdQuery, cmdInfo, cmdHelp
 
    TRecordRef = ref object
       lineType: LineType
@@ -65,13 +65,13 @@ var
    filterFields: seq[FieldSpec] = @[]
    inputfile: string = nil
    outputPath: string = nil
-   command: TCommand = cmdModify
+   command: TCommand = cmdCopy
+   commandArgs: seq[string] = @[]
    docType: DocumentType
    lineTypeDetermined: bool = false
    lineType: LineType
-   optDocTypeName: string = nil
-   optVersion: int = -1
-   optSubversion: int = -1
+   optVersion: int = 1
+   optSubversion: int = 0
    commandWasRead: bool = false
    recordRoot: TRecordRef = nil
    recordCursor: TRecordRef = nil
@@ -79,6 +79,10 @@ var
    # will trigger printing of previous leaf
    leafLineType: LineType
    gWritingToFile: bool = false
+   argDocTypeName: string
+   optLineId: string
+   argSourceFilePath: string
+   argDestFilePath: string
 
 proc log(message: string) =
    stdout.write(message & "\n")
@@ -167,13 +171,6 @@ proc fetch_doctype(line: string): DocumentType =
 
 proc fetchDebtorRecordDummyType(version: int): DocumentType =
    getDebtorRecordType(version, 0)
-
-proc getLineType(doctype: DocumentType, lineId: string): LineType =
-   let lineTypes = filter(doctype.lineTypes, proc(lt: LineType): bool = lt.lineId == lineId)
-   if lineTypes.len == 0:
-      raise newException(FieldSpecError, "Invalid line ID [$#] for document type $# specified." % [lineId, description(doctype)])
-   else:
-      result = lineTypes[0]
 
 proc getLineElementType(doctype: DocumentType, ltype: LineType, leId: string): LineElementType =
    #echo "getLineElementType: ", leId, " in line ", ltype.lineId
@@ -292,14 +289,37 @@ proc fieldSpecsFromString(doctype: DocumentType, source: string): seq[FieldSpec]
 
 
 proc isSelected(dt: DocumentType): bool =
-   (isNil(optDocTypeName) or optDocTypeName == dt.name) and (optVersion == -1 or optVersion == dt.formatVersion) and (optSubversion == -1 or optSubversion == dt.formatSubVersion)
+   (isNil(argDocTypeName) or argDocTypeName == dt.name) and (optVersion == -1 or optVersion == dt.formatVersion) and (optSubversion == -1 or optSubversion == dt.formatSubVersion)
 
 proc selectDocTypes(): seq[DocumentType] =
    result = filter(get_all_doctypes(), isSelected)
 
-proc showTypes() =
+proc showDocumentTypes() =
    for doctype in selectDocTypes():
       echo description(doctype)
+
+proc showLineTypeInfo(doctype: DocumentType, ltId: string) =
+   let lt = doctype.getLineType(ltId)
+   echo description(doctype), ": ", lt.name
+   echo "ID     V-code    Pos    Len   Description"
+   for et in lt.lineElementTypes:
+      echo "$#   $#   $#   $#   $#" % [et.lineElementId, et.code, intToStr(et.startPosition, 4), intToStr(et.length, 4), et.description]
+
+proc showDocumentTypeInfo(doctype: DocumentType) =
+   echo description(doctype)
+   echo "ID   Len   Description"
+   for lineType in doctype.lineTypes:
+      echo "$#   $#   $#" % [lineType.lineId, intToStr(lineType.length,3), lineType.name]
+
+proc showInfo() =
+   if isNil(argDocTypeName):
+      showDocumentTypes()
+   else:
+      let doctype = get_doctype_by_name(argDocTypeName.toUpper(), optVersion, optSubversion)
+      if isNil(optLineId):
+         showDocumentTypeInfo(doctype)
+      else:
+         showLineTypeInfo(doctype, optLineId)
 
 proc readVersion(versionString: string) =
    if isNil(versionString) or versionString.len == 0:
@@ -326,7 +346,7 @@ proc readCommand(cmdString: string) =
    of "show":
       command = cmdQuery
    of "copy":
-      command = cmdModify
+      command = cmdCopy
    of "help":
       command = cmdHelp
    else:
@@ -354,6 +374,26 @@ proc readFieldSpecs(value: string, fields: var seq[FieldSpec], argName: string) 
 
 randomize()
 
+proc checkCommandArgs(minCount: int, errorMessage: string) =
+   if commandArgs.len < minCount:
+      quit(errorMessage)
+
+proc readCommandArgument(arg: string) =
+   commandArgs.add(arg)
+
+proc processCommandArgs() =
+   if command == cmdInfo:
+      if commandArgs.len > 0:
+         argDocTypeName = commandArgs[0]
+         if optVersion == 0:
+            quit("For information on a document type you also need to specify a version (e.g. -v:1.0)")
+         else: discard
+   elif command == cmdCopy:
+      checkCommandArgs(2, "You need to specify a source file and a destination file (e.g: vektor copy source.asc dest.asc -e:...).")
+      argSourceFilePath = commandArgs[0]
+      argDestFilePath = commandArgs[1]
+   else: discard
+
 for kind, key, value in getopt():
    case kind
    of cmdLongoption, cmdShortOption:
@@ -362,66 +402,65 @@ for kind, key, value in getopt():
          targetFieldsArg = value
       of "f", "filter":
          filterFieldsArg = value
+      of "l", "lineid":
+         optLineId = value
       of "o", "outputPath":
          outputPath = value
       of "v", "version":
          readVersion(value)
       of "d", "doctypename":
-         optDocTypeName = value
+         argDocTypeName = value
    of cmdArgument:
       if commandWasRead:
-         inputfile = key
+         readCommandArgument(key)
       else:
          readCommand(key)
    of cmdEnd: assert(false) # cannot happen
+
+processCommandArgs()
 
 if not commandWasRead:
    showHelp()
 elif command == cmdHelp:
    showHelp()
 elif command == cmdInfo:
-   showTypes()
+   showInfo()
 else:
-   if isNil(inputfile) or inputfile.len == 0:
-      quit("You need to specify an input file")
-   elif not existsFile(inputfile):
-      quit("Specified input file not found: '$#'" % [inputfile])
+   if not existsFile(argSourceFilePath):
+      quit("Specified source file not found: '$#'" % [argSourceFilePath])
    elif isNil(targetFieldsArg) or targetFieldsArg.len == 0:
       quit("You need to specify line elements (-e:0203,0207 or --elements 0203,0207 )")
    else:
-      if command == cmdModify and (isNil(outputPath) or outputPath.len == 0):
-         quit("No output file specified (-o:filename).")
-      else:
-         let input = newFileStream(inputfile, fmRead)
-         var line: string = ""
-         if input.readLine(line):
-            if line.startswith("01"):
-               try:
-                  docType = fetch_doctype(line)
-                  let lineType = docType.getLineType("01")
-                  setCurrentRecord(createRecord(line))
-                  leafLineType = lineType
-                  show("Document type: $#" % [description(docType)])
-                  readFieldSpecs(targetFieldsArg, targetFields, "-e, --elements")
-                  if command == cmdModify:
-                     var outStream: Stream = newFileStream(outputPath, fmWrite)
-                     if not isNil(outStream):
-                        mutateAndWrite(line, outStream)
-                        while input.readLine(line):
-                           setCurrentRecord(createRecord(line))
-                           mutateAndWrite(line, outStream)
-                        outStream.close()
-                     else:
-                        quit("Could not create file '$#'" % [outputPath])
-                  elif command == cmdQuery:
+      let input = newFileStream(argSourceFilePath, fmRead)
+      var line: string = ""
+      if input.readLine(line):
+         if line.startswith("01"):
+            try:
+               docType = fetch_doctype(line)
+               let lineType = docType.getLineType("01")
+               setCurrentRecord(createRecord(line))
+               leafLineType = lineType
+               show("Document type: $#" % [description(docType)])
+               readFieldSpecs(targetFieldsArg, targetFields, "-e, --elements")
+               if command == cmdCopy:
+                  var outStream: Stream = newFileStream(argDestFilePath, fmWrite)
+                  if not isNil(outStream):
+                     mutateAndWrite(line, outStream)
                      while input.readLine(line):
                         setCurrentRecord(createRecord(line))
-                        printLine(line)
+                        mutateAndWrite(line, outStream)
+                     outStream.close()
                   else:
-                     quit("Unknown command.")
-               except Exception:
-                  quit(getCurrentExceptionMsg())
-            else:
-               quit("File is not a Vektis format (first two characters should be 01)")
-         input.close
+                     quit("Could not create file '$#'" % [outputPath])
+               elif command == cmdQuery:
+                  while input.readLine(line):
+                     setCurrentRecord(createRecord(line))
+                     printLine(line)
+               else:
+                  quit("Unknown command.")
+            except Exception:
+               quit(getCurrentExceptionMsg())
+         else:
+            quit("File is not a Vektis format (first two characters should be 01)")
+      input.close
    
