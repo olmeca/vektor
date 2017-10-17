@@ -1,5 +1,5 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables
-import "doctypes", "names"
+import "doctypes", "names", "qualifiers"
 
 type
    FieldSpec = object
@@ -8,11 +8,10 @@ type
       value: string
    
    FieldSpecError = object of Exception
-   VektisFormatError = object of Exception
    NotFoundError = object of Exception
    
    TCommand = enum
-      cmdCopy, cmdQuery, cmdInfo, cmdHelp
+      cmdCopy, cmdQuery, cmdInfo, cmdHelp, cmdPrint
 
    TRecordRef = ref object
       lineType: LineType
@@ -33,9 +32,6 @@ let helpText = """
 """
 let 
    blanksSet: set[char] = { ' ' }
-   debtorRecordVersionStartIndex = 298
-   debtorRecordVersionEndIndex = 299
-   debtorRecordLineId = "03"
    kVektisDateFormat = "yyyyMMdd"
    
    elementSpecPattern = peg"""#
@@ -62,27 +58,24 @@ var
    targetFieldsArg: string
    targetFields: seq[FieldSpec] = @[]
    filterFieldsArg: string
-   filterFields: seq[FieldSpec] = @[]
-   inputfile: string = nil
    outputPath: string = nil
    command: TCommand = cmdCopy
    commandArgs: seq[string] = @[]
    docType: DocumentType
-   lineTypeDetermined: bool = false
-   lineType: LineType
-   optVersion: int = 1
-   optSubversion: int = 0
+   optVersion: int = -1
+   optSubversion: int = -1
    commandWasRead: bool = false
    recordRoot: TRecordRef = nil
    recordCursor: TRecordRef = nil
    # only lines of leaf line type or its parents
    # will trigger printing of previous leaf
    leafLineType: LineType
-   gWritingToFile: bool = false
    argDocTypeName: string
    optLineId: string
    argSourceFilePath: string
    argDestFilePath: string
+   lineQualifier: LineQualifier = nil
+   qualifierString: string
 
 proc log(message: string) =
    stdout.write(message & "\n")
@@ -102,15 +95,10 @@ proc show(message: string) =
    else: discard
 
 proc createRecord(line: string): TRecordRef =
-   let lineType = docType.getLineType(line[0..1])
+   let lineId = line[0..1]
+   let lineType = docType.getLineTypeForLineId(lineId)
    TRecordRef(lineType: linetype, line: line, sublines: newTable[string, TRecordRef]())
 
-
-proc find[T](seq1: var seq[T], pred: proc(item: T): bool {.closure.}): T =
-   for i in 0 .. <len(seq1):
-      if pred(seq1[i]):
-         return seq1[i]
-   raise newException(NotFoundError, "Not found.")
 
 proc isSubRecord(doctype: DocumentType, subject: LineType, reference: LineType): bool =
    if isNil(subject.parentLineId):
@@ -139,9 +127,12 @@ proc recordWithLineId(record: TRecordRef, lineId: string): TRecordRef =
          else: discard
 
 proc setCurrentRecord(child: TRecordRef) =
+   # echo "setCurrentRecord: lt: $#" % [child.lineType.lineId]
    if isNil(recordRoot):
+      # echo "setCurrentRecord: setting root."
       recordRoot = child
    else:
+      # echo "setCurrentRecord: root exists: $#" % [recordRoot.lineType.lineId]
       let parent = recordWithLineId(recordRoot, child.lineType.parentLineId)
       parent.sublines[child.lineType.lineId] = child
    recordCursor = child
@@ -169,57 +160,6 @@ proc fetch_doctype(line: string): DocumentType =
    let subversion = parseInt(line[7 .. 8])
    get_doctype(typeId, version, subversion)
 
-proc fetchDebtorRecordDummyType(version: int): DocumentType =
-   getDebtorRecordType(version, 0)
-
-proc getLineElementType(doctype: DocumentType, ltype: LineType, leId: string): LineElementType =
-   #echo "getLineElementType: ", leId, " in line ", ltype.lineId
-   let leTypes = filter(ltype.lineElementTypes, proc(le: LineElementType): bool = le.lineElementId == leId)
-   if leTypes.len == 0:
-      raise newException(FieldSpecError, "Invalid line element ID [$#] for document type $# specified in field parameter $#" % [leId, description(doctype), targetFieldsArg])
-   else:
-      result = leTypes[0]
-
-proc determineLineType(defaultDocType: DocumentType, line: string): LineType =
-   let lineId = line[0..1]
-   result = getLineType(defaultDocType, lineId)
-   lineTypeDetermined = true
-   if lineId == debtorRecordLineId:
-      if line.len > debtorRecordVersionEndIndex:
-         var doctype = defaultDocType
-         case line[debtorRecordVersionStartIndex..debtorRecordVersionEndIndex]
-         of "01":
-            doctype = fetchDebtorRecordDummyType(1)
-         of "02":
-            doctype = fetchDebtorRecordDummyType(1)
-         else: discard
-         result = getLineType(doctype, lineId)
-      else:
-         raise newException(VektisFormatError, "Invalid line length for debtor record.")
-
-proc getLineType(line: string): LineType =
-   if not lineTypeDetermined:
-      lineType = determineLineType(docType, line)
-   else: discard
-   result = lineType
-
-proc createFieldSpec(doctype: DocumentType, elemSpec: string): FieldSpec =
-   let items: seq[string] = split(elemSpec, '=', 1)
-   let leId = items[0]
-   let lineId = leId[0..1]
-   var value: string = nil
-   echo "createFieldSpec: line: ", lineId, ", el: ", leId
-   if leId.len != 2 or not leId.isDigit():
-      raise newException(FieldSpecError, "Invalid line element id: $#" % [ leId])
-   else:
-      # if a value was specified
-      if items.len > 1:
-         value = items[1]
-         result = FieldSpec(lineId: lineId, leTypeId: leId, value: value)
-      # no value was specified, indicating the empty value
-      else: 
-         result = FieldSpec(lineId: lineId, leTypeId: leId)
-      
 
 proc writeToStream(buf: seq[char], stream: Stream) = 
    for c in buf:
@@ -252,7 +192,7 @@ proc elementValue(leType: LineElementType, value: string): string =
 proc mutate(fieldSpec: FieldSpec, line: string, buf: var openArray[char]) =
    let lineLineId = line[0..1]
    if fieldSpec.lineId == lineLineId:
-      let leType = getLineElementType(docType, getLineType(line), fieldSpec.leTypeId)
+      let leType = getLineElementType(docType, fieldSpec.leTypeId)
       let start: int = leType.startPosition-1
       let length = leType.length
       var newValue = elementValue(leType, fieldSpec.value)
@@ -262,48 +202,59 @@ proc mutate(fieldSpec: FieldSpec, line: string, buf: var openArray[char]) =
       for i in 0..(length-1):
          buf[start+i] = newValueSeq[i]
 
-proc getFieldValue(fSpec: FieldSpec): string =
-   let lineRecord = recordRoot.recordWithLineId(fSpec.lineId)
-   let leType = getLineElementType(docType, lineRecord.lineType, fSpec.leTypeId)
-   let start = leType.startPosition-1
-   let fin = start + leType.length-1
-   lineRecord.line[start..fin]
+proc padright(source: string, length: int, fillChar: char = ' '): string =
+   source & repeat(fillChar, length - source.len)
 
+proc getFieldValueFullString(fSpec: FieldSpec): string =
+   let lineRecord = recordRoot.recordWithLineId(fSpec.lineId)
+   result = docType.getElementValueFullString(lineRecord.line, fSpec.leTypeId)
+
+proc conditionIsMet(): bool =
+   if isNil(lineQualifier):
+      result = true
+   else:
+      try:
+         let lineRecord = recordRoot.recordWithLineId(lineQualifier.lineId)
+         result = lineQualifier.qualifies(lineRecord.line)
+      except NotFoundError:
+         result = false
 
 proc printLine(line: string) = 
-   if line.startsWith(leafLineType.lineId):
+   if line.startsWith(leafLineType.lineId) and conditionIsMet():
       stdout.write("| ")
       for field in targetFields:
-         stdout.write(getFieldValue(field))
+         stdout.write(getFieldValueFullString(field))
          stdout.write(" | ")
       stdout.write("\n")
 
 proc mutateAndWrite(line: var string, outStream: Stream) =
    var buf = toSeq(line.mitems)
-   for field in targetFields:
-      mutate(field, line, buf)
+   if conditionIsMet():
+      for field in targetFields:
+         mutate(field, line, buf)
    writeToStream(buf, outStream)
-
-proc fieldSpecsFromString(doctype: DocumentType, source: string): seq[FieldSpec] =
-   lc[createFieldSpec(doctype, item) | (item <- source.split(',')), FieldSpec]
 
 
 proc isSelected(dt: DocumentType): bool =
-   (isNil(argDocTypeName) or argDocTypeName == dt.name) and (optVersion == -1 or optVersion == dt.formatVersion) and (optSubversion == -1 or optSubversion == dt.formatSubVersion)
+   (isNil(argDocTypeName) or dt.name.startsWith(argDocTypeName)) and (optVersion == -1 or optVersion == dt.formatVersion) and (optSubversion == -1 or optSubversion == dt.formatSubVersion)
 
 proc selectDocTypes(): seq[DocumentType] =
-   result = filter(get_all_doctypes(), isSelected)
+   result = filter(allDocumentTypes(), isSelected)
 
 proc showDocumentTypes() =
    for doctype in selectDocTypes():
       echo description(doctype)
 
+#proc printDocumentTypesCode(out: Stream) =
+#   for doctype in get_all_doctypes():
+#      printCode( doctype,out)
+
 proc showLineTypeInfo(doctype: DocumentType, ltId: string) =
    let lt = doctype.getLineType(ltId)
    echo description(doctype), ": ", lt.name
-   echo "ID     V-code    Pos    Len   Description"
+   echo "ID     V-code    Pos    Len   Type   Description"
    for et in lt.lineElementTypes:
-      echo "$#   $#   $#   $#   $#" % [et.lineElementId, et.code, intToStr(et.startPosition, 4), intToStr(et.length, 4), et.description]
+      echo "$#   $#   $#   $#   $#   $#" % [et.lineElementId, et.code, intToStr(et.startPosition, 4), intToStr(et.length, 4), padright(et.fieldType, 4), et.description]
 
 proc showDocumentTypeInfo(doctype: DocumentType) =
    echo description(doctype)
@@ -311,11 +262,13 @@ proc showDocumentTypeInfo(doctype: DocumentType) =
    for lineType in doctype.lineTypes:
       echo "$#   $#   $#" % [lineType.lineId, intToStr(lineType.length,3), lineType.name]
 
+proc isVersionMissing(): bool = optVersion == -1 and optSubversion == -1
+
 proc showInfo() =
-   if isNil(argDocTypeName):
+   if isNil(argDocTypeName) or isVersionMissing():
       showDocumentTypes()
    else:
-      let doctype = get_doctype_by_name(argDocTypeName.toUpper(), optVersion, optSubversion)
+      let doctype = documentTypeMatching(argDocTypeName.toUpper(), optVersion, optSubversion)
       if isNil(optLineId):
          showDocumentTypeInfo(doctype)
       else:
@@ -349,6 +302,8 @@ proc readCommand(cmdString: string) =
       command = cmdCopy
    of "help":
       command = cmdHelp
+   of "print":
+      command = cmdPrint
    else:
       quit("Please specify one of the following commands: info, show, copy or help.")
    commandWasRead = true
@@ -388,10 +343,13 @@ proc processCommandArgs() =
          if optVersion == 0:
             quit("For information on a document type you also need to specify a version (e.g. -v:1.0)")
          else: discard
+      else: discard
    elif command == cmdCopy:
       checkCommandArgs(2, "You need to specify a source file and a destination file (e.g: vektor copy source.asc dest.asc -e:...).")
       argSourceFilePath = commandArgs[0]
       argDestFilePath = commandArgs[1]
+   elif command == cmdQuery:
+      argSourceFilePath = commandArgs[0]
    else: discard
 
 for kind, key, value in getopt():
@@ -408,8 +366,8 @@ for kind, key, value in getopt():
          outputPath = value
       of "v", "version":
          readVersion(value)
-      of "d", "doctypename":
-         argDocTypeName = value
+      of "c", "condition":
+         qualifierString = value
    of cmdArgument:
       if commandWasRead:
          readCommandArgument(key)
@@ -425,9 +383,12 @@ elif command == cmdHelp:
    showHelp()
 elif command == cmdInfo:
    showInfo()
+elif command == cmdPrint:
+   echo "Print command not supported yet"
+   # printDocumentTypesCode(stdout)
 else:
    if not existsFile(argSourceFilePath):
-      quit("Specified source file not found: '$#'" % [argSourceFilePath])
+      quit("Specified source file not found: $#" % [argSourceFilePath])
    elif isNil(targetFieldsArg) or targetFieldsArg.len == 0:
       quit("You need to specify line elements (-e:0203,0207 or --elements 0203,0207 )")
    else:
@@ -437,6 +398,9 @@ else:
          if line.startswith("01"):
             try:
                docType = fetch_doctype(line)
+               if not isNil(qualifierString):
+                  lineQualifier = docType.parseQualifier(qualifierString)
+               else: discard
                let lineType = docType.getLineType("01")
                setCurrentRecord(createRecord(line))
                leafLineType = lineType

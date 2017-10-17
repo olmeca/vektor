@@ -25,6 +25,14 @@ type
       formatSubVersion*: int
       vektisEICode: int
       lineTypes*: seq[LineType]
+   
+   VektisFormatError = object of Exception
+
+let 
+   debtorRecordLineId* = "03"
+   debtorRecordVersionStartIndex = 298
+   debtorRecordVersionEndIndex = 299
+
 
 let doctypes_json_string = """
 [
@@ -3798,9 +3806,13 @@ let types = lc[to(node, DocumentType) | (node <- typesJson), DocumentType]
 let debtorRecordTypesJson = parseJson(debtorRecordTypesString)
 let debtorRecordTypes = lc[to(node, DocumentType) | (node <- debtorRecordTypesJson), DocumentType]
 let debtorRecordTypeName = "SB311"
+let blanksSet: set[char] = { ' ' }
 
 proc isDate*(leType: LineElementType): bool =
    leType.length == 8 and leType.code.startsWith("DAT")
+
+proc stripBlanks(source: string): string =
+   strip(source, true, true, blanksSet)
 
 proc get_doctype*(typeId: int, version: int, subversion: int): DocumentType = 
    let matches = filter(types, proc(t: DocumentType): bool = t.vektisEICode == typeId and t.formatVersion == version and t.formatSubVersion == subversion)
@@ -3817,18 +3829,64 @@ proc getDebtorRecordType*(version: int, subversion: int): DocumentType =
    else:
       result = matches[0]
 
-proc get_doctype_by_name*(name: string, version: int, subversion: int): DocumentType = 
+proc documentTypeMatching*(name: string, version: int, subversion: int): DocumentType = 
    let matches = filter(types, proc(t: DocumentType): bool = t.name == name and t.formatVersion == version and t.formatSubVersion == subversion)
    if matches.len == 0:
       raise newException(DocumentTypeError, "Unknown declaration format: name: '$#', version: $#, subversion: $#" % [name, intToStr(version), intToStr(subversion)])
    else:
       result = matches[0]
 
-proc getLineType*(doctype: DocumentType, lineId: string): LineType =
+proc getLineTypeForLineId*(doctype: DocumentType, lineId: string): LineType =
    let lineTypes = doctype.lineTypes.filter(proc (lt: LineType): bool = lt.lineId == lineId)
    if lineTypes.len == 0:
       raise newException(ValueError, "Document $# does not have a line type with ID $#" % [doctype.name, lineId])
    else:
       result = lineTypes[0]
 
-proc get_all_doctypes*(): seq[DocumentType] = types
+proc getLineType*(defaultDocType: DocumentType, line: string): LineType =
+   let lineId = line[0..1]
+   result = getLineTypeForLineId(defaultDocType, lineId)
+   if lineId == debtorRecordLineId:
+      if line.len > debtorRecordVersionEndIndex:
+         var doctype = defaultDocType
+         case line[debtorRecordVersionStartIndex..debtorRecordVersionEndIndex]
+         of "01":
+            doctype = debtorRecordTypes[0]
+         of "02":
+            doctype = debtorRecordTypes[1]
+         else: discard
+         result = getLineTypeForLineId(doctype, lineId)
+      else:
+         raise newException(VektisFormatError, "Invalid line length for debtor record: $#" % [intToStr(line.len)])
+
+
+proc allDocumentTypes*(): seq[DocumentType] = types
+   
+proc getLineId*(line: string): string = 
+   if isNil(line) or line.len < 4:
+      raise newException(ValueError, "Cannot get line id from '$#'" % [line])
+   else:
+      result = line[0 .. 1]
+
+proc getLineElementType*(lineType: LineType, leId: string): LineElementType =
+   let results = lineType.lineElementTypes.filter(proc(et: LineElementType): bool = et.lineElementId == leId)
+   if results.len == 0:
+      raise newException(ValueError, "LineType '$#' does not have an element with id '$#'." % [lineType.lineId, leId])
+   else:
+      result = results[0]
+
+proc getLineElementType*(docType: DocumentType, leId: string): LineElementType =
+   let lineType = getLineTypeForLineId(docType, getLineId(leId))
+   result = lineType.getLineElementType(leId)
+
+proc getElementValueFullString*(docType: DocumentType, line: string, lineElementId: string): string =
+   assert line[0..1] == lineElementId[0..1]
+   let lineType = docType.getLineType(line)
+   let leType = lineType.getLineElementType(lineElementId)
+   let start = leType.startPosition-1
+   let fin = start + leType.length-1
+   result = line[start..fin]
+
+proc getElementValueString*(docType: DocumentType, line: string, lineElementId: string): string =
+   result = stripBlanks(getElementValueFullString(docType, line, lineElementId))
+
