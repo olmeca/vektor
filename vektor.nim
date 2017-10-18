@@ -108,7 +108,7 @@ proc isSubRecord(doctype: DocumentType, subject: LineType, reference: LineType):
       result = parent.lineId == reference.lineId or isSubRecord(doctype, parent, reference)
 
 proc registerLineId(lineId: string) =
-   let lineType = docType.getLineType(lineId)
+   let lineType = docType.getLineTypeForLineId(lineId)
    if docType.isSubRecord(lineType, leafLineType):
       leafLineType = lineType
    else: discard
@@ -250,7 +250,7 @@ proc showDocumentTypes() =
 #      printCode( doctype,out)
 
 proc showLineTypeInfo(doctype: DocumentType, ltId: string) =
-   let lt = doctype.getLineType(ltId)
+   let lt = doctype.getLineTypeForLineId(ltId)
    echo description(doctype), ": ", lt.name
    echo "ID     V-code    Pos    Len   Type   Description"
    for et in lt.lineElementTypes:
@@ -417,6 +417,7 @@ else:
                   else:
                      quit("Could not create file '$#'" % [outputPath])
                elif command == cmdQuery:
+                  printLine(line)
                   while input.readLine(line):
                      setCurrentRecord(createRecord(line))
                      printLine(line)
