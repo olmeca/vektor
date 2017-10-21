@@ -1,5 +1,5 @@
-import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables
-import "doctypes", "names", "qualifiers"
+import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
+import "doctypes", "names", "qualifiers", "common"
 
 type
    FieldSpec = object
@@ -8,16 +8,9 @@ type
       value: string
    
    FieldSpecError = object of Exception
-   NotFoundError = object of Exception
    
    TCommand = enum
       cmdCopy, cmdQuery, cmdInfo, cmdHelp, cmdPrint
-
-   TRecordRef = ref object
-      lineType: LineType
-      line: string
-      sublines: TableRef[string, TRecordRef]
-      
 
 let helpText = """
    Vektor: a tool for analyzing and modifying Vektis EI declaration files.
@@ -65,8 +58,8 @@ var
    optVersion: int = -1
    optSubversion: int = -1
    commandWasRead: bool = false
-   recordRoot: TRecordRef = nil
-   recordCursor: TRecordRef = nil
+   rootContext: Context = nil
+   contextCursor: Context = nil
    # only lines of leaf line type or its parents
    # will trigger printing of previous leaf
    leafLineType: LineType
@@ -77,6 +70,11 @@ var
    lineQualifier: LineQualifier = nil
    qualifierString: string
 
+proc enableDebugLogging() =
+   var fileLogger = newFileLogger("vektor.log", fmtStr = verboseFmtStr)
+   addHandler(fileLogger)
+   setLogFilter(lvlDebug)
+
 proc log(message: string) =
    stdout.write(message & "\n")
 
@@ -86,56 +84,45 @@ proc description(doctype: DocumentType): string =
 proc toString(fs: FieldSpec): string = 
    "FieldSpec lId: $#, leId: $#, value: $#" % [fs.lineId, fs.leTypeId, fs.value]
 
-proc toString(rRef: TRecordRef): string = 
-   "TRecordRef[lt: $#]" % [rRef.lineType.lineId]
+proc toString(ctx: Context): string = 
+   "Context[lt: $#]" % [ctx.lineType.lineId]
 
-proc show(message: string) =
-   if command != cmdQuery:
-      echo message
-   else: discard
+proc setLeafLineType(lineType: LineType) =
+   debug("setLeafLineType: $#" % [lineType.lineId])
+   leafLineType = lineType
 
-proc createRecord(line: string): TRecordRef =
-   let lineId = line[0..1]
-   let lineType = docType.getLineTypeForLineId(lineId)
-   TRecordRef(lineType: linetype, line: line, sublines: newTable[string, TRecordRef]())
+proc createContext(line: string): Context =
+   let lineType = docType.getLineTypeForFullLine(line)
+   Context(lineType: linetype, line: line, subContexts: newTable[string, Context]())
 
 
 proc isSubRecord(doctype: DocumentType, subject: LineType, reference: LineType): bool =
    if isNil(subject.parentLineId):
       result = false
    else:
-      let parent = doctype.getLineType(subject.parentLineId)
+      let parent = doctype.getLineTypeForLineId(subject.parentLineId)
       result = parent.lineId == reference.lineId or isSubRecord(doctype, parent, reference)
+   debug("isSubRecord: lt: $#, ref: $# -> $#" % [subject.lineId, reference.lineId, repr(result)])
 
 proc registerLineId(lineId: string) =
    let lineType = docType.getLineTypeForLineId(lineId)
    if docType.isSubRecord(lineType, leafLineType):
-      leafLineType = lineType
+      setLeafLineType(lineType)
    else: discard
 
-proc recordWithLineId(record: TRecordRef, lineId: string): TRecordRef =
-   if record.lineType.lineId == lineId:
-      result = record
-   elif record.sublines.len == 0:
-      raise newException(NotFoundError, "No record found with line id $#" % [lineId])
+proc setCurrentContext(child: Context) =
+   debug("setCurrentContext: lt: $#" % [child.lineType.lineId])
+   if isNil(rootContext):
+      debug("setCurrentContext: setting root.")
+      rootContext = child
    else:
-      for sub in record.sublines.values:
-         let found = recordWithLineId(sub, lineId)
-         if not isNil(found):
-            result = found
-            break
-         else: discard
+      debug("setCurrentContext: root exists: $#" % [rootContext.lineType.lineId])
+      let parent = contextWithLineId(rootContext, child.lineType.parentLineId)
+      parent.subContexts[child.lineType.lineId] = child
+   contextCursor = child
 
-proc setCurrentRecord(child: TRecordRef) =
-   # echo "setCurrentRecord: lt: $#" % [child.lineType.lineId]
-   if isNil(recordRoot):
-      # echo "setCurrentRecord: setting root."
-      recordRoot = child
-   else:
-      # echo "setCurrentRecord: root exists: $#" % [recordRoot.lineType.lineId]
-      let parent = recordWithLineId(recordRoot, child.lineType.parentLineId)
-      parent.sublines[child.lineType.lineId] = child
-   recordCursor = child
+proc setCurrentLine(line: string) =
+   setCurrentContext(createContext(line))
 
 proc parseVektisDate(dateString: string): TimeInfo =
    try:
@@ -206,21 +193,25 @@ proc padright(source: string, length: int, fillChar: char = ' '): string =
    source & repeat(fillChar, length - source.len)
 
 proc getFieldValueFullString(fSpec: FieldSpec): string =
-   let lineRecord = recordRoot.recordWithLineId(fSpec.lineId)
-   result = docType.getElementValueFullString(lineRecord.line, fSpec.leTypeId)
+   debug("getFieldValueFullString: " & fSpec.leTypeId) 
+   result = rootContext.getElementValueFullString(fSpec.leTypeId)
 
 proc conditionIsMet(): bool =
    if isNil(lineQualifier):
       result = true
    else:
       try:
-         let lineRecord = recordRoot.recordWithLineId(lineQualifier.lineId)
-         result = lineQualifier.qualifies(lineRecord.line)
+         result = lineQualifier.qualifies(rootContext)
       except NotFoundError:
          result = false
 
+proc isLeafLine(line: string): bool =
+   let lineId = line[0..1]
+   result = leafLineType.lineId == lineId
+   debug("isLeafLine: $# -> $#" % [lineId, repr(result)])
+
 proc printLine(line: string) = 
-   if line.startsWith(leafLineType.lineId) and conditionIsMet():
+   if line.isLeafLine() and conditionIsMet():
       stdout.write("| ")
       for field in targetFields:
          stdout.write(getFieldValueFullString(field))
@@ -362,6 +353,8 @@ for kind, key, value in getopt():
          filterFieldsArg = value
       of "l", "lineid":
          optLineId = value
+      of "d", "debug":
+         enableDebugLogging()
       of "o", "outputPath":
          outputPath = value
       of "v", "version":
@@ -401,17 +394,17 @@ else:
                if not isNil(qualifierString):
                   lineQualifier = docType.parseQualifier(qualifierString)
                else: discard
-               let lineType = docType.getLineType("01")
-               setCurrentRecord(createRecord(line))
-               leafLineType = lineType
-               show("Document type: $#" % [description(docType)])
+               let lineType = docType.getLineTypeForLineId("01")
+               setCurrentLine(line)
+               setLeafLineType(lineType)
+               echo ("Document type: $#" % [description(docType)])
                readFieldSpecs(targetFieldsArg, targetFields, "-e, --elements")
                if command == cmdCopy:
                   var outStream: Stream = newFileStream(argDestFilePath, fmWrite)
                   if not isNil(outStream):
                      mutateAndWrite(line, outStream)
                      while input.readLine(line):
-                        setCurrentRecord(createRecord(line))
+                        setCurrentLine(line)
                         mutateAndWrite(line, outStream)
                      outStream.close()
                   else:
@@ -419,7 +412,7 @@ else:
                elif command == cmdQuery:
                   printLine(line)
                   while input.readLine(line):
-                     setCurrentRecord(createRecord(line))
+                     setCurrentLine(line)
                      printLine(line)
                else:
                   quit("Unknown command.")

@@ -1,5 +1,5 @@
-import pegs, strutils
-import "doctypes"
+import pegs, strutils, future, logging
+import "common", "doctypes"
 
 type
    QualifierOperator = enum
@@ -7,19 +7,25 @@ type
    
    LineQualifier* = ref LineQualifierObj
    LineQualifierObj* = object of RootObj
-      qualifiesImpl: proc(q: LineQualifier, line: string): bool 
-      lineId*: string
+      qualifiesImpl: proc(q: LineQualifier, context: Context): bool 
 
-proc qualifies*(q: LineQualifier, line: string): bool =
-   result = q.qualifiesImpl(q, line)
+proc qualifies*(q: LineQualifier, context: Context): bool =
+   result = q.qualifiesImpl(q, context)
 
 type
    KeyValueQualifier* = ref KeyValueQualifierObj
    KeyValueQualifierObj* = object of LineQualifierObj
-      docType*: DocumentType
       key*: string
       value*: string
       operator*: QualifierOperator
+   
+   AndQualifier* = ref AndQualifierObj
+   AndQualifierObj* = object of LineQualifierObj
+      qualifiers: seq[LineQualifier]
+
+   OrQualifier* = ref OrQualifierObj
+   OrQualifierObj* = object of LineQualifierObj
+      qualifiers: seq[LineQualifier]
 
 let keyValueQualifierPattern = peg"""#
 Qualifier <- ^ {Key} {Operator} {Value} !.
@@ -29,14 +35,20 @@ Operator <- '=' / '!=' / '<' / '>'
 """
 
 let andQualifierPattern = peg"""#
-Pattern <- ^ AndQualifier !.
-AndQualifier <- Qualifier '&' AndQualifier / Qualifier
+Pattern <- ^ Composite !.
+Composite <- Qualifier '&' Composite / Qualifier '&' Qualifier
 Qualifier <- {(!'&' .)+}
 """
 
-proc kvqQualify(lq: LineQualifier, line: string): bool =
+let orQualifierPattern = peg"""#
+Pattern <- ^ Composite !.
+Composite <- Qualifier '|' Composite / Qualifier '|' Qualifier
+Qualifier <- {(!'|' .)+}
+"""
+
+proc kvqQualify(lq: LineQualifier, context: Context): bool =
    var kvq = KeyValueQualifier(lq)
-   let leValue = getElementValueString(kvq.docType, line, kvq.key)
+   let leValue = context.getElementValueString(kvq.key)
    case kvq.operator
    of OpEquals:
       result = leValue == kvq.value
@@ -48,6 +60,21 @@ proc kvqQualify(lq: LineQualifier, line: string): bool =
       result = leValue < kvq.value
    else:
       raise newException(ValueError, "Operator not supported")
+
+proc andQualify(lq: LineQualifier, context: Context): bool =
+   var andQual = AndQualifier(lq)
+   for qualifier in andQual.qualifiers:
+      if not qualifier.qualifies(context):
+         return false
+   result = true
+
+proc orQualify(lq: LineQualifier, context: Context): bool =
+   var orQual = OrQualifier(lq)
+   for qualifier in orQual.qualifiers:
+      if qualifier.qualifies(context):
+         return true
+   result = false
+
 
 proc operatorFromString(source: string): QualifierOperator =
    case source
@@ -62,22 +89,39 @@ proc operatorFromString(source: string): QualifierOperator =
    else:
       raise newException(ValueError, "Unknown operator: '$#'" % [source])
 
-proc newKeyValueQualifier*(docType: DocumentType, key: string, op: QualifierOperator, value: string,): KeyValueQualifier =
+proc newKeyValueQualifier*(key: string, op: QualifierOperator, value: string): KeyValueQualifier =
    new(result)
-   result.docType = docType
-   result.lineId = key[0..1]
    result.key = key
    result.operator = op
    result.value = value
    result.qualifiesImpl = kvqQualify
 
+proc newAndQualifier*(qualifiers: seq[LineQualifier]): AndQualifier =
+   new(result)
+   result.qualifiesImpl = andQualify
+   result.qualifiers = qualifiers
+
+proc newOrQualifier*(qualifiers: seq[LineQualifier]): OrQualifier =
+   new(result)
+   result.qualifiesImpl = orQualify
+   result.qualifiers = qualifiers
+
 proc parseQualifier*(docType: DocumentType, qualString: string): LineQualifier =
-   if qualString =~ keyValueQualifierPattern:
+   if qualString =~ andQualifierPattern:
+      debug("parseQualifier found And: [$#]" % [join(lc[m | (m <- matches, not isNil(m)), string], ", ")])
+      if matches.len > 1:
+         let qualifiers = lc[parseQualifier(docType, item) | (item <- matches, not isNil(item)), LineQualifier]
+         result = LineQualifier(newAndQualifier(qualifiers))
+   elif qualString =~ orQualifierPattern:
+      if matches.len > 1:
+         let qualifiers = lc[parseQualifier(docType, item) | (item <- matches, not isNil(item)), LineQualifier]
+         result = LineQualifier(newOrQualifier(qualifiers))
+   elif qualString =~ keyValueQualifierPattern:
       let oper = operatorFromString(matches[1])
       let key = matches[0]
       let value = matches[2]
       # echo "parseQualifier: '$#' '$#' '$#'" % matches
-      result = LineQualifier(newKeyVAlueQualifier(docType, key, oper, value))
+      result = LineQualifier(newKeyVAlueQualifier(key, oper, value))
    else:
       raise newException(ValueError, "Could not parse qualifier '$#'" % [qualString])
 
