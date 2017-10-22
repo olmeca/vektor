@@ -5,22 +5,13 @@ const
    cDebtorRecordLineId* = "03"
    cDebtorRecordVersionStartIndex = 298
    cDebtorRecordVersionEndIndex = 299
-   cDataDir = "vektor-data"
    cDocTypesJsonFileName = "doctypes.json"
    cSB311TypesJsonFileName = "sb311-types.json"
-   cBlanksSet: set[char] = { ' ' }
 
 var
    types: seq[DocumentType]
    debtorRecordTypes: seq[DocumentType]
    
-proc getJsonData(fileName: string): JsonNode =
-   let fullPath = joinPath(getAppDir(), cDataDir, fileName)
-   debug("getJsonData reading from: " & fullPath)
-   let jsonString = system.readFile(fullPath)
-   result = parseJson(jsonString)
-   debug("getJsonData: done reading.")
-
 #let types = lc[to(node, DocumentType) | (node <- getJsonData(cDocTypesJsonFileName)), DocumentType]
 #let debtorRecordTypes = lc[to(node, DocumentType) | (node <- getJsonData(cSB311TypesJsonFileName)), DocumentType]
 

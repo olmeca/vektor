@@ -1,4 +1,4 @@
-import tables
+import tables, json, os, ospaths, logging
 
 type
    DocumentTypeError* = object of Exception
@@ -34,4 +34,15 @@ type
       line*: string
       subContexts*: TableRef[string, Context]
       
+
+const
+   cDataDir* = "vektor-data"
+   cBlanksSet*: set[char] = { ' ' }
+
+proc getJsonData*(fileName: string): JsonNode =
+   let fullPath = joinPath(getAppDir(), cDataDir, fileName)
+   debug("getJsonData reading from: " & fullPath)
+   let jsonString = system.readFile(fullPath)
+   result = parseJson(jsonString)
+   debug("getJsonData: done reading.")
 

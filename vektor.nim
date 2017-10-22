@@ -1,9 +1,8 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
-import "doctypes", "names", "qualifiers", "common"
+import "doctypes", "qualifiers", "common"
 
 type
    FieldSpec = object
-      lineId: string
       leTypeId: string
       value: string
    
@@ -12,20 +11,73 @@ type
    TCommand = enum
       cmdCopy, cmdQuery, cmdInfo, cmdHelp, cmdPrint
 
+
 let helpText = """
    Vektor: a tool for analyzing and modifying Vektis EI declaration files.
    (c) 2017 Rudi Angela
+   Vektor provides a convenient way to adapt existing Vektis declaration files
+   (or rather creating adapted copies thereof).
 
-   Usage: vektor <command> [<options>] [<input file>]
+   Usage: vektor <command> [arguments] [<options>]
 
-   It lets you specify an input file, a line element type and a value and then 
-   creates a copy of the given file with all line elements of the given type 
-   set to the specified value.
-   -o:<output file> -e:<line element id>[=<new value>] [-e ...]
+   Commands:
+      copy     The main function, creates adapted copy of a given declaration.
+      show     Support function, selectively displays content of a declaration.
+      info     Support function, displays structural information of a declaration format.
+      
+   In the following explanation every angle bracketed string (e.g. <file path>)
+   is just a place holder for the real value that you need to supply.
+   Command usage:
+      copy <original file name> <copy file name> -e:<replacement values>
+               Makes a copy of the original file and replaces element values in the copy,
+               as specified in the replacement list. Items in this list take the form
+               '<line element id>=<new value>' and are separated by commas.
+               E.g. copy mz301.asc new.asc -e:0203=999999999,0403=999999999
+               This will replace the BSN element values by 999999999 in all patient
+               records (02) and all operation records (04). Besides literal replacement
+               values one can also specify some symbolic values with special meaning:
+               '@name' will use a random name as replacement value.
+               '@date:<earliest date>-<latest date>' will place a random date between
+               the specified ealiest and latest dates. The dates are specified in Vektis
+               format: 'yyyymmdd'.
+               E.g. copy mz301.asc new.asc -e:0207=@date:01011920-01012010,0210=@name
+               This will produce a copy with all patients' birth dates replaced by a
+               random date between 1st January 1920 and 1st January 2010 and also a
+               random name for the last name.
+      copy <original file name> <copy file name> -e:<replacement values> -c:<condition>
+               The additional '-c' option specifies a condition that must be met for the
+               target line to be modified. 
+               E.g. copy original.asc copy.asc -e:0413=C14 -c:0413=C11
+               This will only change the operation lines that have operation code 'C11'
+               and set this value to 'C14'.
+      info     Displays the list of supported Vektis declaration formats.
+               E.g. vektis info 
+      info <format name> 
+               Displays the list of versions known for the given format.
+               E.g. vektis info MZ301
+      info <format name> -v:<format version> (or --version <format version>)
+               Displays summary information for the given format & version.
+               Mainly displays the list of line types of the format.
+               The version option is specified with '-v:' followed by version and subversion,
+               separated by a '.'
+               E.g. vektis info MZ301 -v:1.3
+      info <format name> -v:<format version> -l:<line id>
+               Displays the list of line element types for the given line type.
+               For each element type the start position, length and type are displayed.
+               The line type is specified with option '-l:', followed by the line ID.
+               E.g. vektis info MZ301 -v:1.3 -l:02
+      show <file path> -e:<element list> (or: --elements <element list>)
+               Displays a table with a column for each element in the given element list.
+               The element column displays the value of the element per line.
+               The element list is a list of line element ID's, separated by a ','.
+               E.g. vektis show mz301.asc -e:0403,0408,0413
+               This will display of every operation line (04) the BSN, date and operation code.
 """
+
+
 const
-   blanksSet: set[char] = { ' ' }
    cVektisDateFormat = "yyyyMMdd"
+   cNamesJsonFile = "names.json"
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
    msgSourceOrDestMissing = "You need to specify a source file and a destination file (e.g: vektor copy source.asc dest.asc -e:...)."
    msgCommandMissing = "Please specify one of the following commands: info, show, copy or help."
@@ -74,6 +126,7 @@ var
    lineQualifier: LineQualifier = nil
    qualifierString: string
    logLevel: string = nil
+   gNames: seq[string] = nil
 
 proc setLoggingLevel(level: Level) =
    let filePath = joinPath(getAppDir(), "vektor.log")
@@ -89,10 +142,16 @@ proc description(doctype: DocumentType): string =
       doctype.description]
 
 proc toString(fs: FieldSpec): string = 
-   "FieldSpec lId: $#, leId: $#, value: $#" % [fs.lineId, fs.leTypeId, fs.value]
+   "FieldSpec leId: $#, value: $#" % [fs.leTypeId, fs.value]
 
 proc toString(ctx: Context): string = 
    "Context[lt: $#]" % [ctx.lineType.lineId]
+
+proc getRandomName(): string =
+   if isNil(gNames):
+      gNames = lc[to(node, string) | (node <- getJsonData(cNamesJsonFile)), string]
+   else: discard
+   result = gNames[random(gNames.len)-1]
 
 proc setLeafLineType(lineType: LineType) =
    debug("setLeafLineType: $#" % [lineType.lineId])
@@ -146,7 +205,7 @@ proc randomDateString(fromDate: string, toDate: string): string =
    
 
 proc stripBlanks(source: string): string =
-   strip(source, true, true, blanksSet)
+   strip(source, true, true, cBlanksSet)
 
 proc fetch_doctype(line: string): DocumentType =
    let typeId = parseInt(line[2 .. 4])
@@ -181,15 +240,14 @@ proc elementValue(leType: LineElementType, value: string): string =
    else:
       var alphanum: string = nil
       if value == "@name":
-         alphanum = get_random()
+         alphanum = getRandomName()
       else:
          alphanum = if isNil(value): "" else: mytrim(stripBlanks(value), length)
       result = alphanum & spaces(length - alphanum.len)
    debug("elementValue -> '$#', $#" % [result, intToStr(result.len)])
 
 proc mutate(fieldSpec: FieldSpec, line: string, buf: var openArray[char]) =
-   let lineLineId = line[0..1]
-   if fieldSpec.lineId == lineLineId:
+   if fieldSpec.leTypeId[0..1] == line[0..1]:
       let leType = getLineElementType(docType, fieldSpec.leTypeId)
       let start: int = leType.startPosition-1
       let length = leType.length
@@ -338,9 +396,8 @@ proc readElementSpec(spec: string): FieldSpec =
    if spec =~ elementSpecPattern:
       let leTypeId = matches[0]
       let value = matches[1]
-      let lineId = leTypeId[0..1]
-      registerLineId(lineId)
-      result = FieldSpec(lineId: lineId, leTypeId: leTypeId, value: value)
+      registerLineId(leTypeId[0..1])
+      result = FieldSpec(leTypeId: leTypeId, value: value)
    else:
       raise newException(FieldSpecError, "Invalid line element specification: $#" % [spec])
 

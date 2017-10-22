@@ -1,23 +1,25 @@
 Vektor Tool Readme
 
 Short version:
-To anonymize the 02 line of a declaration file:
-	vektor copy original.asc -o:copy.asc -l:02 -e:"03=999999999,10=@name,07=@date:19000101-20100101"
-This will create a copy 'copy.asc' based on 'original.asc', where all '02' line will have:
+To make an anonymized copy of declaration file 'original.asc':
+   vektor copy original.asc copy.asc -e:"0203=999999999,0210=@name,0207=@date:19000101-20100101"
+This will create a copy 'copy.asc' based on 'original.asc', where all '02' lines will have:
 - '999999999' as value for the 03 element (BSN),
 - a random name for element '10' (last name)
 - a random date between 01-01-1900 and 01-01-2010 for element '07' (birth date)
 
 The Vektor tool is a command line tool developed to assist in the
 process of analysis and modification of existing Vektis EI compliant 
-declaration files. Currently its main function is modification,
-but there is also a working print function and other analysis
-and generation functions are in the works.
+declaration files. Its main function is creating adapted copies of existing 
+declaration files. Additionally it provides for selectively viewing
+information from a declaration. Furthermore it provides structural 
+information on the supported Vektis file formats.
+
 The modification function provides a generic way of 
 bulk modifying the value of any line element. You provide it a line and
-element ID(e.g. "-l:02" "-e:03" for BSN) and a value (e.g. "999999999") 
+element ID (e.g. "-e:0203" for patient BSN) and a value (e.g. "999999999") 
 and it will replace all the values for the BSN element of the 
-02 record by the specified replacement value.
+patient record by the specified replacement value.
 
 Vektor does not perform the modifications 'in place' in the input file
 supplied. Instead it creates a copy (output file) with the same 
