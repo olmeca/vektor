@@ -23,10 +23,11 @@ let helpText = """
    set to the specified value.
    -o:<output file> -e:<line element id>[=<new value>] [-e ...]
 """
-let 
+const
    blanksSet: set[char] = { ' ' }
-   kVektisDateFormat = "yyyyMMdd"
-   
+   cVektisDateFormat = "yyyyMMdd"
+
+let
    elementSpecPattern = peg"""#
    Pattern <- ^ ElementSpec !.
    ElementSpec <-  {ElementId} '=' {ElementValue} / {ElementId}
@@ -69,14 +70,13 @@ var
    argDestFilePath: string
    lineQualifier: LineQualifier = nil
    qualifierString: string
+   logLevel: string = nil
 
-proc enableDebugLogging() =
-   var fileLogger = newFileLogger("vektor.log", fmtStr = verboseFmtStr)
+proc setLoggingLevel(level: Level) =
+   let filePath = joinPath(getAppDir(), "vektor.log")
+   var fileLogger = newFileLogger(filePath, fmtStr = verboseFmtStr)
    addHandler(fileLogger)
-   setLogFilter(lvlDebug)
-
-proc log(message: string) =
-   stdout.write(message & "\n")
+   setLogFilter(level)
 
 proc description(doctype: DocumentType): string =
    "$# v$#.$#   $#" % [doctype.name, intToStr(doctype.formatVersion), intToStr(doctype.formatSubVersion), doctype.description]
@@ -126,7 +126,7 @@ proc setCurrentLine(line: string) =
 
 proc parseVektisDate(dateString: string): TimeInfo =
    try:
-      result = parse(dateString, kVektisDateFormat)
+      result = parse(dateString, cVektisDateFormat)
    except Exception:
       raise newException(ValueError, "Invalid date format: '$#'" % [dateString])
 
@@ -135,7 +135,7 @@ proc randomDateString(fromDate: string, toDate: string): string =
    let toSeconds = parseVektisDate(toDate).toTime().toSeconds()
    let randomSeconds = random(toSeconds-fromSeconds) + fromSeconds
    let randomDate = fromSeconds(randomSeconds).getLocalTime()
-   format(randomDate, kVektisDateFormat)
+   format(randomDate, cVektisDateFormat)
    
 
 proc stripBlanks(source: string): string =
@@ -158,7 +158,7 @@ proc mytrim(value: string, length: int): string =
    result = if value.len > length: value[0..length-1] else: value
    
 proc elementValue(leType: LineElementType, value: string): string = 
-   #log("elementValue: value='$#', length=$#" % [if isNil(value): "" else: value, intToStr(length)])
+   debug("elementValue: leType: $#, value='$#', length=$#" % [leType.lineElementId, (if isNil(value): "<nil>" else: value), intToStr(leType.length)])
    let length = leType.length
    if leType.fieldType == "N":
       var number: int
@@ -174,7 +174,7 @@ proc elementValue(leType: LineElementType, value: string): string =
       else:
          alphanum = if isNil(value): "" else: mytrim(stripBlanks(value), length)
       result = alphanum & spaces(length - alphanum.len)
-   #log("elementValue -> '$#', $#" % [result, intToStr(result.len)])
+   debug("elementValue -> '$#', $#" % [result, intToStr(result.len)])
 
 proc mutate(fieldSpec: FieldSpec, line: string, buf: var openArray[char]) =
    let lineLineId = line[0..1]
@@ -283,6 +283,19 @@ proc readVersion(versionString: string) =
 proc showHelp() =
    echo helpText
 
+proc readLogLevel(level: string): Level =
+   case level
+   of "debug":
+      result = lvlDebug
+   of "info":
+      result = lvlInfo
+   of "warn":
+      result = lvlWarn
+   of "error":
+      result = lvlError
+   else: 
+      quit("Unknown logging level: " & level)
+
 proc readCommand(cmdString: string) =
    case cmdString
    of "info":
@@ -347,14 +360,14 @@ for kind, key, value in getopt():
    case kind
    of cmdLongoption, cmdShortOption:
       case key 
+      of "d", "debug-level":
+         logLevel = value
       of "e", "elements":
          targetFieldsArg = value
       of "f", "filter":
          filterFieldsArg = value
       of "l", "lineid":
          optLineId = value
-      of "d", "debug":
-         enableDebugLogging()
       of "o", "outputPath":
          outputPath = value
       of "v", "version":
@@ -368,6 +381,10 @@ for kind, key, value in getopt():
          readCommand(key)
    of cmdEnd: assert(false) # cannot happen
 
+if not isNil(logLevel):
+   setLoggingLevel(readLogLevel(logLevel))
+else: discard
+readDocumentTypes()
 processCommandArgs()
 
 if not commandWasRead:
