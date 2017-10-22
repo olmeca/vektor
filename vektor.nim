@@ -26,7 +26,10 @@ let helpText = """
 const
    blanksSet: set[char] = { ' ' }
    cVektisDateFormat = "yyyyMMdd"
-
+   msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
+   msgSourceOrDestMissing = "You need to specify a source file and a destination file (e.g: vektor copy source.asc dest.asc -e:...)."
+   msgCommandMissing = "Please specify one of the following commands: info, show, copy or help."
+   
 let
    elementSpecPattern = peg"""#
    Pattern <- ^ ElementSpec !.
@@ -79,7 +82,11 @@ proc setLoggingLevel(level: Level) =
    setLogFilter(level)
 
 proc description(doctype: DocumentType): string =
-   "$# v$#.$#   $#" % [doctype.name, intToStr(doctype.formatVersion), intToStr(doctype.formatSubVersion), doctype.description]
+   "$# v$#.$#   $#" % 
+      [doctype.name, 
+      intToStr(doctype.formatVersion), 
+      intToStr(doctype.formatSubVersion), 
+      doctype.description]
 
 proc toString(fs: FieldSpec): string = 
    "FieldSpec lId: $#, leId: $#, value: $#" % [fs.lineId, fs.leTypeId, fs.value]
@@ -145,7 +152,7 @@ proc fetch_doctype(line: string): DocumentType =
    let typeId = parseInt(line[2 .. 4])
    let version = parseInt(line[5 .. 6])
    let subversion = parseInt(line[7 .. 8])
-   get_doctype(typeId, version, subversion)
+   getDocumentType(typeId, version, subversion)
 
 
 proc writeToStream(buf: seq[char], stream: Stream) = 
@@ -158,7 +165,11 @@ proc mytrim(value: string, length: int): string =
    result = if value.len > length: value[0..length-1] else: value
    
 proc elementValue(leType: LineElementType, value: string): string = 
-   debug("elementValue: leType: $#, value='$#', length=$#" % [leType.lineElementId, (if isNil(value): "<nil>" else: value), intToStr(leType.length)])
+   debug("elementValue: leType: $#, value='$#', length=$#" % 
+         [leType.lineElementId, 
+         (if isNil(value): "<nil>" else: value), 
+         intToStr(leType.length)])
+         
    let length = leType.length
    if leType.fieldType == "N":
       var number: int
@@ -227,7 +238,9 @@ proc mutateAndWrite(line: var string, outStream: Stream) =
 
 
 proc isSelected(dt: DocumentType): bool =
-   (isNil(argDocTypeName) or dt.name.startsWith(argDocTypeName)) and (optVersion == -1 or optVersion == dt.formatVersion) and (optSubversion == -1 or optSubversion == dt.formatSubVersion)
+   (isNil(argDocTypeName) or dt.name.startsWith(argDocTypeName)) and 
+      (optVersion == -1 or optVersion == dt.formatVersion) and 
+      (optSubversion == -1 or optSubversion == dt.formatSubVersion)
 
 proc selectDocTypes(): seq[DocumentType] =
    result = filter(allDocumentTypes(), isSelected)
@@ -245,13 +258,22 @@ proc showLineTypeInfo(doctype: DocumentType, ltId: string) =
    echo description(doctype), ": ", lt.name
    echo "ID     V-code    Pos    Len   Type   Description"
    for et in lt.lineElementTypes:
-      echo "$#   $#   $#   $#   $#   $#" % [et.lineElementId, et.code, intToStr(et.startPosition, 4), intToStr(et.length, 4), padright(et.fieldType, 4), et.description]
+      echo "$#   $#   $#   $#   $#   $#" % 
+         [et.lineElementId, 
+         et.code, 
+         intToStr(et.startPosition, 4), 
+         intToStr(et.length, 4), 
+         padright(et.fieldType, 4), 
+         et.description]
 
 proc showDocumentTypeInfo(doctype: DocumentType) =
    echo description(doctype)
    echo "ID   Len   Description"
    for lineType in doctype.lineTypes:
-      echo "$#   $#   $#" % [lineType.lineId, intToStr(lineType.length,3), lineType.name]
+      echo "$#   $#   $#" % [
+         lineType.lineId, 
+         intToStr(lineType.length,3), 
+         lineType.name]
 
 proc isVersionMissing(): bool = optVersion == -1 and optSubversion == -1
 
@@ -309,7 +331,7 @@ proc readCommand(cmdString: string) =
    of "print":
       command = cmdPrint
    else:
-      quit("Please specify one of the following commands: info, show, copy or help.")
+      quit(msgCommandMissing)
    commandWasRead = true
 
 proc readElementSpec(spec: string): FieldSpec =
@@ -331,8 +353,6 @@ proc readFieldSpecs(value: string, fields: var seq[FieldSpec], argName: string) 
    else:
       quit("Command is missing.")
 
-randomize()
-
 proc checkCommandArgs(minCount: int, errorMessage: string) =
    if commandArgs.len < minCount:
       quit(errorMessage)
@@ -345,11 +365,11 @@ proc processCommandArgs() =
       if commandArgs.len > 0:
          argDocTypeName = commandArgs[0]
          if optVersion == 0:
-            quit("For information on a document type you also need to specify a version (e.g. -v:1.0)")
+            quit(msgDocVersionMissing)
          else: discard
       else: discard
    elif command == cmdCopy:
-      checkCommandArgs(2, "You need to specify a source file and a destination file (e.g: vektor copy source.asc dest.asc -e:...).")
+      checkCommandArgs(2, msgSourceOrDestMissing)
       argSourceFilePath = commandArgs[0]
       argDestFilePath = commandArgs[1]
    elif command == cmdQuery:
@@ -384,6 +404,9 @@ for kind, key, value in getopt():
 if not isNil(logLevel):
    setLoggingLevel(readLogLevel(logLevel))
 else: discard
+# Initialize the random generator
+randomize()
+
 readDocumentTypes()
 processCommandArgs()
 
@@ -414,7 +437,7 @@ else:
                let lineType = docType.getLineTypeForLineId("01")
                setCurrentLine(line)
                setLeafLineType(lineType)
-               echo ("Document type: $#" % [description(docType)])
+               echo("Document type: $#" % [description(docType)])
                readFieldSpecs(targetFieldsArg, targetFields, "-e, --elements")
                if command == cmdCopy:
                   var outStream: Stream = newFileStream(argDestFilePath, fmWrite)

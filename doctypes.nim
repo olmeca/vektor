@@ -37,10 +37,16 @@ proc isDate*(leType: LineElementType): bool =
 proc stripBlanks(source: string): string =
    strip(source, true, true, cBlanksSet)
 
-proc get_doctype*(typeId: int, version: int, subversion: int): DocumentType = 
-   let matches = filter(types, proc(t: DocumentType): bool = t.vektisEICode == typeId and t.formatVersion == version and t.formatSubVersion == subversion)
+proc getDocumentType*(typeId: int, version: int, subversion: int): DocumentType = 
+   let matches = filter(types, 
+                        proc(t: DocumentType): bool = 
+                           t.vektisEICode == typeId and 
+                              t.formatVersion == version and 
+                              t.formatSubVersion == subversion)
    if matches.len == 0:
-      raise newException(DocumentTypeError, "Unknown declatation format: Vektis EI code: '$#', version: $#, subversion: $#" % [intToStr(typeId), intToStr(version), intToStr(subversion)])
+      raise newException(DocumentTypeError, 
+         "Unknown declatation format: Vektis EI code: '$#', version: $#, subversion: $#" % 
+            [intToStr(typeId), intToStr(version), intToStr(subversion)])
    else:
       result = matches[0]
 
@@ -48,16 +54,23 @@ proc allDocumentTypes*(): seq[DocumentType] =
    concat(types, debtorRecordTypes)
 
 proc documentTypeMatching*(name: string, version: int, subversion: int): DocumentType = 
-   let matches = filter(allDocumentTypes(), proc(t: DocumentType): bool = t.name == name and t.formatVersion == version and t.formatSubVersion == subversion)
+   let matches = filter(allDocumentTypes(), 
+                        proc(t: DocumentType): bool = 
+                           t.name == name and 
+                              t.formatVersion == version and 
+                              t.formatSubVersion == subversion)
    if matches.len == 0:
-      raise newException(DocumentTypeError, "Unknown declaration format: name: '$#', version: $#, subversion: $#" % [name, intToStr(version), intToStr(subversion)])
+      raise newException(DocumentTypeError, 
+         "Unknown declaration format: name: '$#', version: $#, subversion: $#" % 
+            [name, intToStr(version), intToStr(subversion)])
    else:
       result = matches[0]
 
 proc getLineTypeForLineId*(doctype: DocumentType, lineId: string): LineType =
    let lineTypes = doctype.lineTypes.filter(proc (lt: LineType): bool = lt.lineId == lineId)
    if lineTypes.len == 0:
-      raise newException(ValueError, "Document $# does not have a line type with ID $#" % [doctype.name, lineId])
+      raise newException(ValueError, 
+         "Document $# does not have a line type with ID $#" % [doctype.name, lineId])
    else:
       result = lineTypes[0]
 
@@ -75,7 +88,8 @@ proc getLineTypeForFullLine*(defaultDocType: DocumentType, line: string): LineTy
          else: discard
          result = getLineTypeForLineId(doctype, lineId)
       else:
-         raise newException(VektisFormatError, "Invalid line length for debtor record: $#" % [intToStr(line.len)])
+         raise newException(VektisFormatError, 
+            "Invalid line length for debtor record: $#" % [intToStr(line.len)])
 
 proc contextWithLineId*(context: Context, lineId: string): Context =
    assert(not isNil(lineId))
@@ -102,9 +116,11 @@ proc getLineId*(line: string): string =
 proc getLineElementType*(lineType: LineType, leId: string): LineElementType =
    debug("getLineElementType: lt: $#, leId: $#" % [lineType.lineId, leId])
    #assert(leId.startsWith(lineType.lineId))
-   let results = lineType.lineElementTypes.filter(proc(et: LineElementType): bool = et.lineElementId == leId)
+   let results = filter(lineType.lineElementTypes,
+                        proc(et: LineElementType): bool = et.lineElementId == leId)
    if results.len == 0:
-      raise newException(ValueError, "LineType '$#' does not have an element with id '$#'." % [lineType.lineId, leId])
+      raise newException(ValueError, 
+         "LineType '$#' does not have an element with id '$#'." % [lineType.lineId, leId])
    else:
       result = results[0]
 
@@ -122,7 +138,8 @@ proc getElementValueFullString(line: string, leType: LineElementType): string =
 proc getElementValueFullString*(rootContext: Context, lineElementId: string): string =
    let lineId = lineElementId[0..1]
    let context = rootContext.contextWithLineId(lineId)
-   debug("getElementValueFullString: rootctx: $#, leId: $#, subctx: $#" % [rootContext.lineType.lineId, lineId, context.lineType.lineId])
+   debug("getElementValueFullString: rootctx: $#, leId: $#, subctx: $#" % 
+         [rootContext.lineType.lineId, lineId, context.lineType.lineId])
    assert(context.line.startsWith(lineId))
    let leType = context.lineType.getLineElementType(lineElementId)
    let start = leType.startPosition-1
