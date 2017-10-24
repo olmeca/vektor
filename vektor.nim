@@ -1,5 +1,5 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
-import "doctypes", "qualifiers", "common"
+import "doctypes", "qualifiers", "common", "vektorhelp"
 
 type
    FieldSpec = object
@@ -12,76 +12,14 @@ type
       cmdCopy, cmdQuery, cmdInfo, cmdHelp, cmdPrint
 
 
-let helpText = """
-   Vektor: a tool for analyzing and modifying Vektis EI declaration files.
-   (c) 2017 Rudi Angela
-   Vektor provides a convenient way to adapt existing Vektis declaration files
-   (or rather creating adapted copies thereof).
-
-   Usage: vektor <command> [arguments] [<options>]
-
-   Commands:
-      copy     The main function, creates adapted copy of a given declaration.
-      show     Support function, selectively displays content of a declaration.
-      info     Support function, displays structural information of a declaration format.
-      
-   In the following explanation every angle bracketed string (e.g. <file path>)
-   is just a place holder for the real value that you need to supply.
-   Command usage:
-      copy <original file name> <copy file name> -e:<replacement values>
-               Makes a copy of the original file and replaces element values in the copy,
-               as specified in the replacement list. Items in this list take the form
-               '<line element id>=<new value>' and are separated by commas.
-               E.g. copy mz301.asc new.asc -e:0203=999999999,0403=999999999
-               This will replace the BSN element values by 999999999 in all patient
-               records (02) and all operation records (04). Besides literal replacement
-               values one can also specify some symbolic values with special meaning:
-               '@name' will use a random name as replacement value.
-               '@date:<earliest date>-<latest date>' will place a random date between
-               the specified ealiest and latest dates. The dates are specified in Vektis
-               format: 'yyyymmdd'.
-               E.g. copy mz301.asc new.asc -e:0207=@date:01011920-01012010,0210=@name
-               This will produce a copy with all patients' birth dates replaced by a
-               random date between 1st January 1920 and 1st January 2010 and also a
-               random name for the last name.
-      copy <original file name> <copy file name> -e:<replacement values> -c:<condition>
-               The additional '-c' option specifies a condition that must be met for the
-               target line to be modified. 
-               E.g. copy original.asc copy.asc -e:0413=C14 -c:0413=C11
-               This will only change the operation lines that have operation code 'C11'
-               and set this value to 'C14'.
-      info     Displays the list of supported Vektis declaration formats.
-               E.g. vektis info 
-      info <format name> 
-               Displays the list of versions known for the given format.
-               E.g. vektis info MZ301
-      info <format name> -v:<format version> (or --version <format version>)
-               Displays summary information for the given format & version.
-               Mainly displays the list of line types of the format.
-               The version option is specified with '-v:' followed by version and subversion,
-               separated by a '.'
-               E.g. vektis info MZ301 -v:1.3
-      info <format name> -v:<format version> -l:<line id>
-               Displays the list of line element types for the given line type.
-               For each element type the start position, length and type are displayed.
-               The line type is specified with option '-l:', followed by the line ID.
-               E.g. vektis info MZ301 -v:1.3 -l:02
-      show <file path> -e:<element list> (or: --elements <element list>)
-               Displays a table with a column for each element in the given element list.
-               The element column displays the value of the element per line.
-               The element list is a list of line element ID's, separated by a ','.
-               E.g. vektis show mz301.asc -e:0403,0408,0413
-               This will display of every operation line (04) the BSN, date and operation code.
-"""
-
-
 const
    cVektisDateFormat = "yyyyMMdd"
    cNamesJsonFile = "names.json"
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
    msgSourceOrDestMissing = "You need to specify a source file and a destination file (e.g: vektor copy source.asc dest.asc -e:...)."
    msgCommandMissing = "Please specify one of the following commands: info, show, copy or help."
-   
+
+
 let
    elementSpecPattern = peg"""#
    Pattern <- ^ ElementSpec !.
@@ -102,6 +40,7 @@ let
    RandomDateSpec <- '@date:' {Date} '-' {Date}
    Date <- \d \d \d \d \d \d \d \d
    """
+
 
 var 
    targetFieldsArg: string
@@ -127,6 +66,7 @@ var
    qualifierString: string
    logLevel: string = nil
    gNames: seq[string] = nil
+   subject: string
 
 proc setLoggingLevel(level: Level) =
    let filePath = joinPath(getAppDir(), "vektor.log")
@@ -361,7 +301,10 @@ proc readVersion(versionString: string) =
             optSubversion = parseInt(items[1])
 
 proc showHelp() =
-   echo helpText
+   try:
+       echo helpSubjects[subject]
+   except KeyError:
+      echo "There is no help on subject '$#'" % [subject]
 
 proc readLogLevel(level: string): Level =
    case level
@@ -417,12 +360,19 @@ proc checkCommandArgs(minCount: int, errorMessage: string) =
 proc readCommandArgument(arg: string) =
    commandArgs.add(arg)
 
+proc fieldSpecArgName(): string =
+   if command == cmdCopy:
+      result = "-r, --replacements"
+   else:
+      result = "-e, --elements"
+      
+
 proc processCommandArgs() =
    if command == cmdInfo:
       if commandArgs.len > 0:
          argDocTypeName = commandArgs[0]
-         if optVersion == 0:
-            quit(msgDocVersionMissing)
+         if commandArgs.len > 1:
+            readVersion(commandArgs[1])
          else: discard
       else: discard
    elif command == cmdCopy:
@@ -431,6 +381,11 @@ proc processCommandArgs() =
       argDestFilePath = commandArgs[1]
    elif command == cmdQuery:
       argSourceFilePath = commandArgs[0]
+   elif command == cmdHelp:
+      if commandArgs.len > 0:
+         subject = commandArgs[0]
+      else:
+         subject = "none"
    else: discard
 
 for kind, key, value in getopt():
@@ -439,14 +394,14 @@ for kind, key, value in getopt():
       case key 
       of "d", "debug-level":
          logLevel = value
+      of "r", "replacements":
+         targetFieldsArg = value
       of "e", "elements":
          targetFieldsArg = value
       of "f", "filter":
          filterFieldsArg = value
       of "l", "lineid":
          optLineId = value
-      of "o", "outputPath":
-         outputPath = value
       of "v", "version":
          readVersion(value)
       of "c", "condition":
@@ -495,7 +450,7 @@ else:
                setCurrentLine(line)
                setLeafLineType(lineType)
                echo("Document type: $#" % [description(docType)])
-               readFieldSpecs(targetFieldsArg, targetFields, "-e, --elements")
+               readFieldSpecs(targetFieldsArg, targetFields, fieldSpecArgName())
                if command == cmdCopy:
                   var outStream: Stream = newFileStream(argDestFilePath, fmWrite)
                   if not isNil(outStream):
