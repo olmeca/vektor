@@ -1,5 +1,5 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
-import "doctypes", "qualifiers", "common", "vektorhelp"
+import "doctypes", "qualifiers", "common", "accumulator", "vektorhelp"
 
 type
    FieldSpec = object
@@ -67,6 +67,7 @@ var
    logLevel: string = nil
    gNames: seq[string] = nil
    subject: string
+   gAccumulator: Accumulator
 
 proc setLoggingLevel(level: Level) =
    let filePath = joinPath(getAppDir(), "vektor.log")
@@ -124,6 +125,7 @@ proc setCurrentContext(child: Context) =
    else:
       debug("setCurrentContext: root exists: $#" % [rootContext.lineType.lineId])
       let parent = contextWithLineId(rootContext, child.lineType.parentLineId)
+      debug("setCurrentContext: parent: $#" % [parent.lineType.lineId])
       parent.subContexts[child.lineType.lineId] = child
    contextCursor = child
 
@@ -443,6 +445,7 @@ else:
          if line.startswith("01"):
             try:
                docType = fetch_doctype(line)
+               gAccumulator = newAccumulator(docType)
                if not isNil(qualifierString):
                   lineQualifier = docType.parseQualifier(qualifierString)
                else: discard
@@ -458,6 +461,7 @@ else:
                      while input.readLine(line):
                         setCurrentLine(line)
                         mutateAndWrite(line, outStream)
+                        gAccumulator.addLine(line)
                      outStream.close()
                   else:
                      quit("Could not create file '$#'" % [outputPath])
@@ -466,6 +470,8 @@ else:
                   while input.readLine(line):
                      setCurrentLine(line)
                      printLine(line)
+                     gAccumulator.addLine(line)
+                  echo "Accumulator: " & gAccumulator.asString()
                else:
                   quit("Unknown command.")
             except Exception:

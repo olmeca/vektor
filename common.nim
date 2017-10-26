@@ -1,4 +1,4 @@
-import tables, json, os, ospaths, logging
+import tables, json, os, ospaths, logging, strutils
 
 type
    DocumentTypeError* = object of Exception
@@ -11,6 +11,7 @@ type
       startPosition*: int
       length*: int
       description*: string
+      countable*: string
    
    LineType* = ref object
       name*: string
@@ -46,3 +47,21 @@ proc getJsonData*(fileName: string): JsonNode =
    result = parseJson(jsonString)
    debug("getJsonData: done reading.")
 
+proc asString*(lt: LineType): string =
+   "LT[id: '$#', len: '$#', par: '$#', name: '$#']" % [
+      lt.lineId,
+      intToStr(lt.length),
+      if isNil(lt.parentLineId): "nil" else: lt.parentLineId,
+      lt.name
+   ]
+
+proc asString*(leType: LineElementType): string =
+   "LET[leId:'$#', code: '$#', fType: '$#', start: '$#', len: '$#', dsc: '$#', cnt: '$#']" % [
+      leType.lineElementId,
+      leType.code,
+      leType.fieldType,
+      intToStr(leType.startPosition),
+      intToStr(leType.length),
+      leType.description,
+      (if isNil(leType.countable): "nil" else: leType.countable)
+   ]

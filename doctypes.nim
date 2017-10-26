@@ -1,5 +1,5 @@
 import json, os, ospaths, future, sequtils, strutils, logging, tables
-import "common"
+import "common", "vektorjson"
 
 const 
    cDebtorRecordLineId* = "03"
@@ -12,11 +12,12 @@ var
    types: seq[DocumentType]
    debtorRecordTypes: seq[DocumentType]
    
-#let types = lc[to(node, DocumentType) | (node <- getJsonData(cDocTypesJsonFileName)), DocumentType]
-#let debtorRecordTypes = lc[to(node, DocumentType) | (node <- getJsonData(cSB311TypesJsonFileName)), DocumentType]
+#let types = lc[readDocumentType(node) | (node <- getJsonData(cDocTypesJsonFileName)), DocumentType]
+#let debtorRecordTypes = lc[readDocumentType(node) | (node <- getJsonData(cSB311TypesJsonFileName)), DocumentType]
+
 
 proc readTypes(fileName: string): seq[DocumentType] =
-   result = lc[to(node, DocumentType) | (node <- getJsonData(fileName)), DocumentType]
+   result = lc[readDocumentType(node) | (node <- getJsonData(fileName)), DocumentType]
 
 proc readDocumentTypes*() =
    types = readTypes(cDocTypesJsonFileName)
@@ -58,10 +59,11 @@ proc documentTypeMatching*(name: string, version: int, subversion: int): Documen
       result = matches[0]
 
 proc getLineTypeForLineId*(doctype: DocumentType, lineId: string): LineType =
+   debug("getLineTypeForLineId: '$#'" % [lineId])
    let lineTypes = doctype.lineTypes.filter(proc (lt: LineType): bool = lt.lineId == lineId)
    if lineTypes.len == 0:
       raise newException(ValueError, 
-         "Document $# does not have a line type with ID $#" % [doctype.name, lineId])
+         "Document $# does not have a line type with ID '$#'" % [doctype.name, lineId])
    else:
       result = lineTypes[0]
 
@@ -84,11 +86,13 @@ proc getLineTypeForFullLine*(defaultDocType: DocumentType, line: string): LineTy
 
 proc contextWithLineId*(context: Context, lineId: string): Context =
    assert(not isNil(lineId))
-   debug( "contextWithLineId: $#" % [lineId])
+   debug( "contextWithLineId: ctx:$#, lid: $#" % [context.lineType.lineId, lineId])
    if context.lineType.lineId == lineId:
       result = context
    elif len(context.subContexts) == 0:
       raise newException(NotFoundError, "No context found with line id $#" % [lineId])
+   elif context.subContexts.hasKey(lineId):
+      result = context.subContexts[lineId]
    else:
       for sub in context.subContexts.values:
          let found = contextWithLineId(sub, lineId)
@@ -141,12 +145,18 @@ proc getElementValueString*(context: Context, leId: string): string =
    stripBlanks(getElementValueFullString(context, leId))
 
 proc getElementValueFullString*(docType: DocumentType, line: string, lineElementId: string): string =
+   debug("getElementValueFullString: '$#'" % [lineElementId])
    assert line[0..1] == lineElementId[0..1]
    let lineType = docType.getLineTypeForFullLine(line)
    let leType = lineType.getLineElementType(lineElementId)
+   getElementValueFullString(line, leType)
 
 proc getElementValueString*(docType: DocumentType, line: string, lineElementId: string): string =
    result = stripBlanks(getElementValueFullString(docType, line, lineElementId))
 
 proc getElementValueString*(line: string, leType: LineElementType): string =
    result = stripBlanks(getElementValueFullString(line, leType))
+
+proc getElementValueInt*(line: string, leType: LineElementType): int =
+   parseInt(getElementValueString(line, leType))
+   

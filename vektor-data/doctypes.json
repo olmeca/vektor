@@ -1010,7 +1010,8 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9902",
-            "startPosition": 3
+            "startPosition": 3,
+            "countable": "0200"
           },
           {
             "code": "ANT086",
@@ -1018,7 +1019,8 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9903",
-            "startPosition": 9
+            "startPosition": 9,
+            "countable": "0300"
           },
           {
             "code": "ANT087",
@@ -1026,7 +1028,8 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9904",
-            "startPosition": 15
+            "startPosition": 15,
+            "countable": "0400"
           },
           {
             "code": "ANT089",
@@ -1034,7 +1037,8 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9905",
-            "startPosition": 21
+            "startPosition": 21,
+            "countable": "9800"
           },
           {
             "code": "ANT265",
@@ -1042,7 +1046,8 @@
             "fieldType": "N",
             "length": 7,
             "lineElementId": "9906",
-            "startPosition": 27
+            "startPosition": 27,
+            "countable": "0000"
           },
           {
             "code": "BED025",
@@ -1050,7 +1055,8 @@
             "fieldType": "N",
             "length": 11,
             "lineElementId": "9907",
-            "startPosition": 34
+            "startPosition": 34,
+            "countable": "0437"
           },
           {
             "code": "COD043",
@@ -3180,7 +3186,8 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9902",
-            "startPosition": 3
+            "startPosition": 3,
+            "countable": "0200"
           },
           {
             "code": "ANT086",
@@ -3188,7 +3195,8 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9903",
-            "startPosition": 9
+            "startPosition": 9,
+            "countable": "0300"
           },
           {
             "code": "ANT087",
@@ -3196,7 +3204,8 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9904",
-            "startPosition": 15
+            "startPosition": 15,
+            "countable": "0400"
           },
           {
             "code": "ANT089",
@@ -3204,7 +3213,8 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9905",
-            "startPosition": 21
+            "startPosition": 21,
+            "countable": "9800"
           },
           {
             "code": "ANT265",
@@ -3212,7 +3222,8 @@
             "fieldType": "N",
             "length": 7,
             "lineElementId": "9906",
-            "startPosition": 27
+            "startPosition": 27,
+            "countable": "0000"
           },
           {
             "code": "BED025",
@@ -3220,7 +3231,8 @@
             "fieldType": "N",
             "length": 11,
             "lineElementId": "9907",
-            "startPosition": 34
+            "startPosition": 34,
+            "countable": "0426"
           },
           {
             "code": "COD043",
