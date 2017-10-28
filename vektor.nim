@@ -67,7 +67,8 @@ var
    logLevel: string = nil
    gNames: seq[string] = nil
    subject: string
-   gAccumulator: Accumulator
+   gTotals: Accumulator
+   gSubtotals: Accumulator
 
 proc setLoggingLevel(level: Level) =
    let filePath = joinPath(getAppDir(), "vektor.log")
@@ -228,6 +229,8 @@ proc printLine(line: string) =
          stdout.write(getFieldValueFullString(field))
          stdout.write(" | ")
       stdout.write("\n")
+      if not isNil(gSubtotals):
+         gSubtotals.addLine(line)
 
 proc mutateAndWrite(line: var string, outStream: Stream) =
    var buf = toSeq(line.mitems)
@@ -445,9 +448,10 @@ else:
          if line.startswith("01"):
             try:
                docType = fetch_doctype(line)
-               gAccumulator = newAccumulator(docType)
+               gTotals = newAccumulator(docType)
                if not isNil(qualifierString):
                   lineQualifier = docType.parseQualifier(qualifierString)
+                  gSubtotals = newAccumulator(docType)
                else: discard
                let lineType = docType.getLineTypeForLineId("01")
                setCurrentLine(line)
@@ -461,7 +465,7 @@ else:
                      while input.readLine(line):
                         setCurrentLine(line)
                         mutateAndWrite(line, outStream)
-                        gAccumulator.addLine(line)
+                        gTotals.addLine(line)
                      outStream.close()
                   else:
                      quit("Could not create file '$#'" % [outputPath])
@@ -470,8 +474,10 @@ else:
                   while input.readLine(line):
                      setCurrentLine(line)
                      printLine(line)
-                     gAccumulator.addLine(line)
-                  echo "Accumulator: " & gAccumulator.asString()
+                     gTotals.addLine(line)
+                  if not isNil(gSubtotals):
+                     echo "Subtotals: " & gSubtotals.asString()
+                  echo "Totals: " & gTotals.asString()
                else:
                   quit("Unknown command.")
             except Exception:

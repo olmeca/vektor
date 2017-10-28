@@ -18,12 +18,13 @@ proc newAccumulator*(dType:DocumentType): Accumulator =
       if not isNil(leType.countable):
          cnt.add(leType.countable, 0)
       else: discard
+   debug("newAccumulator: created with $# field accumulators." % [intToStr(cnt.len)])
    result = Accumulator(docType: dType, counters: cnt)
 
 proc addLine*(acc: Accumulator, line: string) =
    for leId, total in acc.counters.mpairs():
-      # match any line type
-      if leId.startsWith(gAnyId):
+      # match any line type, except bottom line
+      if leId.startsWith(gAnyId) and not line.startsWith(gBottomLineId):
          total = total + 1
       # match line ID
       elif leId[0..1] == line[0..1]:
