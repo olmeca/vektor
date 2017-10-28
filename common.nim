@@ -39,6 +39,8 @@ type
 const
    cDataDir* = "vektor-data"
    cBlanksSet*: set[char] = { ' ' }
+   cBottomLineId* = "99"
+   cTopLineId* = "01"
 
 proc getJsonData*(fileName: string): JsonNode =
    let fullPath = joinPath(getAppDir(), cDataDir, fileName)

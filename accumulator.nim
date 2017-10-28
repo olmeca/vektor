@@ -7,13 +7,11 @@ type
       counters: TableRef[string, int]
 
 let
-   gBottomLineId = "99"
-   gTopLineId = "01"
    gAnyId = "00"
 
 proc newAccumulator*(dType:DocumentType): Accumulator =
    let cnt = newTable[string, int]()
-   let bottomline = dType.getLineTypeForLineId(gBottomLineId)
+   let bottomline = dType.getLineTypeForLineId(cBottomLineId)
    for leType in bottomline.lineElementTypes:
       if not isNil(leType.countable):
          cnt.add(leType.countable, 0)
@@ -24,7 +22,7 @@ proc newAccumulator*(dType:DocumentType): Accumulator =
 proc addLine*(acc: Accumulator, line: string) =
    for leId, total in acc.counters.mpairs():
       # match any line type, except bottom line
-      if leId.startsWith(gAnyId) and not line.startsWith(gBottomLineId):
+      if leId.startsWith(gAnyId) and not line.startsWith(cBottomLineId):
          total = total + 1
       # match line ID
       elif leId[0..1] == line[0..1]:
