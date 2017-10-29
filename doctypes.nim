@@ -119,6 +119,8 @@ proc getLineElementType*(lineType: LineType, leId: string): LineElementType =
    else:
       result = results[0]
 
+proc isElementOfLine*(leType: LineElementType, line: string): bool =
+   leType.lineElementId[0..1] == line[0..1]
 
 proc getLineElementType*(docType: DocumentType, leId: string): LineElementType =
    debug("getLineType: d: $#, leId: $#" % [docType.name, leId])

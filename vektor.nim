@@ -3,7 +3,7 @@ import "doctypes", "qualifiers", "common", "accumulator", "vektorhelp"
 
 type
    FieldSpec = object
-      leTypeId: string
+      leType: LineElementType
       value: string
    
    FieldSpecError = object of Exception
@@ -84,7 +84,7 @@ proc description(doctype: DocumentType): string =
       doctype.description]
 
 proc toString(fs: FieldSpec): string = 
-   "FieldSpec leId: $#, value: $#" % [fs.leTypeId, fs.value]
+   "FieldSpec leId: $#, value: $#" % [fs.leType.lineElementId, fs.value]
 
 proc toString(ctx: Context): string = 
    "Context[lt: $#]" % [ctx.lineType.lineId]
@@ -167,11 +167,6 @@ proc mytrim(value: string, length: int): string =
    result = if value.len > length: value[0..length-1] else: value
    
 proc elementValue(leType: LineElementType, value: string): string = 
-   debug("elementValue: leType: $#, value='$#', length=$#" % 
-         [leType.lineElementId, 
-         (if isNil(value): "<nil>" else: value), 
-         intToStr(leType.length)])
-         
    let length = leType.length
    if leType.fieldType == "N":
       var number: int
@@ -187,26 +182,25 @@ proc elementValue(leType: LineElementType, value: string): string =
       else:
          alphanum = if isNil(value): "" else: mytrim(stripBlanks(value), length)
       result = alphanum & spaces(length - alphanum.len)
-   debug("elementValue -> '$#', $#" % [result, intToStr(result.len)])
+   # debug("elementValue -> '$#', $#" % [result, intToStr(result.len)])
 
-proc mutate(fieldSpec: FieldSpec, line: string, buf: var openArray[char]) =
-   if fieldSpec.leTypeId[0..1] == line[0..1]:
-      let leType = getLineElementType(docType, fieldSpec.leTypeId)
-      let start: int = leType.startPosition-1
-      let length = leType.length
-      var newValue = elementValue(leType, fieldSpec.value)
-      assert newValue.len == length
-      let newValueSeq = toSeq(newValue.items)
-      # Nim range is inclusive
-      for i in 0..(length-1):
-         buf[start+i] = newValueSeq[i]
+proc mutate(fieldSpec: FieldSpec, buf: var openArray[char]) =
+   let leType = fieldSpec.leType
+   let start: int = leType.startPosition-1
+   let length = leType.length
+   var newValue = elementValue(leType, fieldSpec.value)
+   assert newValue.len == length
+   let newValueSeq = toSeq(newValue.items)
+   # Nim range is inclusive
+   for i in 0..(length-1):
+      buf[start+i] = newValueSeq[i]
 
 proc padright(source: string, length: int, fillChar: char = ' '): string =
    source & repeat(fillChar, length - source.len)
 
 proc getFieldValueFullString(fSpec: FieldSpec): string =
-   debug("getFieldValueFullString: " & fSpec.leTypeId) 
-   result = rootContext.getElementValueFullString(fSpec.leTypeId)
+   # debug("getFieldValueFullString: " & fSpec.leType.lineElementId) 
+   result = rootContext.getElementValueFullString(fSpec.leType.lineElementId)
 
 proc conditionIsMet(): bool =
    if isNil(lineQualifier):
@@ -220,7 +214,7 @@ proc conditionIsMet(): bool =
 proc isLeafLine(line: string): bool =
    let lineId = line[0..1]
    result = leafLineType.lineId == lineId
-   debug("isLeafLine: $# -> $#" % [lineId, repr(result)])
+   # debug("isLeafLine: $# -> $#" % [lineId, repr(result)])
 
 proc printLine(line: string) = 
    if line.isLeafLine() and conditionIsMet():
@@ -232,11 +226,23 @@ proc printLine(line: string) =
       if not isNil(gSubtotals):
          gSubtotals.addLine(line)
 
+proc isContentLine(line: string): bool =
+   not line.startsWith(cTopLineId) and not line.startsWith(cBottomLineId)
+
 proc mutateAndWrite(line: var string, outStream: Stream) =
+   # debug("mutateAndWrite: " & line[0..13])
    var buf = toSeq(line.mitems)
-   if conditionIsMet():
-      for field in targetFields:
-         mutate(field, line, buf)
+   # Bottom line cumulative values get updated
+   # We don't allow bottom line values to be modified
+   if line.startsWith(cBottomLineId):
+      gTotals.write(buf)
+   else:
+      if conditionIsMet():
+         for field in targetFields:
+            if field.leType.isElementOfLine(line):
+               mutate(field, buf)
+      if line.isContentLine():
+         gTotals.addLine(buf)
    writeToStream(buf, outStream)
 
 
@@ -345,7 +351,8 @@ proc readElementSpec(spec: string): FieldSpec =
       let leTypeId = matches[0]
       let value = matches[1]
       registerLineId(leTypeId[0..1])
-      result = FieldSpec(leTypeId: leTypeId, value: value)
+      let leType = docType.getLineElementType(leTypeId)
+      result = FieldSpec(leType: leType, value: value)
    else:
       raise newException(FieldSpecError, "Invalid line element specification: $#" % [spec])
 
@@ -465,7 +472,6 @@ else:
                      while input.readLine(line):
                         setCurrentLine(line)
                         mutateAndWrite(line, outStream)
-                        gTotals.addLine(line)
                      outStream.close()
                   else:
                      quit("Could not create file '$#'" % [outputPath])
