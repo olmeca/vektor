@@ -69,6 +69,7 @@ var
    subject: string
    gTotals: Accumulator
    gSubtotals: Accumulator
+   gRandomizedValuesMap: TableRef[string, string]
 
 proc setLoggingLevel(level: Level) =
    let filePath = joinPath(getAppDir(), "vektor.log")
@@ -88,6 +89,10 @@ proc toString(fs: FieldSpec): string =
 
 proc toString(ctx: Context): string = 
    "Context[lt: $#]" % [ctx.lineType.lineId]
+
+proc hasOwnRandomizationContext(line: string): bool =
+   let lineIdNr = parseInt(line[0..1])
+   lineIdNr <= 2 or lineIdNr == 99
 
 proc getRandomName(): string =
    if isNil(gNames):
@@ -156,6 +161,9 @@ proc fetch_doctype(line: string): DocumentType =
    let subversion = parseInt(line[7 .. 8])
    getDocumentType(typeId, version, subversion)
 
+proc isRandomSpec(valueSpec: string): bool =
+   valueSpec[0] == '@'
+
 
 proc writeToStream(buf: seq[char], stream: Stream) = 
    for c in buf:
@@ -166,29 +174,35 @@ proc writeToStream(buf: seq[char], stream: Stream) =
 proc mytrim(value: string, length: int): string = 
    result = if value.len > length: value[0..length-1] else: value
    
-proc elementValue(leType: LineElementType, value: string): string = 
+proc newElementValue(leType: LineElementType, oldValue: string, valueSpec: string): string = 
    let length = leType.length
-   if leType.fieldType == "N":
+   if leType.isNumeric():
       var number: int
-      if leType.isDate and value =~ randomDatePattern:
+      if leType.isDate and valueSpec =~ randomDatePattern:
          result = randomDateString(matches[0], matches[1])
       else:
-         number = if isNil(value): 0 else: parseInt(mytrim(value, length))
+         number = if isNil(valueSpec): 0 else: parseInt(mytrim(valueSpec, length))
          result = intToStr(number, length)
    else:
       var alphanum: string = nil
-      if value == "@name":
+      if valueSpec == "@name":
          alphanum = getRandomName()
       else:
-         alphanum = if isNil(value): "" else: mytrim(stripBlanks(value), length)
+         alphanum = if isNil(valueSpec): "" else: mytrim(stripBlanks(valueSpec), length)
       result = alphanum & spaces(length - alphanum.len)
-   # debug("elementValue -> '$#', $#" % [result, intToStr(result.len)])
+   # debug("newElementValue -> '$#', $#" % [result, intToStr(result.len)])
 
-proc mutate(fieldSpec: FieldSpec, buf: var openArray[char]) =
-   let leType = fieldSpec.leType
-   let start: int = leType.startPosition-1
-   let length = leType.length
-   var newValue = elementValue(leType, fieldSpec.value)
+proc getElementValue(leType: LineElementType, oldValue: string, valueSpec: string): string =
+   # if random value specified we first check if old value has already been
+   # randomized in this context. If so reuse value generated earlier.
+   if isRandomSpec(valueSpec) and not leType.isEmptyValue(oldValue) and gRandomizedValuesMap.hasKey(oldValue):
+      result = gRandomizedValuesMap[oldValue]
+   else:
+      result = newElementValue(leType, oldValue, valueSpec)
+      if isRandomSpec(valueSpec):
+         gRandomizedValuesMap[oldValue] = result
+
+proc copyChars(buf: var openArray[char], start: int, length: int, newValue: string) =
    assert newValue.len == length
    let newValueSeq = toSeq(newValue.items)
    # Nim range is inclusive
@@ -239,8 +253,12 @@ proc mutateAndWrite(line: var string, outStream: Stream) =
    else:
       if conditionIsMet():
          for field in targetFields:
-            if field.leType.isElementOfLine(line):
-               mutate(field, buf)
+            let leType = field.leType
+            let newValueSpec = field.value
+            if leType.isElementOfLine(line):
+               let oldValue = line.getElementValueString(leType)
+               let newValue = getElementValue(leType, oldValue, newValueSpec)
+               copyChars(buf, leType.startPosition-1, leType.length, newValue)
       if line.isContentLine():
          gTotals.addLine(buf)
    writeToStream(buf, outStream)
@@ -470,6 +488,8 @@ else:
                   if not isNil(outStream):
                      mutateAndWrite(line, outStream)
                      while input.readLine(line):
+                        if line.hasOwnRandomizationContext():
+                           gRandomizedValuesMap = newTable[string, string]()
                         setCurrentLine(line)
                         mutateAndWrite(line, outStream)
                      outStream.close()

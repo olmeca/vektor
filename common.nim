@@ -41,6 +41,10 @@ const
    cBlanksSet*: set[char] = { ' ' }
    cBottomLineId* = "99"
    cTopLineId* = "01"
+   cPatientLineId* = "02"
+   cDebtorLineId* = "03"
+   cFieldTypeNumeric* = "N"
+   cFieldTypeAlphaNum* = "AN"
 
 proc getJsonData*(fileName: string): JsonNode =
    let fullPath = joinPath(getAppDir(), cDataDir, fileName)

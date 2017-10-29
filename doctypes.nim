@@ -23,8 +23,30 @@ proc readDocumentTypes*() =
    types = readTypes(cDocTypesJsonFileName)
    debtorRecordTypes = readTypes(cSB311TypesJsonFileName)
 
+
+proc isOneCharRepeated(value: string, theChar: char): bool =
+   result = true
+   for c in toSeq(value.items):
+      if c != theChar:
+         result = false
+
+
 proc isDate*(leType: LineElementType): bool =
    leType.length == 8 and leType.code.startsWith("DAT")
+
+proc isAlphaNum*(leType: LineElementType): bool =
+   leType.fieldType == cFieldTypeAlphaNum
+
+proc isNumeric*(leType: LineElementType): bool =
+   leType.fieldType == cFieldTypeNumeric
+
+proc isEmptyValue*(leType: LineElementType, value: string): bool =
+   if value.len == 0:
+      true
+   elif leType.isNumeric():
+      value.isOneCharRepeated('0')
+   else:
+      value.isOneCharRepeated(' ')
 
 proc stripBlanks(source: string): string =
    strip(source, true, true, cBlanksSet)

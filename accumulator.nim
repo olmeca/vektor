@@ -55,12 +55,12 @@ proc writeNumber(value: int, buf: var openArray[char], start: int, length: int) 
    # Nim range is inclusive
    for i in 0..(length-1):
       # Nim arrays are zero-based, Vektis is one-based
-      buf[start+i-1] = newValueSeq[i]
+      buf[start+i] = newValueSeq[i]
    
 
 proc write*(acc: Accumulator, buf: var seq[char]) =
    for total in acc.totals:
-      writeNumber(total.value, buf, total.leType.startPosition, total.leType.length)
+      writeNumber(total.value, buf, total.leType.startPosition-1, total.leType.length)
 
 proc asString*(acc: Accumulator): string =
    let items = lc["$# = $#" % [t.leType.lineElementId, intToStr(t.value)] | (t <- acc.totals), string]
