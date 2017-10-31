@@ -31,5 +31,6 @@ proc readDocumentType*(node: JsonNode): DocumentType =
       formatVersion: int(node["formatVersion"].getNum()),
       formatSubVersion: int(node["formatSubVersion"].getNum()),
       vektisEICode: int(node["vektisEICode"].getNum()),
+      lineLength: int(getNum(node{"lineLength"}, 310)),
       lineTypes: lineTypes
    )

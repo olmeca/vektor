@@ -1,5 +1,5 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
-import "doctypes", "qualifiers", "common", "accumulator", "vektorhelp"
+import "doctypes", "qualifiers", "common", "accumulator", "vektorhelp", "validation"
 
 type
    FieldSpec = object
@@ -9,11 +9,10 @@ type
    FieldSpecError = object of Exception
    
    TCommand = enum
-      cmdCopy, cmdQuery, cmdInfo, cmdHelp, cmdPrint
+      cmdCopy, cmdQuery, cmdInfo, cmdHelp, cmdPrint, cmdValidate
 
 
 const
-   cVektisDateFormat = "yyyyMMdd"
    cNamesJsonFile = "names.json"
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
    msgSourceOrDestMissing = "You need to specify a source file and a destination file (e.g: vektor copy source.asc dest.asc -e:...)."
@@ -62,14 +61,16 @@ var
    optLineId: string
    argSourceFilePath: string
    argDestFilePath: string
-   lineQualifier: LineQualifier = nil
-   qualifierString: string
+   gLineQualifier: LineQualifier = nil
+   gQualifierString: string
    logLevel: string = nil
    gNames: seq[string] = nil
    subject: string
    gTotals: Accumulator
    gSubtotals: Accumulator
    gRandomizedValuesMap: TableRef[string, string]
+   gSequenceNumber: int = 0
+   cMaxErrors: int = 20
 
 proc setLoggingLevel(level: Level) =
    let filePath = joinPath(getAppDir(), "vektor.log")
@@ -138,12 +139,6 @@ proc setCurrentContext(child: Context) =
 proc setCurrentLine(line: string) =
    setCurrentContext(createContext(line))
 
-proc parseVektisDate(dateString: string): TimeInfo =
-   try:
-      result = parse(dateString, cVektisDateFormat)
-   except Exception:
-      raise newException(ValueError, "Invalid date format: '$#'" % [dateString])
-
 proc randomDateString(fromDate: string, toDate: string): string =
    let fromSeconds = parseVektisDate(fromDate).toTime().toSeconds()
    let toSeconds = parseVektisDate(toDate).toTime().toSeconds()
@@ -164,6 +159,11 @@ proc fetch_doctype(line: string): DocumentType =
 proc isRandomSpec(valueSpec: string): bool =
    valueSpec[0] == '@'
 
+proc padright(source: string, length: int, fillChar: char = ' '): string =
+   if source.len > length:
+      source.substr(0, length-1)
+   else:
+      source & repeat(fillChar, length - source.len)
 
 proc writeToStream(buf: seq[char], stream: Stream) = 
    for c in buf:
@@ -173,7 +173,20 @@ proc writeToStream(buf: seq[char], stream: Stream) =
 
 proc mytrim(value: string, length: int): string = 
    result = if value.len > length: value[0..length-1] else: value
-   
+
+proc getNextSequenceNumber(): int =
+   gSequenceNumber = gSequenceNumber + 1
+   gSequenceNumber
+
+proc genElementValue(leType: LineElementType, valueSpec: string): string =
+   if valueSpec == "@name":
+      result = getRandomName().padRight(leType.length)
+   elif valueSpec == "@seq":
+      result = intToStr(getNextSequenceNumber(), leType.length)
+   elif valueSpec =~ randomDatePattern:
+      assert(leType.isDate)
+      result = randomDateString(matches[0], matches[1])
+
 proc newElementValue(leType: LineElementType, oldValue: string, valueSpec: string): string = 
    let length = leType.length
    if leType.isNumeric():
@@ -195,12 +208,14 @@ proc newElementValue(leType: LineElementType, oldValue: string, valueSpec: strin
 proc getElementValue(leType: LineElementType, oldValue: string, valueSpec: string): string =
    # if random value specified we first check if old value has already been
    # randomized in this context. If so reuse value generated earlier.
-   if isRandomSpec(valueSpec) and not leType.isEmptyValue(oldValue) and gRandomizedValuesMap.hasKey(oldValue):
-      result = gRandomizedValuesMap[oldValue]
+   if isRandomSpec(valueSpec):
+      if not leType.isEmptyValue(oldValue) and gRandomizedValuesMap.hasKey(oldValue):
+         result = gRandomizedValuesMap[oldValue]
+      else:
+         result = genElementValue(leType, valueSpec)
+         gRandomizedValuesMap[oldValue] = result
    else:
       result = newElementValue(leType, oldValue, valueSpec)
-      if isRandomSpec(valueSpec):
-         gRandomizedValuesMap[oldValue] = result
 
 proc copyChars(buf: var openArray[char], start: int, length: int, newValue: string) =
    assert newValue.len == length
@@ -209,19 +224,16 @@ proc copyChars(buf: var openArray[char], start: int, length: int, newValue: stri
    for i in 0..(length-1):
       buf[start+i] = newValueSeq[i]
 
-proc padright(source: string, length: int, fillChar: char = ' '): string =
-   source & repeat(fillChar, length - source.len)
-
 proc getFieldValueFullString(fSpec: FieldSpec): string =
    # debug("getFieldValueFullString: " & fSpec.leType.lineElementId) 
    result = rootContext.getElementValueFullString(fSpec.leType.lineElementId)
 
 proc conditionIsMet(): bool =
-   if isNil(lineQualifier):
+   if isNil(gLineQualifier):
       result = true
    else:
       try:
-         result = lineQualifier.qualifies(rootContext)
+         result = gLineQualifier.qualifies(rootContext)
       except NotFoundError:
          result = false
 
@@ -329,6 +341,13 @@ proc readVersion(versionString: string) =
          else:
             optSubversion = parseInt(items[1])
 
+proc checkAndPrepareQualifier() =
+   if not isNil(gQualifierString):
+      gLineQualifier = docType.parseQualifier(gQualifierString)
+      gSubtotals = newAccumulator(docType)
+   else: discard
+
+
 proc showHelp() =
    try:
        echo helpSubjects[subject]
@@ -360,6 +379,8 @@ proc readCommand(cmdString: string) =
       command = cmdHelp
    of "print":
       command = cmdPrint
+   of "validate":
+      command = cmdValidate
    else:
       quit(msgCommandMissing)
    commandWasRead = true
@@ -395,12 +416,14 @@ proc fieldSpecArgName(): string =
       result = "-r, --replacements"
    else:
       result = "-e, --elements"
-      
+
+proc targetFieldsRequired(): bool =
+   command == cmdQuery or command == cmdCopy
 
 proc processCommandArgs() =
    if command == cmdInfo:
       if commandArgs.len > 0:
-         argDocTypeName = commandArgs[0]
+         argDocTypeName = commandArgs[0].toUpperAscii()
          if commandArgs.len > 1:
             readVersion(commandArgs[1])
          else: discard
@@ -410,6 +433,9 @@ proc processCommandArgs() =
       argSourceFilePath = commandArgs[0]
       argDestFilePath = commandArgs[1]
    elif command == cmdQuery:
+      argSourceFilePath = commandArgs[0]
+   elif command == cmdValidate:
+      checkCommandArgs(1, "Missing argument filename.")
       argSourceFilePath = commandArgs[0]
    elif command == cmdHelp:
       if commandArgs.len > 0:
@@ -435,7 +461,7 @@ for kind, key, value in getopt():
       of "v", "version":
          readVersion(value)
       of "c", "condition":
-         qualifierString = value
+         gQualifierString = value
    of cmdArgument:
       if commandWasRead:
          readCommandArgument(key)
@@ -464,26 +490,39 @@ elif command == cmdPrint:
 else:
    if not existsFile(argSourceFilePath):
       quit("Specified source file not found: $#" % [argSourceFilePath])
-   elif isNil(targetFieldsArg) or targetFieldsArg.len == 0:
+   elif targetFieldsRequired() and (isNil(targetFieldsArg) or targetFieldsArg.len == 0):
       quit("You need to specify line elements (-e:0203,0207 or --elements 0203,0207 )")
    else:
       let input = newFileStream(argSourceFilePath, fmRead)
       var line: string = ""
       if input.readLine(line):
-         if line.startswith("01"):
+         if line.startswith(cTopLineId):
             try:
                docType = fetch_doctype(line)
-               gTotals = newAccumulator(docType)
-               if not isNil(qualifierString):
-                  lineQualifier = docType.parseQualifier(qualifierString)
-                  gSubtotals = newAccumulator(docType)
-               else: discard
-               let lineType = docType.getLineTypeForLineId("01")
-               setCurrentLine(line)
-               setLeafLineType(lineType)
-               echo("Document type: $#" % [description(docType)])
-               readFieldSpecs(targetFieldsArg, targetFields, fieldSpecArgName())
-               if command == cmdCopy:
+               if command == cmdQuery:
+                  gTotals = newAccumulator(docType)
+                  checkAndPrepareQualifier()
+                  let topLineType = docType.getLineTypeForLineId(cTopLineId)
+                  setCurrentLine(line)
+                  setLeafLineType(topLineType)
+                  echo("Document type: $#" % [description(docType)])
+                  readFieldSpecs(targetFieldsArg, targetFields, fieldSpecArgName())
+                  printLine(line)
+                  while input.readLine(line):
+                     setCurrentLine(line)
+                     printLine(line)
+                     gTotals.addLine(line)
+                  if not isNil(gSubtotals):
+                     echo "Subtotals: " & gSubtotals.asString()
+                  echo "Totals: " & gTotals.asString()
+               elif command == cmdCopy:
+                  gTotals = newAccumulator(docType)
+                  checkAndPrepareQualifier()
+                  let topLineType = docType.getLineTypeForLineId(cTopLineId)
+                  setCurrentLine(line)
+                  setLeafLineType(topLineType)
+                  echo("Document type: $#" % [description(docType)])
+                  readFieldSpecs(targetFieldsArg, targetFields, fieldSpecArgName())
                   var outStream: Stream = newFileStream(argDestFilePath, fmWrite)
                   if not isNil(outStream):
                      mutateAndWrite(line, outStream)
@@ -495,17 +534,19 @@ else:
                      outStream.close()
                   else:
                      quit("Could not create file '$#'" % [outputPath])
-               elif command == cmdQuery:
-                  printLine(line)
-                  while input.readLine(line):
-                     setCurrentLine(line)
-                     printLine(line)
-                     gTotals.addLine(line)
-                  if not isNil(gSubtotals):
-                     echo "Subtotals: " & gSubtotals.asString()
-                  echo "Totals: " & gTotals.asString()
-               else:
-                  quit("Unknown command.")
+               elif command == cmdValidate:
+                  gTotals = newAccumulator(docType)
+                  var lineNr = 1
+                  var errors: seq[ValidationResult] = @[]
+                  docType.validate(line, lineNr, errors)
+                  while input.readLine(line) and errors.len < cMaxErrors:
+                     lineNr = lineNr + 1
+                     docType.validate(line, lineNr, errors)
+                  if errors.len == 0:
+                     echo "OK."
+                  else:
+                     for error in errors:
+                        echo error.asString()
             except Exception:
                quit(getCurrentExceptionMsg())
          else:

@@ -1,12 +1,14 @@
-import json, os, ospaths, future, sequtils, strutils, logging, tables
+import json, os, ospaths, future, sequtils, strutils, logging, tables, times
 import "common", "vektorjson"
 
 const 
    cDebtorRecordLineId* = "03"
-   cDebtorRecordVersionStartIndex = 298
-   cDebtorRecordVersionEndIndex = 299
+   cDebtorRecordVersionStartIndex = 297
+   cDebtorRecordVersionEndIndex = 298
    cDocTypesJsonFileName = "doctypes.json"
    cSB311TypesJsonFileName = "sb311-types.json"
+   cSB311v1 = "01"
+   cSB311v2 = "02"
 
 var
    types: seq[DocumentType]
@@ -22,6 +24,12 @@ proc readTypes(fileName: string): seq[DocumentType] =
 proc readDocumentTypes*() =
    types = readTypes(cDocTypesJsonFileName)
    debtorRecordTypes = readTypes(cSB311TypesJsonFileName)
+
+proc parseVektisDate*(dateString: string): TimeInfo =
+   try:
+      result = parse(dateString, cVektisDateFormat)
+   except Exception:
+      raise newException(ValueError, "Invalid date format: '$#'" % [dateString])
 
 
 proc isOneCharRepeated(value: string, theChar: char): bool =
@@ -47,6 +55,8 @@ proc isEmptyValue*(leType: LineElementType, value: string): bool =
       value.isOneCharRepeated('0')
    else:
       value.isOneCharRepeated(' ')
+
+proc isValueMandatory*(leType: LineElementType): bool = false
 
 proc stripBlanks(source: string): string =
    strip(source, true, true, cBlanksSet)
@@ -93,12 +103,15 @@ proc getLineTypeForFullLine*(defaultDocType: DocumentType, line: string): LineTy
    let lineId = line[0..1]
    result = getLineTypeForLineId(defaultDocType, lineId)
    if lineId == cDebtorRecordLineId:
+      debug("handling debtor record, version: " & line[cDebtorRecordVersionStartIndex..cDebtorRecordVersionEndIndex])
       if line.len > cDebtorRecordVersionEndIndex:
          var doctype = defaultDocType
          case line[cDebtorRecordVersionStartIndex..cDebtorRecordVersionEndIndex]
-         of "01":
+         of cSB311v1:
+            debug("Using SB311v1 record")
             doctype = debtorRecordTypes[0]
-         of "02":
+         of cSB311v2:
+            debug("Using SB311v2 record")
             doctype = debtorRecordTypes[1]
          else: discard
          result = getLineTypeForLineId(doctype, lineId)

@@ -26,6 +26,7 @@ type
       formatVersion*: int
       formatSubVersion*: int
       vektisEICode*: int
+      lineLength*: int
       lineTypes*: seq[LineType]
    
    VektisFormatError* = object of Exception
@@ -34,7 +35,17 @@ type
       lineType*: LineType
       line*: string
       subContexts*: TableRef[string, Context]
-      
+   
+   # Validation
+   ValidationResultType* = enum
+      vrMissingFieldValue, vrInvalidFieldValue, vrInvalidLineLength
+   TooManyErrors* = object of Exception
+   ValidationResult* = ref object
+      lineNr*: int
+      leId*: string
+      vrType*: ValidationResultType
+      info*: string
+
 
 const
    cDataDir* = "vektor-data"
@@ -45,6 +56,7 @@ const
    cDebtorLineId* = "03"
    cFieldTypeNumeric* = "N"
    cFieldTypeAlphaNum* = "AN"
+   cVektisDateFormat* = "yyyyMMdd"
 
 proc getJsonData*(fileName: string): JsonNode =
    let fullPath = joinPath(getAppDir(), cDataDir, fileName)
@@ -71,3 +83,7 @@ proc asString*(leType: LineElementType): string =
       leType.description,
       (if isNil(leType.countable): "nil" else: leType.countable)
    ]
+
+proc asString*(err: ValidationResult): string =
+   let leId = if isNil(err.leId): "" else: ", element " & err.leId
+   "Line $#$#: $#" % [intToStr(err.lineNr, 4), leId, err.info]

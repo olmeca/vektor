@@ -1084,6 +1084,7 @@
     "formatVersion": 8,
     "name": "AP304",
     "vektisEICode": 193,
+    "lineLength": 360,
     "lineTypes": [
       {
         "length": 360,
