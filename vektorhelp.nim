@@ -15,6 +15,7 @@ let helpSubjects* = {
    will display information on the 'copy' command.
    Help topics available:
       copy     The main command, creates adapted copy of a given declaration.
+	  validate Validates a given file against the Vektis format specification.
       show     Support command, selectively displays content of a declaration.
       info     Support command, displays structural information of a declaration format.
       options  List of options that govern the behavior of the commands
@@ -70,6 +71,18 @@ let helpSubjects* = {
             This will display patient's name, operation date and operation code for every
             operation lines of male patients (0208 is the gender field). 
             See help on options for more details.
+   """,
+   "validate": """
+   validate <file path>
+            Validates the contents of the file passed in as argument. Currently this is
+			a very basic validation. All that is checked is if the content of every
+			line element conforms to the data type. E.g. if the content of a date
+			field is really a date. Presence of required data is currently not yet
+			validated.
+			The result is a simple 'OK' if there are no errors found in the file.
+			Otherwise the result will be one error line per error found.
+			If more than 20 errors are found the first 20 will be listed, followed
+			by the text 'Too many errors'.
    """,
    "options": """
    Some Vektor commands take extra options that specify details of the task at hand. A command line
