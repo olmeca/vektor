@@ -9,7 +9,8 @@ proc readLineElementType*(node: JsonNode): LineElementType =
       startPosition: int(node["startPosition"].getNum()),
       length: int(node["length"].getNum()),
       description: node["description"].getStr(),
-      countable: getStr(node{"countable"}, nil)
+      countable: getStr(node{"countable"}, nil),
+      required: node["required"].getBVal()
    )
    # debug(result.asString())
 

@@ -18,6 +18,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0301",
+            "required": false,
             "startPosition": 1
           },
           {
@@ -26,6 +27,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0302",
+            "required": false,
             "startPosition": 3
           },
           {
@@ -34,6 +36,7 @@
             "fieldType": "AN",
             "length": 11,
             "lineElementId": "0303",
+            "required": false,
             "startPosition": 15
           },
           {
@@ -42,6 +45,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0304",
+            "required": false,
             "startPosition": 26
           },
           {
@@ -50,6 +54,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0305",
+            "required": false,
             "startPosition": 34
           },
           {
@@ -58,6 +63,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0306",
+            "required": false,
             "startPosition": 35
           },
           {
@@ -66,6 +72,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0307",
+            "required": false,
             "startPosition": 36
           },
           {
@@ -74,6 +81,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0308",
+            "required": false,
             "startPosition": 61
           },
           {
@@ -82,6 +90,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0309",
+            "required": false,
             "startPosition": 71
           },
           {
@@ -90,6 +99,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0310",
+            "required": false,
             "startPosition": 72
           },
           {
@@ -98,6 +108,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0311",
+            "required": false,
             "startPosition": 97
           },
           {
@@ -106,6 +117,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0312",
+            "required": false,
             "startPosition": 107
           },
           {
@@ -114,6 +126,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0313",
+            "required": false,
             "startPosition": 113
           },
           {
@@ -122,6 +135,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0314",
+            "required": false,
             "startPosition": 114
           },
           {
@@ -130,6 +144,7 @@
             "fieldType": "AN",
             "length": 24,
             "lineElementId": "0315",
+            "required": false,
             "startPosition": 116
           },
           {
@@ -138,6 +153,7 @@
             "fieldType": "N",
             "length": 5,
             "lineElementId": "0316",
+            "required": false,
             "startPosition": 140
           },
           {
@@ -146,6 +162,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0317",
+            "required": false,
             "startPosition": 145
           },
           {
@@ -154,6 +171,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0318",
+            "required": false,
             "startPosition": 151
           },
           {
@@ -162,6 +180,7 @@
             "fieldType": "AN",
             "length": 9,
             "lineElementId": "0319",
+            "required": false,
             "startPosition": 157
           },
           {
@@ -170,6 +189,7 @@
             "fieldType": "AN",
             "length": 24,
             "lineElementId": "0320",
+            "required": false,
             "startPosition": 166
           },
           {
@@ -178,6 +198,7 @@
             "fieldType": "AN",
             "length": 2,
             "lineElementId": "0321",
+            "required": false,
             "startPosition": 190
           },
           {
@@ -186,6 +207,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0322",
+            "required": false,
             "startPosition": 192
           },
           {
@@ -194,6 +216,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0323",
+            "required": false,
             "startPosition": 207
           },
           {
@@ -202,6 +225,7 @@
             "fieldType": "AN",
             "length": 50,
             "lineElementId": "0324",
+            "required": false,
             "startPosition": 210
           },
           {
@@ -210,6 +234,7 @@
             "fieldType": "AN",
             "length": 34,
             "lineElementId": "0325",
+            "required": false,
             "startPosition": 260
           },
           {
@@ -218,6 +243,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0326",
+            "required": false,
             "startPosition": 294
           },
           {
@@ -226,6 +252,7 @@
             "fieldType": "AN",
             "length": 2,
             "lineElementId": "0327",
+            "required": false,
             "startPosition": 296
           },
           {
@@ -234,6 +261,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0328",
+            "required": false,
             "startPosition": 298
           },
           {
@@ -242,6 +270,7 @@
             "fieldType": "AN",
             "length": 0,
             "lineElementId": "0380",
+            "required": false,
             "startPosition": 300
           }
         ]
@@ -267,6 +296,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0301",
+            "required": false,
             "startPosition": 1
           },
           {
@@ -275,6 +305,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0302",
+            "required": false,
             "startPosition": 3
           },
           {
@@ -283,6 +314,7 @@
             "fieldType": "AN",
             "length": 11,
             "lineElementId": "0303",
+            "required": false,
             "startPosition": 15
           },
           {
@@ -291,6 +323,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0304",
+            "required": false,
             "startPosition": 26
           },
           {
@@ -299,6 +332,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0305",
+            "required": false,
             "startPosition": 34
           },
           {
@@ -307,6 +341,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0306",
+            "required": false,
             "startPosition": 35
           },
           {
@@ -315,6 +350,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0307",
+            "required": false,
             "startPosition": 36
           },
           {
@@ -323,6 +359,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0308",
+            "required": false,
             "startPosition": 61
           },
           {
@@ -331,6 +368,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0309",
+            "required": false,
             "startPosition": 71
           },
           {
@@ -339,6 +377,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0310",
+            "required": false,
             "startPosition": 72
           },
           {
@@ -347,6 +386,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0311",
+            "required": false,
             "startPosition": 97
           },
           {
@@ -355,6 +395,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0312",
+            "required": false,
             "startPosition": 107
           },
           {
@@ -363,6 +404,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0313",
+            "required": false,
             "startPosition": 113
           },
           {
@@ -371,6 +413,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0314",
+            "required": false,
             "startPosition": 114
           },
           {
@@ -379,6 +422,7 @@
             "fieldType": "AN",
             "length": 24,
             "lineElementId": "0315",
+            "required": false,
             "startPosition": 116
           },
           {
@@ -387,6 +431,7 @@
             "fieldType": "N",
             "length": 5,
             "lineElementId": "0316",
+            "required": false,
             "startPosition": 140
           },
           {
@@ -395,6 +440,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0317",
+            "required": false,
             "startPosition": 145
           },
           {
@@ -403,6 +449,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0318",
+            "required": false,
             "startPosition": 151
           },
           {
@@ -411,6 +458,7 @@
             "fieldType": "AN",
             "length": 9,
             "lineElementId": "0319",
+            "required": false,
             "startPosition": 157
           },
           {
@@ -419,6 +467,7 @@
             "fieldType": "AN",
             "length": 24,
             "lineElementId": "0320",
+            "required": false,
             "startPosition": 166
           },
           {
@@ -427,6 +476,7 @@
             "fieldType": "AN",
             "length": 2,
             "lineElementId": "0321",
+            "required": false,
             "startPosition": 190
           },
           {
@@ -435,6 +485,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0322",
+            "required": false,
             "startPosition": 192
           },
           {
@@ -443,6 +494,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0323",
+            "required": false,
             "startPosition": 207
           },
           {
@@ -451,6 +503,7 @@
             "fieldType": "AN",
             "length": 50,
             "lineElementId": "0324",
+            "required": false,
             "startPosition": 210
           },
           {
@@ -459,6 +512,7 @@
             "fieldType": "AN",
             "length": 34,
             "lineElementId": "0325",
+            "required": false,
             "startPosition": 260
           },
           {
@@ -467,6 +521,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0326",
+            "required": false,
             "startPosition": 294
           },
           {
@@ -475,6 +530,7 @@
             "fieldType": "AN",
             "length": 2,
             "lineElementId": "0327",
+            "required": false,
             "startPosition": 296
           },
           {
@@ -483,6 +539,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0328",
+            "required": false,
             "startPosition": 298
           },
           {
@@ -491,6 +548,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0329",
+            "required": false,
             "startPosition": 300
           },
           {
@@ -499,6 +557,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0330",
+            "required": false,
             "startPosition": 308
           },
           {
@@ -507,6 +566,7 @@
             "fieldType": "AN",
             "length": 0,
             "lineElementId": "0380",
+            "required": false,
             "startPosition": 309
           }
         ]

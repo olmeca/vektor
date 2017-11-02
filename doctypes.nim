@@ -56,7 +56,8 @@ proc isEmptyValue*(leType: LineElementType, value: string): bool =
    else:
       value.isOneCharRepeated(' ')
 
-proc isValueMandatory*(leType: LineElementType): bool = false
+proc isValueMandatory*(leType: LineElementType): bool = 
+   leType.required
 
 proc stripBlanks(source: string): string =
    strip(source, true, true, cBlanksSet)

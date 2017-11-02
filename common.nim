@@ -12,6 +12,7 @@ type
       length*: int
       description*: string
       countable*: string
+      required*: bool
    
    LineType* = ref object
       name*: string

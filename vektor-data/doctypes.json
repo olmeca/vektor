@@ -18,6 +18,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0101",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -26,6 +27,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0102",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -34,6 +36,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0103",
+            "required": true,
             "startPosition": 6
           },
           {
@@ -42,6 +45,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0104",
+            "required": false,
             "startPosition": 8
           },
           {
@@ -50,6 +54,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0105",
+            "required": true,
             "startPosition": 10
           },
           {
@@ -58,6 +63,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "0106",
+            "required": false,
             "startPosition": 11
           },
           {
@@ -66,6 +72,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0107",
+            "required": false,
             "startPosition": 17
           },
           {
@@ -74,6 +81,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0108",
+            "required": false,
             "startPosition": 27
           },
           {
@@ -82,6 +90,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0109",
+            "required": false,
             "startPosition": 31
           },
           {
@@ -90,6 +99,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0110",
+            "required": false,
             "startPosition": 39
           },
           {
@@ -98,6 +108,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0111",
+            "required": false,
             "startPosition": 47
           },
           {
@@ -106,6 +117,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0112",
+            "required": false,
             "startPosition": 55
           },
           {
@@ -114,6 +126,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0113",
+            "required": true,
             "startPosition": 63
           },
           {
@@ -122,6 +135,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0114",
+            "required": true,
             "startPosition": 65
           },
           {
@@ -130,6 +144,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0115",
+            "required": true,
             "startPosition": 73
           },
           {
@@ -138,6 +153,7 @@
             "fieldType": "AN",
             "length": 12,
             "lineElementId": "0116",
+            "required": true,
             "startPosition": 81
           },
           {
@@ -146,6 +162,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0117",
+            "required": true,
             "startPosition": 93
           },
           {
@@ -154,6 +171,7 @@
             "fieldType": "AN",
             "length": 14,
             "lineElementId": "0118",
+            "required": false,
             "startPosition": 101
           },
           {
@@ -162,6 +180,7 @@
             "fieldType": "AN",
             "length": 3,
             "lineElementId": "0119",
+            "required": true,
             "startPosition": 115
           },
           {
@@ -170,6 +189,7 @@
             "fieldType": "AN",
             "length": 193,
             "lineElementId": "0180",
+            "required": false,
             "startPosition": 118
           }
         ]
@@ -186,6 +206,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0201",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -194,6 +215,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0202",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -202,6 +224,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0203",
+            "required": true,
             "startPosition": 15
           },
           {
@@ -210,6 +233,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0204",
+            "required": true,
             "startPosition": 24
           },
           {
@@ -218,6 +242,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0205",
+            "required": false,
             "startPosition": 28
           },
           {
@@ -226,6 +251,7 @@
             "fieldType": "AN",
             "length": 11,
             "lineElementId": "0206",
+            "required": false,
             "startPosition": 43
           },
           {
@@ -234,6 +260,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0207",
+            "required": false,
             "startPosition": 54
           },
           {
@@ -242,6 +269,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0208",
+            "required": false,
             "startPosition": 62
           },
           {
@@ -250,6 +278,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0209",
+            "required": false,
             "startPosition": 63
           },
           {
@@ -258,6 +287,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0210",
+            "required": false,
             "startPosition": 64
           },
           {
@@ -266,6 +296,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0211",
+            "required": false,
             "startPosition": 89
           },
           {
@@ -274,6 +305,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0212",
+            "required": false,
             "startPosition": 99
           },
           {
@@ -282,6 +314,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0213",
+            "required": false,
             "startPosition": 100
           },
           {
@@ -290,6 +323,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0214",
+            "required": false,
             "startPosition": 125
           },
           {
@@ -298,6 +332,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0215",
+            "required": true,
             "startPosition": 135
           },
           {
@@ -306,6 +341,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0216",
+            "required": false,
             "startPosition": 141
           },
           {
@@ -314,6 +350,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0217",
+            "required": false,
             "startPosition": 142
           },
           {
@@ -322,6 +359,7 @@
             "fieldType": "AN",
             "length": 9,
             "lineElementId": "0218",
+            "required": false,
             "startPosition": 148
           },
           {
@@ -330,6 +368,7 @@
             "fieldType": "N",
             "length": 5,
             "lineElementId": "0219",
+            "required": true,
             "startPosition": 157
           },
           {
@@ -338,6 +377,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0220",
+            "required": false,
             "startPosition": 162
           },
           {
@@ -346,6 +386,7 @@
             "fieldType": "AN",
             "length": 2,
             "lineElementId": "0221",
+            "required": false,
             "startPosition": 168
           },
           {
@@ -354,6 +395,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0222",
+            "required": true,
             "startPosition": 170
           },
           {
@@ -362,6 +404,7 @@
             "fieldType": "AN",
             "length": 11,
             "lineElementId": "0223",
+            "required": false,
             "startPosition": 171
           },
           {
@@ -370,6 +413,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0224",
+            "required": true,
             "startPosition": 182
           },
           {
@@ -378,6 +422,7 @@
             "fieldType": "AN",
             "length": 128,
             "lineElementId": "0280",
+            "required": false,
             "startPosition": 183
           }
         ]
@@ -394,6 +439,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0301",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -402,6 +448,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0302",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -410,6 +457,7 @@
             "fieldType": "AN",
             "length": 11,
             "lineElementId": "0303",
+            "required": false,
             "startPosition": 15
           },
           {
@@ -418,6 +466,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0304",
+            "required": false,
             "startPosition": 26
           },
           {
@@ -426,6 +475,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0305",
+            "required": false,
             "startPosition": 34
           },
           {
@@ -434,6 +484,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0306",
+            "required": false,
             "startPosition": 35
           },
           {
@@ -442,6 +493,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0307",
+            "required": true,
             "startPosition": 36
           },
           {
@@ -450,6 +502,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0308",
+            "required": false,
             "startPosition": 61
           },
           {
@@ -458,6 +511,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0309",
+            "required": false,
             "startPosition": 71
           },
           {
@@ -466,6 +520,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0310",
+            "required": false,
             "startPosition": 72
           },
           {
@@ -474,6 +529,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0311",
+            "required": false,
             "startPosition": 97
           },
           {
@@ -482,6 +538,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0312",
+            "required": true,
             "startPosition": 107
           },
           {
@@ -490,6 +547,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0313",
+            "required": false,
             "startPosition": 113
           },
           {
@@ -498,6 +556,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0314",
+            "required": false,
             "startPosition": 114
           },
           {
@@ -506,6 +565,7 @@
             "fieldType": "AN",
             "length": 24,
             "lineElementId": "0315",
+            "required": false,
             "startPosition": 116
           },
           {
@@ -514,6 +574,7 @@
             "fieldType": "N",
             "length": 5,
             "lineElementId": "0316",
+            "required": true,
             "startPosition": 140
           },
           {
@@ -522,6 +583,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0317",
+            "required": false,
             "startPosition": 145
           },
           {
@@ -530,6 +592,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0318",
+            "required": false,
             "startPosition": 151
           },
           {
@@ -538,6 +601,7 @@
             "fieldType": "AN",
             "length": 9,
             "lineElementId": "0319",
+            "required": false,
             "startPosition": 157
           },
           {
@@ -546,6 +610,7 @@
             "fieldType": "AN",
             "length": 24,
             "lineElementId": "0320",
+            "required": false,
             "startPosition": 166
           },
           {
@@ -554,6 +619,7 @@
             "fieldType": "AN",
             "length": 2,
             "lineElementId": "0321",
+            "required": false,
             "startPosition": 190
           },
           {
@@ -562,6 +628,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0322",
+            "required": false,
             "startPosition": 192
           },
           {
@@ -570,6 +637,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0323",
+            "required": false,
             "startPosition": 207
           },
           {
@@ -578,6 +646,7 @@
             "fieldType": "AN",
             "length": 70,
             "lineElementId": "0324",
+            "required": false,
             "startPosition": 210
           },
           {
@@ -586,6 +655,7 @@
             "fieldType": "N",
             "length": 16,
             "lineElementId": "0325",
+            "required": false,
             "startPosition": 280
           },
           {
@@ -594,6 +664,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0326",
+            "required": false,
             "startPosition": 296
           },
           {
@@ -602,6 +673,7 @@
             "fieldType": "AN",
             "length": 13,
             "lineElementId": "0380",
+            "required": false,
             "startPosition": 298
           }
         ]
@@ -618,6 +690,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0401",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -626,6 +699,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0402",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -634,6 +708,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0403",
+            "required": true,
             "startPosition": 15
           },
           {
@@ -642,6 +717,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0404",
+            "required": true,
             "startPosition": 24
           },
           {
@@ -650,6 +726,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0405",
+            "required": false,
             "startPosition": 28
           },
           {
@@ -658,6 +735,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0406",
+            "required": false,
             "startPosition": 43
           },
           {
@@ -666,6 +744,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0407",
+            "required": true,
             "startPosition": 58
           },
           {
@@ -674,6 +753,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0408",
+            "required": false,
             "startPosition": 59
           },
           {
@@ -682,6 +762,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0409",
+            "required": true,
             "startPosition": 67
           },
           {
@@ -690,6 +771,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0410",
+            "required": true,
             "startPosition": 75
           },
           {
@@ -698,6 +780,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0411",
+            "required": true,
             "startPosition": 78
           },
           {
@@ -706,6 +789,7 @@
             "fieldType": "AN",
             "length": 2,
             "lineElementId": "0412",
+            "required": true,
             "startPosition": 90
           },
           {
@@ -714,6 +798,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0413",
+            "required": false,
             "startPosition": 92
           },
           {
@@ -722,6 +807,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0414",
+            "required": true,
             "startPosition": 101
           },
           {
@@ -730,6 +816,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0415",
+            "required": false,
             "startPosition": 110
           },
           {
@@ -738,6 +825,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0416",
+            "required": true,
             "startPosition": 118
           },
           {
@@ -746,6 +834,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0417",
+            "required": false,
             "startPosition": 126
           },
           {
@@ -754,6 +843,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0418",
+            "required": true,
             "startPosition": 130
           },
           {
@@ -762,6 +852,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0419",
+            "required": false,
             "startPosition": 138
           },
           {
@@ -770,6 +861,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0420",
+            "required": true,
             "startPosition": 142
           },
           {
@@ -778,6 +870,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0421",
+            "required": true,
             "startPosition": 150
           },
           {
@@ -786,6 +879,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0422",
+            "required": false,
             "startPosition": 152
           },
           {
@@ -794,6 +888,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0423",
+            "required": false,
             "startPosition": 154
           },
           {
@@ -802,6 +897,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0424",
+            "required": true,
             "startPosition": 166
           },
           {
@@ -810,6 +906,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0425",
+            "required": true,
             "startPosition": 167
           },
           {
@@ -818,6 +915,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0426",
+            "required": false,
             "startPosition": 168
           },
           {
@@ -826,6 +924,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0427",
+            "required": false,
             "startPosition": 169
           },
           {
@@ -834,6 +933,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0428",
+            "required": false,
             "startPosition": 171
           },
           {
@@ -842,6 +942,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0429",
+            "required": false,
             "startPosition": 179
           },
           {
@@ -850,6 +951,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0430",
+            "required": true,
             "startPosition": 187
           },
           {
@@ -858,6 +960,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0431",
+            "required": false,
             "startPosition": 188
           },
           {
@@ -866,6 +969,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0432",
+            "required": false,
             "startPosition": 196
           },
           {
@@ -874,6 +978,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0433",
+            "required": false,
             "startPosition": 204
           },
           {
@@ -882,6 +987,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0434",
+            "required": false,
             "startPosition": 212
           },
           {
@@ -890,6 +996,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0435",
+            "required": false,
             "startPosition": 213
           },
           {
@@ -898,6 +1005,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0436",
+            "required": false,
             "startPosition": 217
           },
           {
@@ -906,6 +1014,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0437",
+            "required": false,
             "startPosition": 225
           },
           {
@@ -914,6 +1023,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0438",
+            "required": false,
             "startPosition": 233
           },
           {
@@ -922,6 +1032,7 @@
             "fieldType": "AN",
             "length": 20,
             "lineElementId": "0439",
+            "required": true,
             "startPosition": 234
           },
           {
@@ -930,6 +1041,7 @@
             "fieldType": "AN",
             "length": 20,
             "lineElementId": "0440",
+            "required": false,
             "startPosition": 254
           },
           {
@@ -938,6 +1050,7 @@
             "fieldType": "AN",
             "length": 37,
             "lineElementId": "0480",
+            "required": false,
             "startPosition": 274
           }
         ]
@@ -954,6 +1067,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "9801",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -962,6 +1076,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "9802",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -970,6 +1085,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "9803",
+            "required": true,
             "startPosition": 15
           },
           {
@@ -978,6 +1094,7 @@
             "fieldType": "AN",
             "length": 140,
             "lineElementId": "9804",
+            "required": true,
             "startPosition": 19
           },
           {
@@ -986,6 +1103,7 @@
             "fieldType": "AN",
             "length": 152,
             "lineElementId": "9880",
+            "required": false,
             "startPosition": 159
           }
         ]
@@ -1002,6 +1120,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "9901",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -1010,6 +1129,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9902",
+            "required": true,
             "startPosition": 3,
             "countable": "0200"
           },
@@ -1019,6 +1139,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9903",
+            "required": false,
             "startPosition": 9,
             "countable": "0300"
           },
@@ -1028,6 +1149,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9904",
+            "required": true,
             "startPosition": 15,
             "countable": "0400"
           },
@@ -1037,6 +1159,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9905",
+            "required": false,
             "startPosition": 21,
             "countable": "9800"
           },
@@ -1046,6 +1169,7 @@
             "fieldType": "N",
             "length": 7,
             "lineElementId": "9906",
+            "required": true,
             "startPosition": 27,
             "countable": "0000"
           },
@@ -1055,6 +1179,7 @@
             "fieldType": "N",
             "length": 11,
             "lineElementId": "9907",
+            "required": false,
             "startPosition": 34,
             "countable": "0437"
           },
@@ -1064,6 +1189,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "9908",
+            "required": true,
             "startPosition": 45
           },
           {
@@ -1072,6 +1198,7 @@
             "fieldType": "AN",
             "length": 265,
             "lineElementId": "9980",
+            "required": false,
             "startPosition": 46
           }
         ]
@@ -1098,6 +1225,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0101",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -1106,6 +1234,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0102",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -1114,6 +1243,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0103",
+            "required": true,
             "startPosition": 6
           },
           {
@@ -1122,6 +1252,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0104",
+            "required": false,
             "startPosition": 8
           },
           {
@@ -1130,6 +1261,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0105",
+            "required": true,
             "startPosition": 10
           },
           {
@@ -1138,6 +1270,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "0106",
+            "required": false,
             "startPosition": 11
           },
           {
@@ -1146,6 +1279,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0107",
+            "required": false,
             "startPosition": 17
           },
           {
@@ -1154,6 +1288,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0108",
+            "required": false,
             "startPosition": 27
           },
           {
@@ -1162,6 +1297,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0109",
+            "required": false,
             "startPosition": 31
           },
           {
@@ -1170,6 +1306,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0110",
+            "required": false,
             "startPosition": 39
           },
           {
@@ -1178,6 +1315,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0111",
+            "required": false,
             "startPosition": 47
           },
           {
@@ -1186,6 +1324,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0112",
+            "required": false,
             "startPosition": 55
           },
           {
@@ -1194,6 +1333,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0113",
+            "required": true,
             "startPosition": 63
           },
           {
@@ -1202,6 +1342,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0114",
+            "required": true,
             "startPosition": 65
           },
           {
@@ -1210,6 +1351,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0115",
+            "required": true,
             "startPosition": 73
           },
           {
@@ -1218,6 +1360,7 @@
             "fieldType": "AN",
             "length": 12,
             "lineElementId": "0116",
+            "required": true,
             "startPosition": 81
           },
           {
@@ -1226,6 +1369,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0117",
+            "required": true,
             "startPosition": 93
           },
           {
@@ -1234,6 +1378,7 @@
             "fieldType": "AN",
             "length": 14,
             "lineElementId": "0118",
+            "required": false,
             "startPosition": 101
           },
           {
@@ -1242,6 +1387,7 @@
             "fieldType": "AN",
             "length": 3,
             "lineElementId": "0119",
+            "required": true,
             "startPosition": 115
           },
           {
@@ -1250,6 +1396,7 @@
             "fieldType": "AN",
             "length": 243,
             "lineElementId": "0180",
+            "required": false,
             "startPosition": 118
           }
         ]
@@ -1266,6 +1413,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0201",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -1274,6 +1422,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0202",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -1282,6 +1431,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0203",
+            "required": true,
             "startPosition": 15
           },
           {
@@ -1290,6 +1440,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0204",
+            "required": true,
             "startPosition": 24
           },
           {
@@ -1298,6 +1449,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0205",
+            "required": false,
             "startPosition": 28
           },
           {
@@ -1306,6 +1458,7 @@
             "fieldType": "AN",
             "length": 11,
             "lineElementId": "0206",
+            "required": false,
             "startPosition": 43
           },
           {
@@ -1314,6 +1467,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0207",
+            "required": true,
             "startPosition": 54
           },
           {
@@ -1322,6 +1476,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0208",
+            "required": true,
             "startPosition": 62
           },
           {
@@ -1330,6 +1485,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0209",
+            "required": true,
             "startPosition": 63
           },
           {
@@ -1338,6 +1494,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0210",
+            "required": true,
             "startPosition": 64
           },
           {
@@ -1346,6 +1503,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0211",
+            "required": false,
             "startPosition": 89
           },
           {
@@ -1354,6 +1512,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0212",
+            "required": false,
             "startPosition": 99
           },
           {
@@ -1362,6 +1521,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0213",
+            "required": false,
             "startPosition": 100
           },
           {
@@ -1370,6 +1530,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0214",
+            "required": false,
             "startPosition": 125
           },
           {
@@ -1378,6 +1539,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0215",
+            "required": true,
             "startPosition": 135
           },
           {
@@ -1386,6 +1548,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0216",
+            "required": false,
             "startPosition": 141
           },
           {
@@ -1394,6 +1557,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0217",
+            "required": false,
             "startPosition": 142
           },
           {
@@ -1402,6 +1566,7 @@
             "fieldType": "AN",
             "length": 9,
             "lineElementId": "0218",
+            "required": false,
             "startPosition": 148
           },
           {
@@ -1410,6 +1575,7 @@
             "fieldType": "N",
             "length": 5,
             "lineElementId": "0219",
+            "required": false,
             "startPosition": 157
           },
           {
@@ -1418,6 +1584,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0220",
+            "required": false,
             "startPosition": 162
           },
           {
@@ -1426,6 +1593,7 @@
             "fieldType": "AN",
             "length": 2,
             "lineElementId": "0221",
+            "required": false,
             "startPosition": 168
           },
           {
@@ -1434,6 +1602,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0222",
+            "required": true,
             "startPosition": 170
           },
           {
@@ -1442,6 +1611,7 @@
             "fieldType": "AN",
             "length": 11,
             "lineElementId": "0223",
+            "required": false,
             "startPosition": 171
           },
           {
@@ -1450,6 +1620,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0224",
+            "required": true,
             "startPosition": 182
           },
           {
@@ -1458,6 +1629,7 @@
             "fieldType": "AN",
             "length": 178,
             "lineElementId": "0280",
+            "required": false,
             "startPosition": 183
           }
         ]
@@ -1474,6 +1646,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0401",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -1482,6 +1655,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0402",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -1490,6 +1664,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0403",
+            "required": true,
             "startPosition": 15
           },
           {
@@ -1498,6 +1673,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0404",
+            "required": true,
             "startPosition": 24
           },
           {
@@ -1506,6 +1682,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0405",
+            "required": false,
             "startPosition": 28
           },
           {
@@ -1514,6 +1691,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0406",
+            "required": false,
             "startPosition": 43
           },
           {
@@ -1522,6 +1700,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0407",
+            "required": true,
             "startPosition": 58
           },
           {
@@ -1530,6 +1709,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0408",
+            "required": true,
             "startPosition": 59
           },
           {
@@ -1538,6 +1718,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0409",
+            "required": true,
             "startPosition": 67
           },
           {
@@ -1546,6 +1727,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0410",
+            "required": true,
             "startPosition": 68
           },
           {
@@ -1554,6 +1736,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0411",
+            "required": false,
             "startPosition": 76
           },
           {
@@ -1562,6 +1745,7 @@
             "fieldType": "AN",
             "length": 12,
             "lineElementId": "0412",
+            "required": false,
             "startPosition": 80
           },
           {
@@ -1570,6 +1754,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0413",
+            "required": true,
             "startPosition": 92
           },
           {
@@ -1578,6 +1763,7 @@
             "fieldType": "N",
             "length": 14,
             "lineElementId": "0414",
+            "required": true,
             "startPosition": 95
           },
           {
@@ -1586,6 +1772,7 @@
             "fieldType": "AN",
             "length": 2,
             "lineElementId": "0415",
+            "required": false,
             "startPosition": 109
           },
           {
@@ -1594,6 +1781,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0416",
+            "required": false,
             "startPosition": 111
           },
           {
@@ -1602,6 +1790,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0417",
+            "required": false,
             "startPosition": 120
           },
           {
@@ -1610,6 +1799,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0418",
+            "required": true,
             "startPosition": 129
           },
           {
@@ -1618,6 +1808,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0419",
+            "required": false,
             "startPosition": 137
           },
           {
@@ -1626,6 +1817,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0420",
+            "required": false,
             "startPosition": 141
           },
           {
@@ -1634,6 +1826,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0421",
+            "required": false,
             "startPosition": 149
           },
           {
@@ -1642,6 +1835,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0422",
+            "required": false,
             "startPosition": 157
           },
           {
@@ -1650,6 +1844,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0423",
+            "required": false,
             "startPosition": 161
           },
           {
@@ -1658,6 +1853,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0424",
+            "required": false,
             "startPosition": 169
           },
           {
@@ -1666,6 +1862,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0425",
+            "required": false,
             "startPosition": 181
           },
           {
@@ -1674,6 +1871,7 @@
             "fieldType": "AN",
             "length": 20,
             "lineElementId": "0426",
+            "required": true,
             "startPosition": 183
           },
           {
@@ -1682,6 +1880,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0427",
+            "required": false,
             "startPosition": 203
           },
           {
@@ -1690,6 +1889,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0428",
+            "required": false,
             "startPosition": 206
           },
           {
@@ -1698,6 +1898,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0429",
+            "required": true,
             "startPosition": 218
           },
           {
@@ -1706,6 +1907,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0430",
+            "required": true,
             "startPosition": 219
           },
           {
@@ -1714,6 +1916,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0431",
+            "required": false,
             "startPosition": 220
           },
           {
@@ -1722,6 +1925,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0432",
+            "required": false,
             "startPosition": 221
           },
           {
@@ -1730,6 +1934,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0433",
+            "required": false,
             "startPosition": 223
           },
           {
@@ -1738,6 +1943,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0434",
+            "required": false,
             "startPosition": 238
           },
           {
@@ -1746,6 +1952,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0435",
+            "required": false,
             "startPosition": 253
           },
           {
@@ -1754,6 +1961,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0436",
+            "required": true,
             "startPosition": 261
           },
           {
@@ -1762,6 +1970,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0437",
+            "required": false,
             "startPosition": 262
           },
           {
@@ -1770,6 +1979,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0438",
+            "required": false,
             "startPosition": 270
           },
           {
@@ -1778,6 +1988,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0439",
+            "required": false,
             "startPosition": 278
           },
           {
@@ -1786,6 +1997,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0440",
+            "required": true,
             "startPosition": 286
           },
           {
@@ -1794,6 +2006,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0441",
+            "required": false,
             "startPosition": 287
           },
           {
@@ -1802,6 +2015,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0442",
+            "required": false,
             "startPosition": 291
           },
           {
@@ -1810,6 +2024,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0443",
+            "required": false,
             "startPosition": 299
           },
           {
@@ -1818,6 +2033,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0444",
+            "required": true,
             "startPosition": 307
           },
           {
@@ -1826,6 +2042,7 @@
             "fieldType": "AN",
             "length": 20,
             "lineElementId": "0445",
+            "required": true,
             "startPosition": 308
           },
           {
@@ -1834,6 +2051,7 @@
             "fieldType": "AN",
             "length": 20,
             "lineElementId": "0446",
+            "required": false,
             "startPosition": 328
           },
           {
@@ -1842,6 +2060,7 @@
             "fieldType": "AN",
             "length": 13,
             "lineElementId": "0480",
+            "required": false,
             "startPosition": 348
           }
         ]
@@ -1858,6 +2077,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "9801",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -1866,6 +2086,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "9802",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -1874,6 +2095,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "9803",
+            "required": true,
             "startPosition": 15
           },
           {
@@ -1882,6 +2104,7 @@
             "fieldType": "AN",
             "length": 140,
             "lineElementId": "9804",
+            "required": true,
             "startPosition": 19
           },
           {
@@ -1890,6 +2113,7 @@
             "fieldType": "AN",
             "length": 202,
             "lineElementId": "9880",
+            "required": false,
             "startPosition": 159
           }
         ]
@@ -1906,6 +2130,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "9901",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -1914,6 +2139,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9902",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -1922,6 +2148,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9903",
+            "required": false,
             "startPosition": 9
           },
           {
@@ -1930,6 +2157,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9904",
+            "required": true,
             "startPosition": 15
           },
           {
@@ -1938,6 +2166,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9905",
+            "required": false,
             "startPosition": 21
           },
           {
@@ -1946,6 +2175,7 @@
             "fieldType": "N",
             "length": 7,
             "lineElementId": "9906",
+            "required": true,
             "startPosition": 27
           },
           {
@@ -1954,6 +2184,7 @@
             "fieldType": "N",
             "length": 11,
             "lineElementId": "9907",
+            "required": false,
             "startPosition": 34
           },
           {
@@ -1962,6 +2193,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "9908",
+            "required": true,
             "startPosition": 45
           },
           {
@@ -1970,6 +2202,7 @@
             "fieldType": "AN",
             "length": 315,
             "lineElementId": "9980",
+            "required": false,
             "startPosition": 46
           }
         ]
@@ -1986,6 +2219,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0301",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -1994,6 +2228,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0302",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -2002,6 +2237,7 @@
             "fieldType": "AN",
             "length": 11,
             "lineElementId": "0303",
+            "required": false,
             "startPosition": 15
           },
           {
@@ -2010,6 +2246,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0304",
+            "required": false,
             "startPosition": 26
           },
           {
@@ -2018,6 +2255,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0305",
+            "required": false,
             "startPosition": 34
           },
           {
@@ -2026,6 +2264,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0306",
+            "required": false,
             "startPosition": 35
           },
           {
@@ -2034,6 +2273,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0307",
+            "required": false,
             "startPosition": 36
           },
           {
@@ -2042,6 +2282,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0308",
+            "required": false,
             "startPosition": 61
           },
           {
@@ -2050,6 +2291,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0309",
+            "required": false,
             "startPosition": 71
           },
           {
@@ -2058,6 +2300,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0310",
+            "required": false,
             "startPosition": 72
           },
           {
@@ -2066,6 +2309,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0311",
+            "required": false,
             "startPosition": 97
           },
           {
@@ -2074,6 +2318,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0312",
+            "required": false,
             "startPosition": 107
           },
           {
@@ -2082,6 +2327,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0313",
+            "required": false,
             "startPosition": 113
           },
           {
@@ -2090,6 +2336,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0314",
+            "required": false,
             "startPosition": 114
           },
           {
@@ -2098,6 +2345,7 @@
             "fieldType": "AN",
             "length": 24,
             "lineElementId": "0315",
+            "required": false,
             "startPosition": 116
           },
           {
@@ -2106,6 +2354,7 @@
             "fieldType": "N",
             "length": 5,
             "lineElementId": "0316",
+            "required": false,
             "startPosition": 140
           },
           {
@@ -2114,6 +2363,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0317",
+            "required": false,
             "startPosition": 145
           },
           {
@@ -2122,6 +2372,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0318",
+            "required": false,
             "startPosition": 151
           },
           {
@@ -2130,6 +2381,7 @@
             "fieldType": "AN",
             "length": 9,
             "lineElementId": "0319",
+            "required": false,
             "startPosition": 157
           },
           {
@@ -2138,6 +2390,7 @@
             "fieldType": "AN",
             "length": 24,
             "lineElementId": "0320",
+            "required": false,
             "startPosition": 166
           },
           {
@@ -2146,6 +2399,7 @@
             "fieldType": "AN",
             "length": 2,
             "lineElementId": "0321",
+            "required": false,
             "startPosition": 190
           },
           {
@@ -2154,6 +2408,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0322",
+            "required": false,
             "startPosition": 192
           },
           {
@@ -2162,6 +2417,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0323",
+            "required": false,
             "startPosition": 207
           },
           {
@@ -2170,6 +2426,7 @@
             "fieldType": "AN",
             "length": 50,
             "lineElementId": "0324",
+            "required": false,
             "startPosition": 210
           },
           {
@@ -2178,6 +2435,7 @@
             "fieldType": "AN",
             "length": 34,
             "lineElementId": "0325",
+            "required": false,
             "startPosition": 260
           },
           {
@@ -2186,6 +2444,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0326",
+            "required": false,
             "startPosition": 294
           },
           {
@@ -2194,6 +2453,7 @@
             "fieldType": "AN",
             "length": 2,
             "lineElementId": "0327",
+            "required": false,
             "startPosition": 296
           },
           {
@@ -2202,6 +2462,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0328",
+            "required": false,
             "startPosition": 298
           },
           {
@@ -2210,6 +2471,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0329",
+            "required": false,
             "startPosition": 300
           },
           {
@@ -2218,6 +2480,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0330",
+            "required": false,
             "startPosition": 308
           },
           {
@@ -2226,6 +2489,7 @@
             "fieldType": "AN",
             "length": 35,
             "lineElementId": "0331",
+            "required": false,
             "startPosition": 309
           },
           {
@@ -2234,6 +2498,7 @@
             "fieldType": "AN",
             "length": 17,
             "lineElementId": "0380",
+            "required": false,
             "startPosition": 344
           }
         ]
@@ -2259,6 +2524,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0101",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -2267,6 +2533,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0102",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -2275,6 +2542,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0103",
+            "required": true,
             "startPosition": 6
           },
           {
@@ -2283,6 +2551,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0104",
+            "required": false,
             "startPosition": 8
           },
           {
@@ -2291,6 +2560,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0105",
+            "required": true,
             "startPosition": 10
           },
           {
@@ -2299,6 +2569,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "0106",
+            "required": false,
             "startPosition": 11
           },
           {
@@ -2307,6 +2578,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0107",
+            "required": false,
             "startPosition": 17
           },
           {
@@ -2315,6 +2587,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0108",
+            "required": false,
             "startPosition": 27
           },
           {
@@ -2323,6 +2596,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0109",
+            "required": false,
             "startPosition": 31
           },
           {
@@ -2331,6 +2605,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0110",
+            "required": false,
             "startPosition": 39
           },
           {
@@ -2339,6 +2614,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0111",
+            "required": false,
             "startPosition": 47
           },
           {
@@ -2347,6 +2623,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0112",
+            "required": false,
             "startPosition": 55
           },
           {
@@ -2355,6 +2632,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0113",
+            "required": true,
             "startPosition": 63
           },
           {
@@ -2363,6 +2641,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0114",
+            "required": true,
             "startPosition": 65
           },
           {
@@ -2371,6 +2650,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0115",
+            "required": true,
             "startPosition": 73
           },
           {
@@ -2379,6 +2659,7 @@
             "fieldType": "AN",
             "length": 12,
             "lineElementId": "0116",
+            "required": true,
             "startPosition": 81
           },
           {
@@ -2387,6 +2668,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0117",
+            "required": true,
             "startPosition": 93
           },
           {
@@ -2395,6 +2677,7 @@
             "fieldType": "AN",
             "length": 14,
             "lineElementId": "0118",
+            "required": false,
             "startPosition": 101
           },
           {
@@ -2403,6 +2686,7 @@
             "fieldType": "AN",
             "length": 3,
             "lineElementId": "0119",
+            "required": true,
             "startPosition": 115
           },
           {
@@ -2411,6 +2695,7 @@
             "fieldType": "AN",
             "length": 193,
             "lineElementId": "0180",
+            "required": false,
             "startPosition": 118
           }
         ]
@@ -2427,6 +2712,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0201",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -2435,6 +2721,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0202",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -2443,6 +2730,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0203",
+            "required": true,
             "startPosition": 15
           },
           {
@@ -2451,6 +2739,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0204",
+            "required": true,
             "startPosition": 24
           },
           {
@@ -2459,6 +2748,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0205",
+            "required": false,
             "startPosition": 28
           },
           {
@@ -2467,6 +2757,7 @@
             "fieldType": "AN",
             "length": 11,
             "lineElementId": "0206",
+            "required": false,
             "startPosition": 43
           },
           {
@@ -2475,6 +2766,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0207",
+            "required": true,
             "startPosition": 54
           },
           {
@@ -2483,6 +2775,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0208",
+            "required": true,
             "startPosition": 62
           },
           {
@@ -2491,6 +2784,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0209",
+            "required": true,
             "startPosition": 63
           },
           {
@@ -2499,6 +2793,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0210",
+            "required": true,
             "startPosition": 64
           },
           {
@@ -2507,6 +2802,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0211",
+            "required": false,
             "startPosition": 89
           },
           {
@@ -2515,6 +2811,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0212",
+            "required": false,
             "startPosition": 99
           },
           {
@@ -2523,6 +2820,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0213",
+            "required": false,
             "startPosition": 100
           },
           {
@@ -2531,6 +2829,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0214",
+            "required": false,
             "startPosition": 125
           },
           {
@@ -2539,6 +2838,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0215",
+            "required": true,
             "startPosition": 135
           },
           {
@@ -2547,6 +2847,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0216",
+            "required": false,
             "startPosition": 141
           },
           {
@@ -2555,6 +2856,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0217",
+            "required": false,
             "startPosition": 142
           },
           {
@@ -2563,6 +2865,7 @@
             "fieldType": "AN",
             "length": 9,
             "lineElementId": "0218",
+            "required": false,
             "startPosition": 148
           },
           {
@@ -2571,6 +2874,7 @@
             "fieldType": "N",
             "length": 5,
             "lineElementId": "0219",
+            "required": true,
             "startPosition": 157
           },
           {
@@ -2579,6 +2883,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0220",
+            "required": false,
             "startPosition": 162
           },
           {
@@ -2587,6 +2892,7 @@
             "fieldType": "AN",
             "length": 2,
             "lineElementId": "0221",
+            "required": false,
             "startPosition": 168
           },
           {
@@ -2595,6 +2901,7 @@
             "fieldType": "AN",
             "length": 11,
             "lineElementId": "0222",
+            "required": false,
             "startPosition": 170
           },
           {
@@ -2603,6 +2910,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0223",
+            "required": true,
             "startPosition": 181
           },
           {
@@ -2611,6 +2919,7 @@
             "fieldType": "AN",
             "length": 129,
             "lineElementId": "0280",
+            "required": false,
             "startPosition": 182
           }
         ]
@@ -2627,6 +2936,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0301",
+            "required": false,
             "startPosition": 1
           },
           {
@@ -2635,6 +2945,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0302",
+            "required": false,
             "startPosition": 3
           },
           {
@@ -2643,6 +2954,7 @@
             "fieldType": "AN",
             "length": 11,
             "lineElementId": "0303",
+            "required": false,
             "startPosition": 15
           },
           {
@@ -2651,6 +2963,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0304",
+            "required": false,
             "startPosition": 26
           },
           {
@@ -2659,6 +2972,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0305",
+            "required": false,
             "startPosition": 34
           },
           {
@@ -2667,6 +2981,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0306",
+            "required": false,
             "startPosition": 35
           },
           {
@@ -2675,6 +2990,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0307",
+            "required": false,
             "startPosition": 36
           },
           {
@@ -2683,6 +2999,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0308",
+            "required": false,
             "startPosition": 61
           },
           {
@@ -2691,6 +3008,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0309",
+            "required": false,
             "startPosition": 71
           },
           {
@@ -2699,6 +3017,7 @@
             "fieldType": "AN",
             "length": 25,
             "lineElementId": "0310",
+            "required": false,
             "startPosition": 72
           },
           {
@@ -2707,6 +3026,7 @@
             "fieldType": "AN",
             "length": 10,
             "lineElementId": "0311",
+            "required": false,
             "startPosition": 97
           },
           {
@@ -2715,6 +3035,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0312",
+            "required": false,
             "startPosition": 107
           },
           {
@@ -2723,6 +3044,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0313",
+            "required": false,
             "startPosition": 113
           },
           {
@@ -2731,6 +3053,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0314",
+            "required": false,
             "startPosition": 114
           },
           {
@@ -2739,6 +3062,7 @@
             "fieldType": "AN",
             "length": 24,
             "lineElementId": "0315",
+            "required": false,
             "startPosition": 116
           },
           {
@@ -2747,6 +3071,7 @@
             "fieldType": "N",
             "length": 5,
             "lineElementId": "0316",
+            "required": false,
             "startPosition": 140
           },
           {
@@ -2755,6 +3080,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0317",
+            "required": false,
             "startPosition": 145
           },
           {
@@ -2763,6 +3089,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0318",
+            "required": false,
             "startPosition": 151
           },
           {
@@ -2771,6 +3098,7 @@
             "fieldType": "AN",
             "length": 9,
             "lineElementId": "0319",
+            "required": false,
             "startPosition": 157
           },
           {
@@ -2779,6 +3107,7 @@
             "fieldType": "AN",
             "length": 24,
             "lineElementId": "0320",
+            "required": false,
             "startPosition": 166
           },
           {
@@ -2787,6 +3116,7 @@
             "fieldType": "AN",
             "length": 2,
             "lineElementId": "0321",
+            "required": false,
             "startPosition": 190
           },
           {
@@ -2795,6 +3125,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0322",
+            "required": false,
             "startPosition": 192
           },
           {
@@ -2803,6 +3134,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0323",
+            "required": false,
             "startPosition": 207
           },
           {
@@ -2811,6 +3143,7 @@
             "fieldType": "AN",
             "length": 70,
             "lineElementId": "0324",
+            "required": false,
             "startPosition": 210
           },
           {
@@ -2819,6 +3152,7 @@
             "fieldType": "N",
             "length": 16,
             "lineElementId": "0325",
+            "required": false,
             "startPosition": 280
           },
           {
@@ -2827,6 +3161,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0326",
+            "required": false,
             "startPosition": 296
           },
           {
@@ -2835,6 +3170,7 @@
             "fieldType": "AN",
             "length": 13,
             "lineElementId": "0380",
+            "required": false,
             "startPosition": 298
           }
         ]
@@ -2851,6 +3187,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0401",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -2859,6 +3196,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "0402",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -2867,6 +3205,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0403",
+            "required": true,
             "startPosition": 15
           },
           {
@@ -2875,6 +3214,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0404",
+            "required": true,
             "startPosition": 24
           },
           {
@@ -2883,6 +3223,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0405",
+            "required": false,
             "startPosition": 28
           },
           {
@@ -2891,6 +3232,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0406",
+            "required": false,
             "startPosition": 43
           },
           {
@@ -2899,6 +3241,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0407",
+            "required": true,
             "startPosition": 58
           },
           {
@@ -2907,6 +3250,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0408",
+            "required": true,
             "startPosition": 59
           },
           {
@@ -2915,6 +3259,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0409",
+            "required": true,
             "startPosition": 67
           },
           {
@@ -2923,6 +3268,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0410",
+            "required": true,
             "startPosition": 69
           },
           {
@@ -2931,6 +3277,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0411",
+            "required": false,
             "startPosition": 70
           },
           {
@@ -2939,6 +3286,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0412",
+            "required": true,
             "startPosition": 73
           },
           {
@@ -2947,6 +3295,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0413",
+            "required": true,
             "startPosition": 76
           },
           {
@@ -2955,6 +3304,7 @@
             "fieldType": "N",
             "length": 1,
             "lineElementId": "0414",
+            "required": false,
             "startPosition": 82
           },
           {
@@ -2963,6 +3313,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "0415",
+            "required": false,
             "startPosition": 83
           },
           {
@@ -2971,6 +3322,7 @@
             "fieldType": "AN",
             "length": 6,
             "lineElementId": "0416",
+            "required": false,
             "startPosition": 85
           },
           {
@@ -2979,6 +3331,7 @@
             "fieldType": "N",
             "length": 3,
             "lineElementId": "0417",
+            "required": false,
             "startPosition": 91
           },
           {
@@ -2987,6 +3340,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0418",
+            "required": false,
             "startPosition": 94
           },
           {
@@ -2995,6 +3349,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0419",
+            "required": false,
             "startPosition": 98
           },
           {
@@ -3003,6 +3358,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0420",
+            "required": false,
             "startPosition": 99
           },
           {
@@ -3011,6 +3367,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0421",
+            "required": false,
             "startPosition": 107
           },
           {
@@ -3019,6 +3376,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0422",
+            "required": false,
             "startPosition": 111
           },
           {
@@ -3027,6 +3385,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0423",
+            "required": false,
             "startPosition": 119
           },
           {
@@ -3035,6 +3394,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0424",
+            "required": true,
             "startPosition": 123
           },
           {
@@ -3043,6 +3403,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0425",
+            "required": true,
             "startPosition": 131
           },
           {
@@ -3051,6 +3412,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0426",
+            "required": true,
             "startPosition": 135
           },
           {
@@ -3059,6 +3421,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0427",
+            "required": true,
             "startPosition": 143
           },
           {
@@ -3067,6 +3430,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0428",
+            "required": false,
             "startPosition": 144
           },
           {
@@ -3075,6 +3439,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0429",
+            "required": false,
             "startPosition": 152
           },
           {
@@ -3083,6 +3448,7 @@
             "fieldType": "N",
             "length": 8,
             "lineElementId": "0430",
+            "required": true,
             "startPosition": 156
           },
           {
@@ -3091,6 +3457,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "0431",
+            "required": true,
             "startPosition": 164
           },
           {
@@ -3099,6 +3466,7 @@
             "fieldType": "AN",
             "length": 20,
             "lineElementId": "0432",
+            "required": true,
             "startPosition": 165
           },
           {
@@ -3107,6 +3475,7 @@
             "fieldType": "AN",
             "length": 20,
             "lineElementId": "0433",
+            "required": false,
             "startPosition": 185
           },
           {
@@ -3115,6 +3484,7 @@
             "fieldType": "AN",
             "length": 106,
             "lineElementId": "0480",
+            "required": false,
             "startPosition": 205
           }
         ]
@@ -3131,6 +3501,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "9801",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -3139,6 +3510,7 @@
             "fieldType": "N",
             "length": 12,
             "lineElementId": "9802",
+            "required": true,
             "startPosition": 3
           },
           {
@@ -3147,6 +3519,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "9803",
+            "required": true,
             "startPosition": 15
           },
           {
@@ -3155,6 +3528,7 @@
             "fieldType": "AN",
             "length": 140,
             "lineElementId": "9804",
+            "required": true,
             "startPosition": 19
           },
           {
@@ -3163,6 +3537,7 @@
             "fieldType": "AN",
             "length": 152,
             "lineElementId": "9880",
+            "required": false,
             "startPosition": 159
           }
         ]
@@ -3179,6 +3554,7 @@
             "fieldType": "N",
             "length": 2,
             "lineElementId": "9901",
+            "required": true,
             "startPosition": 1
           },
           {
@@ -3187,6 +3563,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9902",
+            "required": true,
             "startPosition": 3,
             "countable": "0200"
           },
@@ -3196,6 +3573,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9903",
+            "required": false,
             "startPosition": 9,
             "countable": "0300"
           },
@@ -3205,6 +3583,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9904",
+            "required": true,
             "startPosition": 15,
             "countable": "0400"
           },
@@ -3214,6 +3593,7 @@
             "fieldType": "N",
             "length": 6,
             "lineElementId": "9905",
+            "required": false,
             "startPosition": 21,
             "countable": "9800"
           },
@@ -3223,6 +3603,7 @@
             "fieldType": "N",
             "length": 7,
             "lineElementId": "9906",
+            "required": true,
             "startPosition": 27,
             "countable": "0000"
           },
@@ -3232,6 +3613,7 @@
             "fieldType": "N",
             "length": 11,
             "lineElementId": "9907",
+            "required": false,
             "startPosition": 34,
             "countable": "0426"
           },
@@ -3241,6 +3623,7 @@
             "fieldType": "AN",
             "length": 1,
             "lineElementId": "9908",
+            "required": true,
             "startPosition": 45
           },
           {
@@ -3249,6 +3632,7 @@
             "fieldType": "AN",
             "length": 265,
             "lineElementId": "9980",
+            "required": false,
             "startPosition": 46
           }
         ]
