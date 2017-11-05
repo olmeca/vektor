@@ -9,7 +9,7 @@
       {
         "length": 310,
         "lineId": "03",
-        "parentLineId": "02",
+        "sublineTypeIds": [ "98" ],
         "name": "DebiteurRecord",
         "lineElementTypes": [
           {
@@ -288,7 +288,7 @@
         "length": 310,
         "lineId": "03",
         "name": "DebiteurRecord",
-        "parentLineId": "02",
+        "sublineTypeIds": [ "98" ],
         "lineElementTypes": [
           {
             "code": "COD001",

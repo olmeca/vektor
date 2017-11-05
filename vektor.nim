@@ -1,5 +1,5 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
-import "doctypes", "qualifiers", "common", "accumulator", "vektorhelp", "validation"
+import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation"
 
 type
    FieldSpec = object
@@ -53,7 +53,7 @@ var
    optSubversion: int = -1
    commandWasRead: bool = false
    rootContext: Context = nil
-   contextCursor: Context = nil
+   currentContext: Context = nil
    # only lines of leaf line type or its parents
    # will trigger printing of previous leaf
    leafLineType: LineType
@@ -61,8 +61,10 @@ var
    optLineId: string
    argSourceFilePath: string
    argDestFilePath: string
-   gLineQualifier: LineQualifier = nil
-   gQualifierString: string
+   gReplacementQualifier: LineQualifier = nil
+   gReplacementQualifierString: string = nil
+   gSelectionQualifier: LineQualifier = nil
+   gSelectionQualifierString: string = nil
    logLevel: string = nil
    gNames: seq[string] = nil
    subject: string
@@ -88,9 +90,6 @@ proc description(doctype: DocumentType): string =
 proc toString(fs: FieldSpec): string = 
    "FieldSpec leId: $#, value: $#" % [fs.leType.lineElementId, fs.value]
 
-proc toString(ctx: Context): string = 
-   "Context[lt: $#]" % [ctx.lineType.lineId]
-
 proc hasOwnRandomizationContext(line: string): bool =
    let lineIdNr = parseInt(line[0..1])
    lineIdNr <= 2 or lineIdNr == 99
@@ -105,39 +104,27 @@ proc setLeafLineType(lineType: LineType) =
    debug("setLeafLineType: $#" % [lineType.lineId])
    leafLineType = lineType
 
-proc createContext(line: string): Context =
-   let lineType = docType.getLineTypeForFullLine(line)
-   Context(lineType: linetype, line: line, subContexts: newTable[string, Context]())
 
-
-proc isSubRecord(doctype: DocumentType, subject: LineType, reference: LineType): bool =
-   if isNil(subject.parentLineId):
-      result = false
-   else:
-      let parent = doctype.getLineTypeForLineId(subject.parentLineId)
-      result = parent.lineId == reference.lineId or isSubRecord(doctype, parent, reference)
-   debug("isSubRecord: lt: $#, ref: $# -> $#" % [subject.lineId, reference.lineId, repr(result)])
-
-proc registerLineId(lineId: string) =
+proc checkForNewLeaf(lineId: string) =
+   debug("checkForNewLeaf: " & lineId)
    let lineType = docType.getLineTypeForLineId(lineId)
-   if docType.isSubRecord(lineType, leafLineType):
+   if docType.hasSubLineTypeWithId(leafLineType, lineId):
       setLeafLineType(lineType)
    else: discard
 
-proc setCurrentContext(child: Context) =
-   debug("setCurrentContext: lt: $#" % [child.lineType.lineId])
-   if isNil(rootContext):
-      debug("setCurrentContext: setting root.")
-      rootContext = child
-   else:
-      debug("setCurrentContext: root exists: $#" % [rootContext.lineType.lineId])
-      let parent = contextWithLineId(rootContext, child.lineType.parentLineId)
-      debug("setCurrentContext: parent: $#" % [parent.lineType.lineId])
-      parent.subContexts[child.lineType.lineId] = child
-   contextCursor = child
 
 proc setCurrentLine(line: string) =
-   setCurrentContext(createContext(line))
+   let lineType = docType.getLineTypeForFullLine(line)
+   if isNil(currentContext):
+      debug("setCurrentLine: setting root: " & line[0..4])
+      currentContext = createContext(lineType, line)
+      rootContext = currentContext
+   else:
+      var parentContext = currentContext.findParentContextForLineType(lineType.lineId)
+      assert(not isNil(parentContext))
+      currentContext = createContext(lineType, line, parentContext)
+      debug("setCurrentLine: parent: $#, line: $#" % [parentContext.lineType.lineId, line[0..13]])
+   currentContext.state = csRegistered
 
 proc randomDateString(fromDate: string, toDate: string): string =
    let fromSeconds = parseVektisDate(fromDate).toTime().toSeconds()
@@ -225,55 +212,86 @@ proc copyChars(buf: var openArray[char], start: int, length: int, newValue: stri
       buf[start+i] = newValueSeq[i]
 
 proc getFieldValueFullString(fSpec: FieldSpec): string =
-   # debug("getFieldValueFullString: " & fSpec.leType.lineElementId) 
+   debug("getFieldValueFullString: " & fSpec.leType.lineElementId) 
    result = rootContext.getElementValueFullString(fSpec.leType.lineElementId)
 
-proc conditionIsMet(): bool =
-   if isNil(gLineQualifier):
+proc conditionIsMet(qualifier: LineQualifier): bool =
+   if isNil(qualifier):
       result = true
    else:
       try:
-         result = gLineQualifier.qualifies(rootContext)
+         result = qualifier.qualifies(rootContext)
       except NotFoundError:
          result = false
 
 proc isLeafLine(line: string): bool =
    let lineId = line[0..1]
    result = leafLineType.lineId == lineId
-   # debug("isLeafLine: $# -> $#" % [lineId, repr(result)])
+   debug("isLeafLine: $# -> $#" % [lineId, repr(result)])
+
 
 proc printLine(line: string) = 
-   if line.isLeafLine() and conditionIsMet():
+   if isNil(line) or (line.isLeafLine() and conditionIsMet(gSelectionQualifier)):
       stdout.write("| ")
       for field in targetFields:
-         stdout.write(getFieldValueFullString(field))
+         if isNil(line):
+            let length = field.leType.length
+            if length >= 4:
+               stdout.write(field.leType.lineElementId)
+               stdout.write(spaces(length-4))
+            else:
+               stdout.write(spaces(length))
+         else:
+            stdout.write(getFieldValueFullString(field))
          stdout.write(" | ")
       stdout.write("\n")
-      if not isNil(gSubtotals):
+      if not isNil(line) and not isNil(gSubtotals):
          gSubtotals.addLine(line)
 
-proc isContentLine(line: string): bool =
-   not line.startsWith(cTopLineId) and not line.startsWith(cBottomLineId)
+proc printHeaders() = printLine(nil)
+
+proc writeToStream(line: string, stream: Stream) =
+   if line.isContentLine():
+      gTotals.addLine(line)
+   writeToStream(toSeq(line.items), stream)
+
+proc writeToStream(context: var Context, stream: Stream) =
+   if context.state != csExported:
+      writeToStream(context.line, stream)
+      context.state = csExported
+   for sub in context.subContexts.mvalues:
+      writeToStream(sub, stream)
 
 proc mutateAndWrite(line: var string, outStream: Stream) =
-   # debug("mutateAndWrite: " & line[0..13])
+   debug("mutateAndWrite: " & line[0..13])
    var buf = toSeq(line.mitems)
    # Bottom line cumulative values get updated
    # We don't allow bottom line values to be modified
    if line.startsWith(cBottomLineId):
-      gTotals.write(buf)
-   else:
-      if conditionIsMet():
-         for field in targetFields:
-            let leType = field.leType
-            let newValueSpec = field.value
-            if leType.isElementOfLine(line):
-               let oldValue = line.getElementValueString(leType)
-               let newValue = getElementValue(leType, oldValue, newValueSpec)
-               copyChars(buf, leType.startPosition-1, leType.length, newValue)
-      if line.isContentLine():
-         gTotals.addLine(buf)
-   writeToStream(buf, outStream)
+      # Clean up context from residual content
+      rootContext.dropContentSubContexts()
+      # Bottom line needs to first be updated with accumulated values
+      if not gTotals.isEmpty():
+         gTotals.write(buf)
+         line = buf.toString()
+         debug(line)
+      writeToStream(buf, outStream)
+   elif conditionIsMet(gSelectionQualifier):
+      if conditionIsMet(gReplacementQualifier):
+         # Only attempt replacement if there are target fields defined
+         if not isNil(targetFields):
+            for field in targetFields:
+               let leType = field.leType
+               let newValueSpec = field.value
+               if leType.isElementOfLine(line):
+                  let oldValue = line.getElementValueString(leType)
+                  let newValue = getElementValue(leType, oldValue, newValueSpec)
+                  copyChars(buf, leType.startPosition-1, leType.length, newValue)
+#      if line.isContentLine():
+#         gTotals.addLine(buf)
+      line = buf.toString()
+      writeToStream(rootContext, outStream)
+   else: discard # nor selection nor bottom line
 
 
 proc isSelected(dt: DocumentType): bool =
@@ -341,11 +359,17 @@ proc readVersion(versionString: string) =
          else:
             optSubversion = parseInt(items[1])
 
-proc checkAndPrepareQualifier() =
-   if not isNil(gQualifierString):
-      gLineQualifier = docType.parseQualifier(gQualifierString)
-      gSubtotals = newAccumulator(docType)
+proc readQualifier(source: string, qualifier: var LineQualifier) =
+   if not isNil(source):
+      qualifier = docType.parseQualifier(source)
+      if isNil(gSubTotals):
+         gSubTotals = newAccumulator(docType)
+      else: discard
    else: discard
+
+proc checkAndPrepareQualifiers() =
+   readQualifier(gReplacementQualifierString, gReplacementQualifier)
+   readQualifier(gSelectionQualifierString, gSelectionQualifier)
 
 
 proc showHelp() =
@@ -389,20 +413,19 @@ proc readElementSpec(spec: string): FieldSpec =
    if spec =~ elementSpecPattern:
       let leTypeId = matches[0]
       let value = matches[1]
-      registerLineId(leTypeId[0..1])
+      checkForNewLeaf(leTypeId[0..1])
       let leType = docType.getLineElementType(leTypeId)
       result = FieldSpec(leType: leType, value: value)
    else:
       raise newException(FieldSpecError, "Invalid line element specification: $#" % [spec])
 
 proc readFieldSpecs(value: string, fields: var seq[FieldSpec], argName: string) = 
-   if commandWasRead:
+   if not isNil(value):
       if value =~ elementSpecsPattern:
          fields = lc[readElementSpec(s)|(s <- matches, not isNil(s)), FieldSpec]
       else:
          quit("Invalid elements specification in argument ($#)." % [argName])
-   else:
-      quit("Command is missing.")
+   else: discard
 
 proc checkCommandArgs(minCount: int, errorMessage: string) =
    if commandArgs.len < minCount:
@@ -418,7 +441,7 @@ proc fieldSpecArgName(): string =
       result = "-e, --elements"
 
 proc targetFieldsRequired(): bool =
-   command == cmdQuery or command == cmdCopy
+   command == cmdQuery
 
 proc processCommandArgs() =
    if command == cmdInfo:
@@ -461,7 +484,9 @@ for kind, key, value in getopt():
       of "v", "version":
          readVersion(value)
       of "c", "condition":
-         gQualifierString = value
+         gReplacementQualifierString = value
+      of "s", "selection":
+         gSelectionQualifierString = value
    of cmdArgument:
       if commandWasRead:
          readCommandArgument(key)
@@ -501,12 +526,13 @@ else:
                docType = fetch_doctype(line)
                if command == cmdQuery:
                   gTotals = newAccumulator(docType)
-                  checkAndPrepareQualifier()
+                  checkAndPrepareQualifiers()
                   let topLineType = docType.getLineTypeForLineId(cTopLineId)
                   setCurrentLine(line)
                   setLeafLineType(topLineType)
                   echo("Document type: $#" % [description(docType)])
                   readFieldSpecs(targetFieldsArg, targetFields, fieldSpecArgName())
+                  printHeaders()
                   printLine(line)
                   while input.readLine(line):
                      setCurrentLine(line)
@@ -517,7 +543,7 @@ else:
                   echo "Totals: " & gTotals.asString()
                elif command == cmdCopy:
                   gTotals = newAccumulator(docType)
-                  checkAndPrepareQualifier()
+                  checkAndPrepareQualifiers()
                   let topLineType = docType.getLineTypeForLineId(cTopLineId)
                   setCurrentLine(line)
                   setLeafLineType(topLineType)

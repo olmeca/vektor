@@ -16,17 +16,18 @@ proc readLineElementType*(node: JsonNode): LineElementType =
 
 proc readLineType*(node: JsonNode): LineType =
    let leTypes = lc[readLineElementType(item) | (item <- node["lineElementTypes"].items()), LineElementType]
+   let subTypes = lc[getStr(item) | (item <- node["sublineTypeIds"].items()), string]
    result = LineType(
       name: node["name"].getStr(),
       length: int(node["length"].getNum()),
       lineId: node["lineId"].getStr(),
-      parentLineId: getStr(node{"parentLineId"}, nil),
+      sublineTypeIds: subTypes,
       lineElementTypes: leTypes
    )
 
 proc readDocumentType*(node: JsonNode): DocumentType =
    let lineTypes = lc[readLineType(item) | (item <- node["lineTypes"].items()), LineType]
-   DocumentType(
+   result = DocumentType(
       name: node["name"].getStr(),
       description: node["description"].getStr(),
       formatVersion: int(node["formatVersion"].getNum()),

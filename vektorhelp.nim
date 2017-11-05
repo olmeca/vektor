@@ -4,8 +4,8 @@ let helpSubjects* = {
    "none": """
    Vektor: a tool for analyzing and modifying Vektis EI declaration files.
    (c) 2017 Rudi Angela
-   Vektor provides a convenient way to adapt existing Vektis declaration files
-   (or rather creating adapted copies thereof).
+   Vektor provides a controlled and repeatable way to adapt existing Vektis 
+   formatted declaration files (or rather creating adapted copies thereof).
 
    Usage: vektor <command> [arguments] [<options>]
 
@@ -14,75 +14,92 @@ let helpSubjects* = {
       vektor help copy
    will display information on the 'copy' command.
    Help topics available:
-      copy     The main command, creates adapted copy of a given declaration.
-	  validate Validates a given file against the Vektis format specification.
-      show     Support command, selectively displays content of a declaration.
-      info     Support command, displays structural information of a declaration format.
-      options  List of options that govern the behavior of the commands
-      symbols  List of symbols that can be used as replacement values when using the
-               copy command. Symbols denote random values.
+   copy     The main command, creates adapted copy of a given declaration.
+   validate Validates a given file against the Vektis format specification.
+   show     Support command, selectively displays content of a declaration.
+   info     Support command, shows structural information of a Vektis format.
+   options  List of options that govern the behavior of the commands
+   symbols  List of symbols that can be used as replacement values when 
+            using the copy command. Symbols denote random values.
    """, 
    "copy": """
-   copy <original file name> <copy file name> -r:<replacement values>
-            Makes a copy of the original file and replaces element values in the copy,
-            as specified in the replacement list. Items in this list take the form
-            '<line element id>=<new value>' and are separated by commas.
-            E.g. copy mz301.asc new.asc -r:0203=999999999,0403=999999999
-            This will replace the BSN element values by 999999999 in all patient
-            records (02) and all operation records (04). Replacement by random values
-            is also supported, using so called symbols (see help on symbols).
+   copy <source file name> <destination file name> [<options>]
+      Makes a copy of the source file to the destination file, where the options
+      specify modifications and/or filtering of content in the copy operation.
             
-   copy <original file name> <copy file name> -r:<replacement values> -c:<condition>
-            The additional '-c' option specifies a condition that must be met for the
-            target line to be modified. 
-            E.g. copy original.asc copy.asc -r:0413=C14 -c:0413=C11
-            This will only change the operation lines that have operation code 'C11'
-            and set this value to 'C14'. See help on options for more details.
+   Available options:
+   -r:<replacement list> 
+      replaces element values during the copy operation, as specified in the 
+      replacement list. Items in this list take the form
+      '<line element id>=<new value>' and are separated by commas.
+      E.g. copy mz301.asc new.asc -r:0203=999999999,0403=999999999
+      This will replace the BSN element values by 999999999 in all patient
+      records (02) and all operation records (04). Replacement by random 
+      values is also supported, using so called symbols (see help on symbols).
+         
+   -c:<condition>
+      The additional '-c' option specifies a condition that must be met for the
+      target line to be modified. It is only used in addition to an '-r' parameter
+      E.g. copy mz301.asc copy.asc -r:0413=C14 -c:0413=C11
+      This will only change the operation lines that have operation code 'C11'
+      and set this value to 'C14'. See help on options for more details.
+         
+   -s:<selection criteria>
+      The '-s' options specifies criteria that will be applied to every line
+      to determine if it will be included in the copy. Lines that don't match
+      will be skipped. If a line matches, all of its parent lines will also be
+      included. Also all of its sublines will be included in the copy.
+      E.g. copy mz301.asc copy.asc -s:0413=C11
+      This will create a copy with only 04 lines that have operation code C11.
+      For every matched 04 line the parent 02 line will be included. Also, if
+      the 04 line has a 98 line then that comment line will also be included.
+      The '-s' parameter can be combined with the '-r' parameter to perform
+      replacement and filtering in one go.
    """, 
    "info": """
    info     Displays the list of supported Vektis declaration formats.
-            E.g. vektis info 
+      E.g. vektis info 
    info <format name> 
-            Displays the list of versions known for the given format.
-            E.g. vektis info MZ301
+      Displays the list of versions known for the given format.
+      E.g. vektis info MZ301
    info <format name> <format version>
-            Displays summary information for the given format & version.
-            Mainly displays the list of line types of the format.
-            The version is specified as version and subversion,
-            separated by a '.'
-            Example: vektis info MZ301 1.3
+      Displays summary information for the given format & version.
+      Mainly displays the list of line types of the format.
+      The version is specified as version and subversion,
+      separated by a '.'
+      Example: vektis info MZ301 1.3
    info <format name> <format version> -l:<line id>
-            Displays the list of line element types for the given line type.
-            For each element type the start position, length and type are displayed.
-            The line type is specified with option '-l:', followed by the line ID.
-            E.g. vektis info MZ301 1.3 -l:02
+      Displays the list of line element types for the given line type.
+      For each element type the start position, length and type are displayed.
+      The line type is specified with option '-l:', followed by the line ID.
+      E.g. vektis info MZ301 1.3 -l:02
    """,
    "show": """
    show <file path> -e:<element list> (or: --elements <element list>)
-            Displays a table with a column for each element in the given element list.
-            The element column displays the value of the element per line.
-            The element list is a list of line element ID's, separated by a ','.
-            Example: vektor show mz301.asc -e:0403,0408,0413
-            This will display of every operation line (04) the BSN, date and operation code.
+      Displays a table with a column for each element in the given element list.
+      The element column displays the value of the element per line.
+      The element list is a list of line element ID's, separated by a ','.
+      Example: vektor show mz301.asc -e:0403,0408,0413
+      This will display of every operation line (04) the BSN, date and operation code.
    show <file path> -e:<element list> -c:<condition>
-            The additional '-c' option specifies a condition that must be met for the
-            target line to be displayed. 
-            Example: vektor copy mz301.asc -e:0210,0408,0413 -c:0208=1
-            This will display patient's name, operation date and operation code for every
-            operation lines of male patients (0208 is the gender field). 
-            See help on options for more details.
+      The additional '-c' option specifies a condition that must be met for the
+      target line to be displayed. 
+      Example: vektor copy mz301.asc -e:0210,0408,0413 -c:0208=1
+      This will display patient's name, operation date and operation code for every
+      operation lines of male patients (0208 is the gender field). 
+      See help on options for more details.
    """,
    "validate": """
    validate <file path>
-            Validates the contents of the file passed in as argument. Currently this is
-			a very basic validation. All that is checked is if the content of every
-			line element conforms to the data type. E.g. if the content of a date
-			field is really a date. Presence of required data is currently not yet
-			validated.
-			The result is a simple 'OK' if there are no errors found in the file.
-			Otherwise the result will be one error line per error found.
-			If more than 20 errors are found the first 20 will be listed, followed
-			by the text 'Too many errors'.
+      Validates the contents of the file passed in as argument. Currently this is
+      a very basic validation. All that is checked is if the content of every
+      line element conforms to the data type. E.g. if the content of a date
+      field is really a date. Presence of required data is currently not yet
+      validated.
+      The result is a simple 'OK' if there are no errors found in the file.
+      Otherwise the result will be one error line per error found.
+      If more than 20 errors are found the first 20 will be listed, followed
+      by the text 'Too many errors'.
    """,
    "options": """
    Some Vektor commands take extra options that specify details of the task at hand. A command line
@@ -129,6 +146,11 @@ let helpSubjects* = {
       Less than   :  A<B    A is less than B
       
       Combining & and | in a condition string is currently not supported.
+      
+   Selection:     -s:"<element ID><comparator><value>[&<element ID><comparator><value>]"
+      The syntax for the '-s' option is identical to that of the '-c' option. The
+      difference is only in the meaning. A condition specified with '-s' determines
+      if the target line will be included in the destination file.
    """,
    "symbols": """
    Symbols can be used in the copy command, in the replacements option.

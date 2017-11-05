@@ -17,6 +17,14 @@ var
 #let types = lc[readDocumentType(node) | (node <- getJsonData(cDocTypesJsonFileName)), DocumentType]
 #let debtorRecordTypes = lc[readDocumentType(node) | (node <- getJsonData(cSB311TypesJsonFileName)), DocumentType]
 
+proc getLineTypeForLineId*(doctype: DocumentType, lineId: string): LineType =
+   #debug("getLineTypeForLineId: '$#'" % [lineId])
+   let lineTypes = doctype.lineTypes.filter(proc (lt: LineType): bool = lt.lineId == lineId)
+   if lineTypes.len == 0:
+      raise newException(ValueError, 
+         "Document $# does not have a line type with ID '$#'" % [doctype.name, lineId])
+   else:
+      result = lineTypes[0]
 
 proc readTypes(fileName: string): seq[DocumentType] =
    result = lc[readDocumentType(node) | (node <- getJsonData(fileName)), DocumentType]
@@ -31,12 +39,14 @@ proc parseVektisDate*(dateString: string): TimeInfo =
    except Exception:
       raise newException(ValueError, "Invalid date format: '$#'" % [dateString])
 
-
 proc isOneCharRepeated(value: string, theChar: char): bool =
    result = true
    for c in toSeq(value.items):
       if c != theChar:
          result = false
+
+proc isContentLine*(line: string): bool =
+   line[0..1] != cTopLineId and line[0..1] != cBottomLineId
 
 
 proc isDate*(leType: LineElementType): bool =
@@ -58,9 +68,6 @@ proc isEmptyValue*(leType: LineElementType, value: string): bool =
 
 proc isValueMandatory*(leType: LineElementType): bool = 
    leType.required
-
-proc stripBlanks(source: string): string =
-   strip(source, true, true, cBlanksSet)
 
 proc getDocumentType*(typeId: int, version: int, subversion: int): DocumentType = 
    let matches = filter(types, 
@@ -91,15 +98,6 @@ proc documentTypeMatching*(name: string, version: int, subversion: int): Documen
    else:
       result = matches[0]
 
-proc getLineTypeForLineId*(doctype: DocumentType, lineId: string): LineType =
-   debug("getLineTypeForLineId: '$#'" % [lineId])
-   let lineTypes = doctype.lineTypes.filter(proc (lt: LineType): bool = lt.lineId == lineId)
-   if lineTypes.len == 0:
-      raise newException(ValueError, 
-         "Document $# does not have a line type with ID '$#'" % [doctype.name, lineId])
-   else:
-      result = lineTypes[0]
-
 proc getLineTypeForFullLine*(defaultDocType: DocumentType, line: string): LineType =
    let lineId = line[0..1]
    result = getLineTypeForLineId(defaultDocType, lineId)
@@ -120,23 +118,16 @@ proc getLineTypeForFullLine*(defaultDocType: DocumentType, line: string): LineTy
          raise newException(VektisFormatError, 
             "Invalid line length for debtor record: $#" % [intToStr(line.len)])
 
-proc contextWithLineId*(context: Context, lineId: string): Context =
-   assert(not isNil(lineId))
-   debug( "contextWithLineId: ctx:$#, lid: $#" % [context.lineType.lineId, lineId])
-   if context.lineType.lineId == lineId:
-      result = context
-   elif len(context.subContexts) == 0:
-      raise newException(NotFoundError, "No context found with line id $#" % [lineId])
-   elif context.subContexts.hasKey(lineId):
-      result = context.subContexts[lineId]
+proc hasSubLineTypeWithId*(docType: DocumentType, lineType: LineType, lineId: string): bool =
+   result = false
+   if lineType.subLineTypeIds.contains(lineId):
+      result = true
    else:
-      for sub in context.subContexts.values:
-         let found = contextWithLineId(sub, lineId)
-         if not isNil(found):
-            result = found
+      for subLineTypeId in lineType.subLineTypeIds:
+         let subLineType = getLineTypeForLineId(docType, subLineTypeId)
+         if hasSubLineTypeWithId(docType, subLineType, lineId):
+            result = true
             break
-         else: discard
-
 
 proc getLineId*(line: string): string = 
    if isNil(line) or line.len < 4:
@@ -145,7 +136,7 @@ proc getLineId*(line: string): string =
       result = line[0 .. 1]
 
 proc getLineElementType*(lineType: LineType, leId: string): LineElementType =
-   debug("getLineElementType: lt: $#, leId: $#" % [lineType.lineId, leId])
+   #debug("getLineElementType: lt: $#, leId: $#" % [lineType.lineId, leId])
    #assert(leId.startsWith(lineType.lineId))
    let results = filter(lineType.lineElementTypes,
                         proc(et: LineElementType): bool = et.lineElementId == leId)
@@ -159,7 +150,7 @@ proc isElementOfLine*(leType: LineElementType, line: string): bool =
    leType.lineElementId[0..1] == line[0..1]
 
 proc getLineElementType*(docType: DocumentType, leId: string): LineElementType =
-   debug("getLineType: d: $#, leId: $#" % [docType.name, leId])
+   #debug("getLineType: d: $#, leId: $#" % [docType.name, leId])
    let lineType = getLineTypeForLineId(docType, getLineId(leId))
    result = lineType.getLineElementType(leId)
 
@@ -168,22 +159,8 @@ proc getElementValueFullString(line: string, leType: LineElementType): string =
    let fin = start + leType.length-1
    result = line[start..fin]
 
-proc getElementValueFullString*(rootContext: Context, lineElementId: string): string =
-   let lineId = lineElementId[0..1]
-   let context = rootContext.contextWithLineId(lineId)
-   debug("getElementValueFullString: rootctx: $#, leId: $#, subctx: $#" % 
-         [rootContext.lineType.lineId, lineId, context.lineType.lineId])
-   assert(context.line.startsWith(lineId))
-   let leType = context.lineType.getLineElementType(lineElementId)
-   let start = leType.startPosition-1
-   let fin = start + leType.length-1
-   result = context.line[start..fin]
-
-proc getElementValueString*(context: Context, leId: string): string =
-   stripBlanks(getElementValueFullString(context, leId))
-
 proc getElementValueFullString*(docType: DocumentType, line: string, lineElementId: string): string =
-   debug("getElementValueFullString: '$#'" % [lineElementId])
+   #debug("getElementValueFullString: '$#'" % [lineElementId])
    assert line[0..1] == lineElementId[0..1]
    let lineType = docType.getLineTypeForFullLine(line)
    let leType = lineType.getLineElementType(lineElementId)

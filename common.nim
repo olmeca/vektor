@@ -18,7 +18,7 @@ type
       name*: string
       length*: int
       lineId*: string
-      parentLineId*: string
+      sublineTypeIds*: seq[string]
       lineElementTypes*: seq[LineElementType]
    
    DocumentType* = ref object
@@ -32,10 +32,6 @@ type
    
    VektisFormatError* = object of Exception
    
-   Context* = ref object
-      lineType*: LineType
-      line*: string
-      subContexts*: TableRef[string, Context]
    
    # Validation
    ValidationResultType* = enum
@@ -66,11 +62,13 @@ proc getJsonData*(fileName: string): JsonNode =
    result = parseJson(jsonString)
    debug("getJsonData: done reading.")
 
+proc stripBlanks*(source: string): string =
+   strip(source, true, true, cBlanksSet)
+
 proc asString*(lt: LineType): string =
    "LT[id: '$#', len: '$#', par: '$#', name: '$#']" % [
       lt.lineId,
       intToStr(lt.length),
-      if isNil(lt.parentLineId): "nil" else: lt.parentLineId,
       lt.name
    ]
 

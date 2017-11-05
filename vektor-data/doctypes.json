@@ -10,7 +10,7 @@
         "length": 310,
         "lineId": "01",
         "name": "VoorloopRecord",
-        "parentLineId": null,
+        "sublineTypeIds": [ "02", "99" ],
         "lineElementTypes": [
           {
             "code": "COD001",
@@ -197,7 +197,7 @@
       {
         "length": 310,
         "lineId": "02",
-        "parentLineId": "01",
+        "sublineTypeIds": [ "03", "04", "98" ],
         "name": "VerzekerdenRecord",
         "lineElementTypes": [
           {
@@ -430,7 +430,7 @@
       {
         "length": 310,
         "lineId": "03",
-        "parentLineId": "02",
+        "sublineTypeIds": [ "98" ],
         "name": "DebiteurRecord",
         "lineElementTypes": [
           {
@@ -681,7 +681,7 @@
       {
         "length": 310,
         "lineId": "04",
-        "parentLineId": "02",
+        "sublineTypeIds": [ "98" ],
         "name": "PrestatieRecord",
         "lineElementTypes": [
           {
@@ -1058,7 +1058,7 @@
       {
         "length": 310,
         "lineId": "98",
-        "parentLineId": "01",
+        "sublineTypeIds": [  ],
         "name": "CommentaarRecord",
         "lineElementTypes": [
           {
@@ -1111,7 +1111,7 @@
       {
         "length": 310,
         "lineId": "99",
-        "parentLineId": "01",
+        "sublineTypeIds": [  ],
         "name": "SluitRecord",
         "lineElementTypes": [
           {
@@ -1216,7 +1216,7 @@
       {
         "length": 360,
         "lineId": "01",
-        "parentLineId": null,
+        "sublineTypeIds": [ "02", "99" ],
         "name": "VoorloopRecord",
         "lineElementTypes": [
           {
@@ -1404,7 +1404,7 @@
       {
         "length": 360,
         "lineId": "02",
-        "parentLineId": "01",
+        "sublineTypeIds": [ "03", "04", "98" ],
         "name": "VerzekerdenRecord",
         "lineElementTypes": [
           {
@@ -1637,7 +1637,7 @@
       {
         "length": 360,
         "lineId": "04",
-        "parentLineId": "02",
+        "sublineTypeIds": [ "98" ],
         "name": "PrestatieRecord",
         "lineElementTypes": [
           {
@@ -2068,7 +2068,7 @@
       {
         "length": 360,
         "lineId": "98",
-        "parentLineId": "01",
+        "sublineTypeIds": [  ],
         "name": "CommentaarRecord",
         "lineElementTypes": [
           {
@@ -2121,7 +2121,7 @@
       {
         "length": 360,
         "lineId": "99",
-        "parentLineId": "01",
+        "sublineTypeIds": [  ],
         "name": "SluitRecord",
         "lineElementTypes": [
           {
@@ -2210,7 +2210,7 @@
       {
         "length": 360,
         "lineId": "03",
-        "parentLineId": "02",
+        "sublineTypeIds": [ "98" ],
         "name": "DebiteurenenRecord",
         "lineElementTypes": [
           {
@@ -2516,7 +2516,7 @@
         "length": 310,
         "lineId": "01",
         "name": "VoorloopRecord",
-        "parentLineId": null,
+        "sublineTypeIds": [ "02", "99" ],
         "lineElementTypes": [
           {
             "code": "COD001",
@@ -2703,7 +2703,7 @@
       {
         "length": 310,
         "lineId": "02",
-        "parentLineId": "01",
+        "sublineTypeIds": [ "03", "04", "98" ],
         "name": "VerzekerdenRecord",
         "lineElementTypes": [
           {
@@ -2927,7 +2927,7 @@
       {
         "length": 310,
         "lineId": "03",
-        "parentLineId": "02",
+        "sublineTypeIds": [ "98" ],
         "name": "DebiteurRecord",
         "lineElementTypes": [
           {
@@ -3178,7 +3178,7 @@
       {
         "length": 310,
         "lineId": "04",
-        "parentLineId": "02",
+        "sublineTypeIds": [ "98" ],
         "name": "PrestatieRecord",
         "lineElementTypes": [
           {
@@ -3492,7 +3492,7 @@
       {
         "length": 310,
         "lineId": "98",
-        "parentLineId": "01",
+        "sublineTypeIds": [  ],
         "name": "CommentaarRecord",
         "lineElementTypes": [
           {
@@ -3545,7 +3545,7 @@
       {
         "length": 310,
         "lineId": "99",
-        "parentLineId": "01",
+        "sublineTypeIds": [  ],
         "name": "SluitRecord",
         "lineElementTypes": [
           {
