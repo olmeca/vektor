@@ -52,8 +52,8 @@ var
    optVersion: int = -1
    optSubversion: int = -1
    commandWasRead: bool = false
-   rootContext: Context = nil
-   currentContext: Context = nil
+   gRootContext: Context = nil
+   gCurrentContext: Context = nil
    # only lines of leaf line type or its parents
    # will trigger printing of previous leaf
    leafLineType: LineType
@@ -115,16 +115,16 @@ proc checkForNewLeaf(lineId: string) =
 
 proc setCurrentLine(line: string) =
    let lineType = docType.getLineTypeForFullLine(line)
-   if isNil(currentContext):
+   if isNil(gCurrentContext):
       debug("setCurrentLine: setting root: " & line[0..4])
-      currentContext = createContext(lineType, line)
-      rootContext = currentContext
+      gCurrentContext = createContext(lineType, line)
+      gRootContext = gCurrentContext
    else:
-      var parentContext = currentContext.findParentContextForLineType(lineType.lineId)
+      var parentContext = gCurrentContext.findParentContextForLineType(lineType.lineId)
       assert(not isNil(parentContext))
-      currentContext = createContext(lineType, line, parentContext)
+      gCurrentContext = createContext(lineType, line, parentContext)
       debug("setCurrentLine: parent: $#, line: $#" % [parentContext.lineType.lineId, line[0..13]])
-   currentContext.state = csRegistered
+   gCurrentContext.state = csRegistered
 
 proc randomDateString(fromDate: string, toDate: string): string =
    let fromSeconds = parseVektisDate(fromDate).toTime().toSeconds()
@@ -213,14 +213,14 @@ proc copyChars(buf: var openArray[char], start: int, length: int, newValue: stri
 
 proc getFieldValueFullString(fSpec: FieldSpec): string =
    debug("getFieldValueFullString: " & fSpec.leType.lineElementId) 
-   result = rootContext.getElementValueFullString(fSpec.leType.lineElementId)
+   result = gRootContext.getElementValueFullString(fSpec.leType.lineElementId)
 
 proc conditionIsMet(qualifier: LineQualifier): bool =
    if isNil(qualifier):
       result = true
    else:
       try:
-         result = qualifier.qualifies(rootContext)
+         result = qualifier.qualifies(gRootContext)
       except NotFoundError:
          result = false
 
@@ -269,7 +269,7 @@ proc mutateAndWrite(line: var string, outStream: Stream) =
    # We don't allow bottom line values to be modified
    if line.startsWith(cBottomLineId):
       # Clean up context from residual content
-      rootContext.dropContentSubContexts()
+      gRootContext.dropContentSubContexts()
       # Bottom line needs to first be updated with accumulated values
       if not gTotals.isEmpty():
          gTotals.write(buf)
@@ -277,20 +277,23 @@ proc mutateAndWrite(line: var string, outStream: Stream) =
          debug(line)
       writeToStream(buf, outStream)
    elif conditionIsMet(gSelectionQualifier):
+      debug("maw: selection qualifier is met")
       if conditionIsMet(gReplacementQualifier):
+         debug("maw: replacement qualifier is met")
          # Only attempt replacement if there are target fields defined
          if not isNil(targetFields):
             for field in targetFields:
                let leType = field.leType
                let newValueSpec = field.value
+               debug("target: $# = $#" % [leType.lineElementId, newValueSpec])
                if leType.isElementOfLine(line):
                   let oldValue = line.getElementValueString(leType)
                   let newValue = getElementValue(leType, oldValue, newValueSpec)
                   copyChars(buf, leType.startPosition-1, leType.length, newValue)
 #      if line.isContentLine():
 #         gTotals.addLine(buf)
-      line = buf.toString()
-      writeToStream(rootContext, outStream)
+      gCurrentContext.line = buf.toString()
+      writeToStream(gRootContext, outStream)
    else: discard # nor selection nor bottom line
 
 

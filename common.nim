@@ -54,6 +54,8 @@ const
    cFieldTypeNumeric* = "N"
    cFieldTypeAlphaNum* = "AN"
    cVektisDateFormat* = "yyyyMMdd"
+   cAmountCodePrefix* = "BED"
+   cAmountCredit* = "C"
 
 proc getJsonData*(fileName: string): JsonNode =
    let fullPath = joinPath(getAppDir(), cDataDir, fileName)
@@ -64,6 +66,13 @@ proc getJsonData*(fileName: string): JsonNode =
 
 proc stripBlanks*(source: string): string =
    strip(source, true, true, cBlanksSet)
+
+proc asString*(doctype: DocumentType): string =
+   "$# v$#.$#   $#" % 
+      [doctype.name, 
+      intToStr(doctype.formatVersion), 
+      intToStr(doctype.formatSubVersion), 
+      doctype.description]
 
 proc asString*(lt: LineType): string =
    "LT[id: '$#', len: '$#', par: '$#', name: '$#']" % [

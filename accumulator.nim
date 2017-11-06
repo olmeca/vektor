@@ -45,9 +45,13 @@ proc addLine*(acc: Accumulator, line: string) =
             acc.empty = false
          else:
             let leType = acc.docType.getLineElementType(leId)
-            let elemValue = line.getElementValueInt(leType)
+            var elemValue = 0 
+            if leType.isAmountType():
+               elemValue = getElementValueSigned(acc.docType, leType, line)
+            else:
+               elemValue = line.getElementValueInt(leType)
             total.increment(elemValue)
-            debug("inc $# -> $#" % [intToStr(elemValue), intToStr(total.value)])
+            #debug("inc $# -> $#" % [intToStr(elemValue), intToStr(total.value)])
             acc.empty = false
 
 proc isEmpty*(acc: Accumulator): bool =

@@ -17,6 +17,10 @@ var
 #let types = lc[readDocumentType(node) | (node <- getJsonData(cDocTypesJsonFileName)), DocumentType]
 #let debtorRecordTypes = lc[readDocumentType(node) | (node <- getJsonData(cSB311TypesJsonFileName)), DocumentType]
 
+proc index(leId: string): array[0..1, int] =
+   assert(len(leId) == 4)
+   result = [parseInt(leId[0..1]), parseInt(leId[2..3])]
+
 proc getLineTypeForLineId*(doctype: DocumentType, lineId: string): LineType =
    #debug("getLineTypeForLineId: '$#'" % [lineId])
    let lineTypes = doctype.lineTypes.filter(proc (lt: LineType): bool = lt.lineId == lineId)
@@ -174,4 +178,24 @@ proc getElementValueString*(line: string, leType: LineElementType): string =
 
 proc getElementValueInt*(line: string, leType: LineElementType): int =
    parseInt(getElementValueString(line, leType))
-   
+
+proc isAmountType*(leType: LineElementType): bool = 
+   leType.code.startsWith(cAmountCodePrefix)
+
+proc nextLeId(leId: string): string =
+   let leSuccessorIndex = parseInt(leId[2..3]) + 1
+   result = leId[0..1] & intToStr(leSuccessorIndex, 2)
+
+proc sign(docType: DocumentType, leType: LineElementType, line: string): int =
+   result = 1
+   let sucLeType = docType.getLineElementType(nextLeId(leType.lineElementId))
+   if sucLeType.code.startsWith("COD") and sucLeType.length == 1:
+      if line.getElementValueFullString(sucLeType) == cAmountCredit:
+         result = -result
+      else: discard
+   else: discard
+
+proc getElementValueSigned*(docType: DocumentType, leType: LineElementType, line: string): int =
+   assert(line[0..1] == leType.lineElementId[0..1])
+   # Precondition: leType must be of type "BED***"
+   result = getElementValueInt(line, leType) * sign(docType, leType, line)
