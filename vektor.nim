@@ -1,5 +1,5 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
-import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation"
+import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting"
 
 type
    FieldSpec = object
@@ -229,26 +229,50 @@ proc isLeafLine(line: string): bool =
    result = leafLineType.lineId == lineId
    debug("isLeafLine: $# -> $#" % [lineId, repr(result)])
 
+proc printLineAddToSubtotals(context: var Context) =
+   if context.state != csExported:
+      if context.line.isContentLine():
+         gSubTotals.addLine(context.line)
+      context.state = csExported
+   for sub in context.subContexts.mvalues:
+      printLineAddToSubtotals(sub)
 
-proc printLine(line: string) = 
+
+proc printLine(stream:File, line: string) = 
    if isNil(line) or (line.isLeafLine() and conditionIsMet(gSelectionQualifier)):
-      stdout.write("| ")
+      stream.write("| ")
       for field in targetFields:
          if isNil(line):
             let length = field.leType.length
             if length >= 4:
-               stdout.write(field.leType.lineElementId)
-               stdout.write(spaces(length-4))
+               if field.leType.isNumericType or field.leType.isAmountType:
+                  stream.write(field.leType.lineElementId|R(length))
+               else:
+                  stream.write(field.leType.lineElementId|L(length))
             else:
-               stdout.write(spaces(length))
+               stream.write(spaces(length))
          else:
-            stdout.write(getFieldValueFullString(field))
-         stdout.write(" | ")
-      stdout.write("\n")
+            stream.write(getFieldValueFullString(field))
+         stream.write(" | ")
+      stream.write("\n")
       if not isNil(line) and not isNil(gSubtotals):
-         gSubtotals.addLine(line)
+         printLineAddToSubtotals(gRootContext)
 
-proc printHeaders() = printLine(nil)
+proc printHorLine(stream: File) =
+   stream.write("+-")
+   var index = 0
+   for field in targetFields:
+      stream.write(repeatChar(Natural(field.leType.length), '-'))
+      index = index + 1
+      if index < targetFields.len:
+         stream.write("-+-")
+      else:
+         stream.write("-+\n")
+
+proc printHeaders(stream: File) = 
+   printHorLine(stream)
+   printLine(stream, nil)
+   printHorLine(stream)
 
 proc writeToStream(line: string, stream: Stream) =
    if line.isContentLine():
@@ -535,15 +559,16 @@ else:
                   setLeafLineType(topLineType)
                   echo("Document type: $#" % [description(docType)])
                   readFieldSpecs(targetFieldsArg, targetFields, fieldSpecArgName())
-                  printHeaders()
-                  printLine(line)
+                  printHeaders(stdout)
+                  printLine(stdout, line)
                   while input.readLine(line):
                      setCurrentLine(line)
-                     printLine(line)
+                     printLine(stdout, line)
                      gTotals.addLine(line)
+                  printHorLine(stdout)
                   if not isNil(gSubtotals):
                      echo "Subtotals: " & gSubtotals.asString()
-                  echo "Totals: " & gTotals.asString()
+                  echo "Totals:    " & gTotals.asString()
                elif command == cmdCopy:
                   gTotals = newAccumulator(docType)
                   checkAndPrepareQualifiers()

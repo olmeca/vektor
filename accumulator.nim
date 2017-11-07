@@ -1,5 +1,5 @@
 import tables, strutils, sequtils, future, logging
-import "common", "doctypes"
+import "common", "doctypes", "formatting"
 
 type
    Total* = ref object
@@ -19,7 +19,8 @@ proc toString*(str: seq[char]): string =
     add(result, ch)
 
 proc asString(total: Total): string =
-   "$#: $#" % [total.leType.lineElementId, intToStr(total.value)]
+   let width = if total.leType.isAmountType(): 8 else: 5
+   "$#: $#" % [total.leType.lineElementId, total.value|R(width)]
 
 proc newAccumulator*(dType:DocumentType): Accumulator =
    let bottomline = dType.getLineTypeForLineId(cBottomLineId)

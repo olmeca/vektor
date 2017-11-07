@@ -1,5 +1,5 @@
 import json, os, ospaths, future, sequtils, strutils, logging, tables, times
-import "common", "vektorjson"
+import "common", "vektorjson", "formatting"
 
 const 
    cDebtorRecordLineId* = "03"
@@ -181,6 +181,17 @@ proc getElementValueInt*(line: string, leType: LineElementType): int =
 
 proc isAmountType*(leType: LineElementType): bool = 
    leType.code.startsWith(cAmountCodePrefix)
+
+proc isNumericType*(leType: LineElementType): bool = 
+   leType.code.startsWith(cNumberCodePrefix)
+
+proc getElementValueFormatted*(line: string, leType: LineElementType): string =
+   if leType.isAmountType():
+      getElementValueInt(line, leType)|R(leType.length)
+   elif leType.isNumericType():
+      getElementValueInt(line, leType)|R(leType.length)
+   else:
+      getElementValueFullString(line, leType)
 
 proc nextLeId(leId: string): string =
    let leSuccessorIndex = parseInt(leId[2..3]) + 1

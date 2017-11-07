@@ -55,6 +55,7 @@ const
    cFieldTypeAlphaNum* = "AN"
    cVektisDateFormat* = "yyyyMMdd"
    cAmountCodePrefix* = "BED"
+   cNumberCodePrefix* = "NUM"
    cAmountCredit* = "C"
 
 proc getJsonData*(fileName: string): JsonNode =

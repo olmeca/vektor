@@ -45,9 +45,10 @@ proc getElementValueFullString*(rootContext: Context, lineElementId: string): st
    #      [rootContext.lineType.lineId, lineId, context.lineType.lineId])
    assert(context.line.startsWith(lineId))
    let leType = context.lineType.getLineElementType(lineElementId)
-   let start = leType.startPosition-1
-   let fin = start + leType.length-1
-   result = context.line[start..fin]
+   getElementValueFormatted(context.line, leType)
+#   let start = leType.startPosition-1
+#   let fin = start + leType.length-1
+#   result = context.line[start..fin]
 
 proc getElementValueString*(context: Context, leId: string): string =
    stripBlanks(getElementValueFullString(context, leId))
