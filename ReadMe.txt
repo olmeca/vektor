@@ -3,12 +3,13 @@ Vektor Tool Readme
 Short version:
 To make an anonymized copy of declaration file 'original.asc':
    vektor copy original.asc copy.asc \
-   -r:"0203=999999999,0210=@name,0207=@date:19000101-20100101"
+   -r:"0203=999999999,0210=@alpha:3-10,0207=@date:19000101-20100101"
 This will create a copy 'copy.asc' based on 'original.asc', 
 where all '02' lines will have:
 - '999999999' as value for the 03 element (BSN),
-- a random name for element '10' (last name)
-- a random date between 01-01-1900 and 01-01-2010 for element '07' (birth date)
+- a random string of characters for element '10' (last name)
+- a random date between 01-01-1900 and 01-01-2010 for element '07' 
+   (birth date)
 
 Installation
 You may place the executable (vektor.exe) anywhere on your file system,
@@ -78,7 +79,7 @@ should put the value between quotes (see example 3).
 The 'copy' command
 Used for creating a copy of a given file, where specified line element
 replacements are applied to the copy.
-	vektor copy <original> <copy> [<options>]
+   vektor copy <original> <copy> [<options>]
 The copy command needs to be supplied the path to the original 
 declaration file, the path to the new file (the copy) and 
 some options. Additionally a replacement parameter (-r), a 
@@ -102,35 +103,36 @@ are specified using a special syntax (see section Criteria).
 Example:
 Given a declaration file 'original.asc', to create a copy 'copy.asc' 
 with all BSN values in the 02 lines by the value "999999999":
-	vektor copy original.asc copy.asc -r:0403=999999999
+   vektor copy original.asc copy.asc -r:0403=999999999
 
 The above example specifies 'original.asc' as input file,
 'copy.asc' as output file, '04' as line id and one line element,
 '03', to be given the value '999999999'.
 
 To specifies multiple line elements you separate them by a comma:
-	 -r:"0203=999999999,0210=Johnson" 
+    -r:"0203=999999999,0210=Johnson" 
 specifies a BSN and a last name for the 02 record.
 
 To specify an empty value you pass only the name to the '-r' parameter.
 Example 2:
 To replace the BSN in the operation line and also set last name to
 empty you just add another element specification:
-	vektor copy original.asc copy.asc  -r:"0203=999999999,0210"
+   vektor copy original.asc copy.asc  -r:"0203=999999999,0210"
 
 You can use specific symbols to specify a randomly generated value:
-'@name': denotes a randomly generated name
+'@alpha:minlength-maxlength': denotes a randomly generated string of characters
 '@date:fromdate-todate': denotes a randomly generated date. Here you
 should specify values for 'fromdate' and 'todate' to indicate the desired
 range for the generated date values. Date values should be specified in
 standard Vektis format: 'yyyymmdd'.
 Example:
 To anonymize the last name and birth date fields of the 02 record:
-	vektor copy original.asc copy.asc -r:"0210=@name,0207=@date:19000101-20100101"
+   vektor copy original.asc copy.asc \
+      -r:"0210=@alpha-2-9,0207=@date:19000101-20100101"
 
 Example:
 To clear the value of the BSN and 'last name' field of the 02 record:
-	vektor copy original.asc copy.asc -r:0203,0210
+   vektor copy original.asc copy.asc -r:0203,0210
 This will pad the BSN line element with "0"'s and the last name line
 element with spaces, which are the Vektis symbolic values for 'empty value'
 
@@ -138,6 +140,13 @@ Criteria
 Criteria specify conditions that must apply for a given action to be
 taken by vektor. The copy command takes two optional parameter of the
 criteria type: the replacement condition and the selection parameter.
+The replacement condition determines in which cases a replacement will be
+performed. A selection parameter determines which lines of a declaration
+will be copied to the target file. If a criteria involving the patient line (02)
+matches for a given patient line, it will also match for all sublines of the
+patient line. Possible sublines are generally 03, 04 and 98 lines. With other
+words: selecting on patient attributes will always select the whole patient
+invoice.
 Semantically criteria take the form of predicates about line element
 values, which can be any of the following:
 - The value of the specified line element is equal to a given reference value.
@@ -146,21 +155,28 @@ values, which can be any of the following:
 - The line element value is greater than the reference value.
 Syntactically a predicate consists of a line element id, a comparator 
 and a reference value. The comparators used are those common in programming:
-'a=b': a is equal to b
+'a=b':  a is equal to b
 'a!=b': a is not equal to b
-'a<b': a is smaller than b
-'a>b': a is greater than b
+'a<b':  a is smaller than b
+'a>b':  a is greater than b
 Criteria may consist of multiple predicates, combined by either
 the OR operator '|' or the AND operator '&'.
 Example:
+   -c:"0408<20170501" (on a MZ declaration) means: only apply replacements
+      on operations where the date is before 01-05-2017
+   -c:"0408>20170101&0408<20170501" means: apply on operations where
+      the date is between 01-01-2017 and 01-05-2017
+   -c:"0413=C11|0413=C14" (on MZ) means where operation code is either
+      C11 or C14
+   -s:"0207>20010101" means: select patient invoices where the patient
+      is born after 01-01-2001. For every matching patient the whole
+      patient invoice will be included in the resulting file.
+   -s:"0408>20170101&0408<20170501" means select operations performed
+      between 01-01-2017 and 01-05-2017. As operations are only valid as
+      part of a patient invoice, the corresponding patient line will be
+      included and also any debtor record if present. In other words this
+      criteria says: select all patient invoices containing any operations
+      performed in the given period, but of these invoices only include the
+      operation lines that were done in this period.
 
 
-
-Multiple predicates can be combined to one criteria using an 'and'
-or an 'or' construction.
-
-Example:
-To display values of specific elements of specific line types:
-	vektor show original.asc -e:0203,0210
-This will print a two column table with the values for BSN and last name
-of the 02 records in the file.

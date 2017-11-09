@@ -13,6 +13,7 @@ type
 
 
 const
+   cAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
    cNamesJsonFile = "names.json"
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
    msgSourceOrDestMissing = "You need to specify a source file and a destination file (e.g: vektor copy source.asc dest.asc -e:...)."
@@ -38,6 +39,12 @@ let
    Pattern <- ^ RandomDateSpec !.
    RandomDateSpec <- '@date:' {Date} '-' {Date}
    Date <- \d \d \d \d \d \d \d \d
+   """
+
+   randomStringPattern = peg"""#
+   Pattern <- ^ RandomStringSpec !.
+   RandomStringSpec <- '@alpha:' {Date} '-' {Date}
+   Date <- \d+
    """
 
 
@@ -94,11 +101,12 @@ proc hasOwnRandomizationContext(line: string): bool =
    let lineIdNr = parseInt(line[0..1])
    lineIdNr <= 2 or lineIdNr == 99
 
-proc getRandomName(): string =
-   if isNil(gNames):
-      gNames = lc[to(node, string) | (node <- getJsonData(cNamesJsonFile)), string]
-   else: discard
-   result = gNames[random(gNames.len)-1]
+proc getRandomString(minlen: int, maxlen: int): string =
+   let length = minlen + random(maxlen+1 - minlen)
+   result = ""
+   for i in 0..length-1:
+      result.add(cAlphabet[random(cAlphabet.len)])
+
 
 proc setLeafLineType(lineType: LineType) =
    debug("setLeafLineType: $#" % [lineType.lineId])
@@ -166,10 +174,8 @@ proc getNextSequenceNumber(): int =
    gSequenceNumber
 
 proc genElementValue(leType: LineElementType, valueSpec: string): string =
-   if valueSpec == "@name":
-      result = getRandomName().padRight(leType.length)
-   elif valueSpec == "@seq":
-      result = intToStr(getNextSequenceNumber(), leType.length)
+   if valueSpec =~ randomStringPattern:
+      result = getRandomString(parseInt(matches[0]), parseInt(matches[1]))|L(leType.length)
    elif valueSpec =~ randomDatePattern:
       assert(leType.isDate)
       result = randomDateString(matches[0], matches[1])
@@ -185,8 +191,8 @@ proc newElementValue(leType: LineElementType, oldValue: string, valueSpec: strin
          result = intToStr(number, length)
    else:
       var alphanum: string = nil
-      if valueSpec == "@name":
-         alphanum = getRandomName()
+      if valueSpec =~ randomStringPattern:
+         alphanum = getRandomString(parseInt(matches[0]), parseInt(matches[1]))|L(leType.length)
       else:
          alphanum = if isNil(valueSpec): "" else: mytrim(stripBlanks(valueSpec), length)
       result = alphanum & spaces(length - alphanum.len)
