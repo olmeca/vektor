@@ -1,5 +1,5 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
-import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting"
+import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting", "expressions"
 
 type
    FieldSpec = object
@@ -18,34 +18,6 @@ const
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
    msgSourceOrDestMissing = "You need to specify a source file and a destination file (e.g: vektor copy source.asc dest.asc -e:...)."
    msgCommandMissing = "Please specify one of the following commands: info, show, copy or help."
-
-
-let
-   elementSpecPattern = peg"""#
-   Pattern <- ^ ElementSpec !.
-   ElementSpec <-  {ElementId} '=' {ElementValue} / {ElementId}
-   ElementId <- \d \d \d \d
-   ElementValue <- .*
-   """
-
-   elementSpecsPattern = peg"""#
-   Pattern <- ^ ElementsSpec !.
-   ElementsSpec <- ElementSpec ElementSpecSeparator ElementsSpec / ElementSpec
-   ElementSpec <- {(!ElementSpecSeparator .)+}
-   ElementSpecSeparator <- ','
-   """
-   
-   randomDatePattern = peg"""#
-   Pattern <- ^ RandomDateSpec !.
-   RandomDateSpec <- '@date:' {Date} '-' {Date}
-   Date <- \d \d \d \d \d \d \d \d
-   """
-
-   randomStringPattern = peg"""#
-   Pattern <- ^ RandomStringSpec !.
-   RandomStringSpec <- '@alpha:' {Date} '-' {Date}
-   Date <- \d+
-   """
 
 
 var 
@@ -151,7 +123,7 @@ proc fetch_doctype(line: string): DocumentType =
    let subversion = parseInt(line[7 .. 8])
    getDocumentType(typeId, version, subversion)
 
-proc isRandomSpec(valueSpec: string): bool =
+proc isDerivedValue(valueSpec: string): bool =
    valueSpec[0] == '@'
 
 proc padright(source: string, length: int, fillChar: char = ' '): string =
@@ -175,7 +147,14 @@ proc getNextSequenceNumber(): int =
 
 proc genElementValue(leType: LineElementType, valueSpec: string): string =
    if valueSpec =~ randomStringPattern:
-      result = getRandomString(parseInt(matches[0]), parseInt(matches[1]))|L(leType.length)
+      var minlen, maxlen: int
+      if isNil(matches[0]):
+         minlen = leType.length div 4
+         maxlen = leType.length
+      else:
+         minlen = parseInt(matches[0])
+         maxlen = if isNil(matches[1]): minlen else: min(parseInt(matches[1]), leType.length)
+      result = getRandomString(minlen, maxlen)|L(leType.length)
    elif valueSpec =~ randomDatePattern:
       assert(leType.isDate)
       result = randomDateString(matches[0], matches[1])
@@ -183,25 +162,17 @@ proc genElementValue(leType: LineElementType, valueSpec: string): string =
 proc newElementValue(leType: LineElementType, oldValue: string, valueSpec: string): string = 
    let length = leType.length
    if leType.isNumeric():
-      var number: int
-      if leType.isDate and valueSpec =~ randomDatePattern:
-         result = randomDateString(matches[0], matches[1])
-      else:
-         number = if isNil(valueSpec): 0 else: parseInt(mytrim(valueSpec, length))
-         result = intToStr(number, length)
+      var number: int = if isNil(valueSpec): 0 else: parseInt(mytrim(valueSpec, length))
+      result = intToStr(number, length)
    else:
-      var alphanum: string = nil
-      if valueSpec =~ randomStringPattern:
-         alphanum = getRandomString(parseInt(matches[0]), parseInt(matches[1]))|L(leType.length)
-      else:
-         alphanum = if isNil(valueSpec): "" else: mytrim(stripBlanks(valueSpec), length)
-      result = alphanum & spaces(length - alphanum.len)
+      var alphanum: string = if isNil(valueSpec): "" else: mytrim(stripBlanks(valueSpec), length)
+      result = alphanum|L(length)
    # debug("newElementValue -> '$#', $#" % [result, intToStr(result.len)])
 
 proc getElementValue(leType: LineElementType, oldValue: string, valueSpec: string): string =
-   # if random value specified we first check if old value has already been
-   # randomized in this context. If so reuse value generated earlier.
-   if isRandomSpec(valueSpec):
+   # if derived value specified we first check if old value has already been
+   # used for derivation in this context. If so reuse value generated earlier.
+   if isDerivedValue(valueSpec):
       if not leType.isEmptyValue(oldValue) and gRandomizedValuesMap.hasKey(oldValue):
          result = gRandomizedValuesMap[oldValue]
       else:
