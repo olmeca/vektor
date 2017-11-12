@@ -2,9 +2,12 @@ import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, t
 import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting", "expressions"
 
 type
-   FieldSpec = object
+   FieldSpec = ref FieldSpecObj
+   FieldSpecObj = object of RootObj
       leType: LineElementType
-      value: string
+   FieldValueSpec = ref FieldValueSpecObj
+   FieldValueSpecObj = object of FieldSpecObj
+      value: Expression
    
    FieldSpecError = object of Exception
    
@@ -13,16 +16,16 @@ type
 
 
 const
-   cAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-   cNamesJsonFile = "names.json"
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
    msgSourceOrDestMissing = "You need to specify a source file and a destination file (e.g: vektor copy source.asc dest.asc -e:...)."
    msgCommandMissing = "Please specify one of the following commands: info, show, copy or help."
 
 
 var 
-   targetFieldsArg: string
-   targetFields: seq[FieldSpec] = @[]
+   copyFieldsArg: string
+   copyFields: seq[FieldValueSpec] = @[]
+   showFieldsArg: string
+   showFields: seq[FieldSpec] = @[]
    filterFieldsArg: string
    outputPath: string = nil
    command: TCommand = cmdCopy
@@ -59,6 +62,7 @@ proc setLoggingLevel(level: Level) =
    addHandler(fileLogger)
    setLogFilter(level)
 
+
 proc description(doctype: DocumentType): string =
    "$# v$#.$#   $#" % 
       [doctype.name, 
@@ -67,17 +71,11 @@ proc description(doctype: DocumentType): string =
       doctype.description]
 
 proc toString(fs: FieldSpec): string = 
-   "FieldSpec leId: $#, value: $#" % [fs.leType.lineElementId, fs.value]
+   "FieldSpec leId: $#" % [fs.leType.lineElementId]
 
 proc hasOwnRandomizationContext(line: string): bool =
    let lineIdNr = parseInt(line[0..1])
    lineIdNr <= 2 or lineIdNr == 99
-
-proc getRandomString(minlen: int, maxlen: int): string =
-   let length = minlen + random(maxlen+1 - minlen)
-   result = ""
-   for i in 0..length-1:
-      result.add(cAlphabet[random(cAlphabet.len)])
 
 
 proc setLeafLineType(lineType: LineType) =
@@ -106,13 +104,6 @@ proc setCurrentLine(line: string) =
       debug("setCurrentLine: parent: $#, line: $#" % [parentContext.lineType.lineId, line[0..13]])
    gCurrentContext.state = csRegistered
 
-proc randomDateString(fromDate: string, toDate: string): string =
-   let fromSeconds = parseVektisDate(fromDate).toTime().toSeconds()
-   let toSeconds = parseVektisDate(toDate).toTime().toSeconds()
-   let randomSeconds = random(toSeconds-fromSeconds) + fromSeconds
-   let randomDate = fromSeconds(randomSeconds).getLocalTime()
-   format(randomDate, cVektisDateFormat)
-   
 
 proc stripBlanks(source: string): string =
    strip(source, true, true, cBlanksSet)
@@ -145,41 +136,17 @@ proc getNextSequenceNumber(): int =
    gSequenceNumber = gSequenceNumber + 1
    gSequenceNumber
 
-proc genElementValue(leType: LineElementType, valueSpec: string): string =
-   if valueSpec =~ randomStringPattern:
-      var minlen, maxlen: int
-      if isNil(matches[0]):
-         minlen = leType.length div 4
-         maxlen = leType.length
-      else:
-         minlen = parseInt(matches[0])
-         maxlen = if isNil(matches[1]): minlen else: min(parseInt(matches[1]), leType.length)
-      result = getRandomString(minlen, maxlen)|L(leType.length)
-   elif valueSpec =~ randomDatePattern:
-      assert(leType.isDate)
-      result = randomDateString(matches[0], matches[1])
-
-proc newElementValue(leType: LineElementType, oldValue: string, valueSpec: string): string = 
-   let length = leType.length
-   if leType.isNumeric():
-      var number: int = if isNil(valueSpec): 0 else: parseInt(mytrim(valueSpec, length))
-      result = intToStr(number, length)
-   else:
-      var alphanum: string = if isNil(valueSpec): "" else: mytrim(stripBlanks(valueSpec), length)
-      result = alphanum|L(length)
-   # debug("newElementValue -> '$#', $#" % [result, intToStr(result.len)])
-
-proc getElementValue(leType: LineElementType, oldValue: string, valueSpec: string): string =
+proc getElementValue(field: FieldValueSpec, oldValue: string): string =
    # if derived value specified we first check if old value has already been
    # used for derivation in this context. If so reuse value generated earlier.
-   if isDerivedValue(valueSpec):
-      if not leType.isEmptyValue(oldValue) and gRandomizedValuesMap.hasKey(oldValue):
+   if field.value.isDerived:
+      if not field.leType.isEmptyValue(oldValue) and gRandomizedValuesMap.hasKey(oldValue):
          result = gRandomizedValuesMap[oldValue]
       else:
-         result = genElementValue(leType, valueSpec)
+         result = field.value.evaluate()
          gRandomizedValuesMap[oldValue] = result
    else:
-      result = newElementValue(leType, oldValue, valueSpec)
+      result = field.value.evaluate()
 
 proc copyChars(buf: var openArray[char], start: int, length: int, newValue: string) =
    assert newValue.len == length
@@ -218,7 +185,7 @@ proc printLineAddToSubtotals(context: var Context) =
 proc printLine(stream:File, line: string) = 
    if isNil(line) or (line.isLeafLine() and conditionIsMet(gSelectionQualifier)):
       stream.write("| ")
-      for field in targetFields:
+      for field in showFields:
          if isNil(line):
             let length = field.leType.length
             if length >= 4:
@@ -238,10 +205,10 @@ proc printLine(stream:File, line: string) =
 proc printHorLine(stream: File) =
    stream.write("+-")
    var index = 0
-   for field in targetFields:
+   for field in showFields:
       stream.write(repeatChar(Natural(field.leType.length), '-'))
       index = index + 1
-      if index < targetFields.len:
+      if index < showFields.len:
          stream.write("-+-")
       else:
          stream.write("-+\n")
@@ -282,14 +249,12 @@ proc mutateAndWrite(line: var string, outStream: Stream) =
       if conditionIsMet(gReplacementQualifier):
          debug("maw: replacement qualifier is met")
          # Only attempt replacement if there are target fields defined
-         if not isNil(targetFields):
-            for field in targetFields:
+         if not isNil(copyFields):
+            for field in copyFields:
                let leType = field.leType
-               let newValueSpec = field.value
-               debug("target: $# = $#" % [leType.lineElementId, newValueSpec])
                if leType.isElementOfLine(line):
                   let oldValue = line.getElementValueString(leType)
-                  let newValue = getElementValue(leType, oldValue, newValueSpec)
+                  let newValue = getElementValue(FieldValueSpec(field), oldValue)
                   copyChars(buf, leType.startPosition-1, leType.length, newValue)
 #      if line.isContentLine():
 #         gTotals.addLine(buf)
@@ -413,20 +378,41 @@ proc readCommand(cmdString: string) =
       quit(msgCommandMissing)
    commandWasRead = true
 
-proc readElementSpec(spec: string): FieldSpec =
-   if spec =~ elementSpecPattern:
+proc readExpression (leType: LineElementType, valueSpec: string): Expression =
+   readExpression(valueSpec, leType.lineElementId, leType.code, leType.length)
+
+proc readFieldSpec(spec: string): FieldSpec =
+   if spec =~ fieldSpecPattern:
+      let leTypeId = matches[0]
+      checkForNewLeaf(leTypeId[0..1])
+      let leType = docType.getLineElementType(leTypeId)
+      result = FieldSpec(leType: leType)
+   else:
+      raise newException(FieldSpecError, "Invalid line element specification: $#" % [spec])
+
+proc readFieldValueSpec(spec: string): FieldValueSpec =
+   if spec =~ fieldValueSpecPattern:
       let leTypeId = matches[0]
       let value = matches[1]
       checkForNewLeaf(leTypeId[0..1])
       let leType = docType.getLineElementType(leTypeId)
-      result = FieldSpec(leType: leType, value: value)
+      let valueExpression = readExpression(leType, value)
+      result = FieldValueSpec(leType: leType, value: valueExpression)
    else:
       raise newException(FieldSpecError, "Invalid line element specification: $#" % [spec])
 
 proc readFieldSpecs(value: string, fields: var seq[FieldSpec], argName: string) = 
    if not isNil(value):
-      if value =~ elementSpecsPattern:
-         fields = lc[readElementSpec(s)|(s <- matches, not isNil(s)), FieldSpec]
+      if value =~ fieldSpecsPattern:
+         fields = lc[readFieldSpec(s)|(s <- matches, not isNil(s)), FieldSpec]
+      else:
+         quit("Invalid elements specification in argument ($#)." % [argName])
+   else: discard
+
+proc readFieldValueSpecs(value: string, fields: var seq[FieldValueSpec], argName: string) = 
+   if not isNil(value):
+      if value =~ fieldSpecsPattern:
+         fields = lc[readFieldValueSpec(s)|(s <- matches, not isNil(s)), FieldValueSpec]
       else:
          quit("Invalid elements specification in argument ($#)." % [argName])
    else: discard
@@ -444,7 +430,7 @@ proc fieldSpecArgName(): string =
    else:
       result = "-e, --elements"
 
-proc targetFieldsRequired(): bool =
+proc showFieldsRequired(): bool =
    command == cmdQuery
 
 proc processCommandArgs() =
@@ -478,9 +464,9 @@ for kind, key, value in getopt():
       of "d", "debug-level":
          logLevel = value
       of "r", "replacements":
-         targetFieldsArg = value
+         copyFieldsArg = value
       of "e", "elements":
-         targetFieldsArg = value
+         showFieldsArg = value
       of "f", "filter":
          filterFieldsArg = value
       of "l", "lineid":
@@ -519,7 +505,7 @@ elif command == cmdPrint:
 else:
    if not existsFile(argSourceFilePath):
       quit("Specified source file not found: $#" % [argSourceFilePath])
-   elif targetFieldsRequired() and (isNil(targetFieldsArg) or targetFieldsArg.len == 0):
+   elif showFieldsRequired() and (isNil(showFieldsArg) or showFieldsArg.len == 0):
       quit("You need to specify line elements (-e:0203,0207 or --elements 0203,0207 )")
    else:
       let input = newFileStream(argSourceFilePath, fmRead)
@@ -535,7 +521,7 @@ else:
                   setCurrentLine(line)
                   setLeafLineType(topLineType)
                   echo("Document type: $#" % [description(docType)])
-                  readFieldSpecs(targetFieldsArg, targetFields, fieldSpecArgName())
+                  readFieldSpecs(showFieldsArg, showFields, fieldSpecArgName())
                   printHeaders(stdout)
                   printLine(stdout, line)
                   while input.readLine(line):
@@ -553,7 +539,7 @@ else:
                   setCurrentLine(line)
                   setLeafLineType(topLineType)
                   echo("Document type: $#" % [description(docType)])
-                  readFieldSpecs(targetFieldsArg, targetFields, fieldSpecArgName())
+                  readFieldValueSpecs(copyFieldsArg, copyFields, fieldSpecArgName())
                   var outStream: Stream = newFileStream(argDestFilePath, fmWrite)
                   if not isNil(outStream):
                      mutateAndWrite(line, outStream)

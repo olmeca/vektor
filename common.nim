@@ -1,4 +1,4 @@
-import tables, json, os, ospaths, logging, strutils
+import tables, json, os, ospaths, logging, strutils, times
 
 type
    DocumentTypeError* = object of Exception
@@ -56,6 +56,7 @@ const
    cVektisDateFormat* = "yyyyMMdd"
    cAmountCodePrefix* = "BED"
    cNumberCodePrefix* = "NUM"
+   cDateCodePrefix* = "DAT"
    cAmountCredit* = "C"
 
 proc getJsonData*(fileName: string): JsonNode =
@@ -67,6 +68,18 @@ proc getJsonData*(fileName: string): JsonNode =
 
 proc stripBlanks*(source: string): string =
    strip(source, true, true, cBlanksSet)
+
+proc isDateType*(code: string): bool =
+   return code.startsWith(cDateCodePrefix)
+
+proc isNumericType*(code: string): bool =
+   return code.startsWith(cNumberCodePrefix) or code.startsWith(cAmountCodePrefix)
+
+proc isAmountType*(code: string): bool =
+   return code.startsWith(cAmountCodePrefix)
+
+proc isTextType*(code: string): bool =
+   not isDateType(code) and not isNumericType(code)
 
 proc asString*(doctype: DocumentType): string =
    "$# v$#.$#   $#" % 
@@ -96,3 +109,10 @@ proc asString*(leType: LineElementType): string =
 proc asString*(err: ValidationResult): string =
    let leId = if isNil(err.leId): "" else: ", element " & err.leId
    "Line $#$#: $#" % [intToStr(err.lineNr, 4), leId, err.info]
+
+proc parseVektisDate*(dateString: string): TimeInfo =
+   try:
+      result = parse(dateString, cVektisDateFormat)
+   except Exception:
+      raise newException(ValueError, "Invalid date format: '$#'" % [dateString])
+

@@ -37,12 +37,6 @@ proc readDocumentTypes*() =
    types = readTypes(cDocTypesJsonFileName)
    debtorRecordTypes = readTypes(cSB311TypesJsonFileName)
 
-proc parseVektisDate*(dateString: string): TimeInfo =
-   try:
-      result = parse(dateString, cVektisDateFormat)
-   except Exception:
-      raise newException(ValueError, "Invalid date format: '$#'" % [dateString])
-
 proc isOneCharRepeated(value: string, theChar: char): bool =
    result = true
    for c in toSeq(value.items):
@@ -54,7 +48,7 @@ proc isContentLine*(line: string): bool =
 
 
 proc isDate*(leType: LineElementType): bool =
-   leType.length == 8 and leType.code.startsWith("DAT")
+   leType.length == 8 and leType.code.startsWith(cDateCodePrefix)
 
 proc isAlphaNum*(leType: LineElementType): bool =
    leType.fieldType == cFieldTypeAlphaNum
