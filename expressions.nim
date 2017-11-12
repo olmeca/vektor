@@ -48,13 +48,14 @@ let
    Pattern <- ^ ElementsSpec !.
    ElementsSpec <- ElementSpec ElementSpecSeparator ElementsSpec / ElementSpec
    ElementSpec <- {(!ElementSpecSeparator .)+}
-   ElementSpecSeparator <- ','
+   ElementSpecSeparator <- ';'
    """
    
    randomDatePattern* = peg"""#
-   Pattern <- ^ RandomDateSpec !.
-   RandomDateSpec <- '@date:' {Date} '-' {Date}
-   Date <- \d \d \d \d \d \d \d \d
+   Pattern <- ^ '{' RandomDateSpec '}' !.
+   RandomDateSpec <- Symbol '(' Date ',' Date ')'
+   Symbol <- 'date'
+   Date <- {\d \d \d \d \d \d \d \d}
    """
 
    vektisDatePattern* = peg"""#
@@ -63,10 +64,10 @@ let
    """
 
    randomStringPattern* = peg"""#
-   Pattern <- ^ RandomStringSpec !.
-   RandomStringSpec <- Symbol ':' Params / Symbol
-   Params <- Digits '-' Digits / Digits
-   Symbol <- '@alpha'
+   Pattern <- ^ '{' RandomStringSpec '}' !.
+   RandomStringSpec <- Symbol '(' Params ')' / Symbol
+   Params <- Digits ',' Digits / Digits
+   Symbol <- 'text'
    Digits <- {\d+}
    """
 
@@ -144,4 +145,6 @@ proc readExpression*(valueSpec: string, leId: string, typeCode: string, length: 
             result = newLiteralExpression(valueSpec, typeCode, length)
          else:
             raise newException(ExpressionError, "Invalid numeric expression '$#' for field '$#' with Vektis type '$#'." % [valueSpec, leId, typeCode])
+      else:
+         result = newLiteralExpression(valueSpec, typeCode, length)
 
