@@ -1,4 +1,4 @@
-import tables, json, os, ospaths, logging, strutils, times
+import tables, json, os, ospaths, logging, strutils, times, pegs
 
 type
    DocumentTypeError* = object of Exception
@@ -58,6 +58,12 @@ const
    cNumberCodePrefix* = "NUM"
    cDateCodePrefix* = "DAT"
    cAmountCredit* = "C"
+
+let
+   vektisDatePattern* = peg"""#
+   Pattern <- ^ VektisDate !.
+   VektisDate <- \d \d \d \d \d \d \d \d
+   """
 
 proc getJsonData*(fileName: string): JsonNode =
    let fullPath = joinPath(getAppDir(), cDataDir, fileName)

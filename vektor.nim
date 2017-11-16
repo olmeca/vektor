@@ -1,5 +1,5 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
-import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting", "expressions"
+import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting", "expressions", "expressionsreader"
 
 type
    FieldSpec = ref FieldSpecObj
@@ -388,7 +388,7 @@ proc readFieldSpec(spec: string): FieldSpec =
       let leType = docType.getLineElementType(leTypeId)
       result = FieldSpec(leType: leType)
    else:
-      raise newException(FieldSpecError, "Invalid line element specification: $#" % [spec])
+      raise newException(FieldSpecError, "Invalid line element specification: '$#'" % [spec])
 
 proc readFieldValueSpec(spec: string): FieldValueSpec =
    if spec =~ fieldValueSpecPattern:
@@ -399,14 +399,14 @@ proc readFieldValueSpec(spec: string): FieldValueSpec =
       let valueExpression = readExpression(leType, value)
       result = FieldValueSpec(leType: leType, value: valueExpression)
    else:
-      raise newException(FieldSpecError, "Invalid line element specification: $#" % [spec])
+      raise newException(FieldSpecError, "Invalid line element specification: '$#'" % [spec])
 
 proc readFieldSpecs(value: string, fields: var seq[FieldSpec], argName: string) = 
    if not isNil(value):
       if value =~ fieldSpecsPattern:
          fields = lc[readFieldSpec(s)|(s <- matches, not isNil(s)), FieldSpec]
       else:
-         quit("Invalid elements specification in argument ($#)." % [argName])
+         quit("Invalid elements specification in argument ($#): '$#'." % [argName, value])
    else: discard
 
 proc readFieldValueSpecs(value: string, fields: var seq[FieldValueSpec], argName: string) = 
@@ -414,7 +414,7 @@ proc readFieldValueSpecs(value: string, fields: var seq[FieldValueSpec], argName
       if value =~ fieldSpecsPattern:
          fields = lc[readFieldValueSpec(s)|(s <- matches, not isNil(s)), FieldValueSpec]
       else:
-         quit("Invalid elements specification in argument ($#)." % [argName])
+         quit("Invalid element values specification in argument ($#)." % [argName])
    else: discard
 
 proc checkCommandArgs(minCount: int, errorMessage: string) =
@@ -490,6 +490,7 @@ else: discard
 # Initialize the random generator
 randomize()
 
+initializeExpressionReaders()
 readDocumentTypes()
 processCommandArgs()
 
