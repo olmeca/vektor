@@ -1,4 +1,4 @@
-import json, future, logging
+import json, sequtils, future, logging
 import "common"
 
 proc readLineElementType*(node: JsonNode): LineElementType =
@@ -10,19 +10,30 @@ proc readLineElementType*(node: JsonNode): LineElementType =
       length: int(node["length"].getNum()),
       description: node["description"].getStr(),
       countable: getStr(node{"countable"}, nil),
+      sourceId: getStr(node{"sourceId"}, nil),
+      slaveId: getStr(node{"slaveId"}, nil),
       required: node["required"].getBVal()
    )
    # debug(result.asString())
 
+proc readLineTypeLink*(node: JsonNode): LineTypeLink =
+   result = LineTypeLink(
+      subLineId: node["subLineId"].getStr(),
+      multiple: node["multiple"].getBVal(),
+      required: node["required"].getBVal()
+   )
+
 proc readLineType*(node: JsonNode): LineType =
    let leTypes = lc[readLineElementType(item) | (item <- node["lineElementTypes"].items()), LineElementType]
-   let subTypes = lc[getStr(item) | (item <- node["sublineTypeIds"].items()), string]
+   let children = lc[readLineTypeLink(item) | (item <- node["childLinks"].items()), LineTypeLink]
+   let hasDependentEls = leTypes.anyIt(not isNil(it.sourceId))
    result = LineType(
       name: node["name"].getStr(),
       length: int(node["length"].getNum()),
       lineId: node["lineId"].getStr(),
-      sublineTypeIds: subTypes,
-      lineElementTypes: leTypes
+      childLinks: children,
+      lineElementTypes: leTypes,
+      hasDependentElements: hasDependentEls
    )
 
 proc readDocumentType*(node: JsonNode): DocumentType =

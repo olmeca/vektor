@@ -9,7 +9,7 @@
       {
         "length": 310,
         "lineId": "03",
-        "sublineTypeIds": [ "98" ],
+        "childLinks": [ {"subLineId": "98", "multiple": true, "required": false} ],
         "name": "DebiteurRecord",
         "lineElementTypes": [
           {
@@ -288,7 +288,7 @@
         "length": 310,
         "lineId": "03",
         "name": "DebiteurRecord",
-        "sublineTypeIds": [ "98" ],
+        "childLinks": [ {"subLineId": "98", "multiple": true, "required": false} ],
         "lineElementTypes": [
           {
             "code": "COD001",

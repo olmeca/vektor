@@ -27,7 +27,7 @@ proc contextWithLineId*(context: Context, lineId: string): Context =
    if context.lineType.lineId == lineId:
       result = context
    elif len(context.subContexts) == 0:
-      raise newException(NotFoundError, "No context found with line id $#" % [lineId])
+      raise newException(ContextWithLineIdNotFoundError, "No context found with line id $#" % [lineId])
    elif context.subContexts.hasKey(lineId):
       result = context.subContexts[lineId]
    else:
@@ -68,7 +68,7 @@ proc dropContentSubContexts*(context: Context) =
 
 proc findParentContextForLineType*(context: Context, lineId: string): Context =
    result = nil
-   if context.lineType.subLineTypeIds.contains(lineId):
+   if context.lineType.childLinks.anyIt(it.subLineId == lineId):
       result = context
    elif not isNil(context.parent):
       result = findParentContextForLineType(context.parent, lineId)

@@ -17,9 +17,16 @@ var
 #let types = lc[readDocumentType(node) | (node <- getJsonData(cDocTypesJsonFileName)), DocumentType]
 #let debtorRecordTypes = lc[readDocumentType(node) | (node <- getJsonData(cSB311TypesJsonFileName)), DocumentType]
 
-proc index(leId: string): array[0..1, int] =
+proc indexes(leId: string): array[0..1, int] =
    assert(len(leId) == 4)
+   assert(isDigit(leId))
    result = [parseInt(leId[0..1]), parseInt(leId[2..3])]
+
+proc isDependent*(leType: LineElementType): bool =
+   not isNil(leType.sourceId)
+
+proc indexOfLineType*(docType: DocumentType, lineId: string): int =
+   docType.lineTypes.firstIndexMatching(proc(lt: LineType): bool = lt.lineId = lineId)
 
 proc getLineTypeForLineId*(doctype: DocumentType, lineId: string): LineType =
    #debug("getLineTypeForLineId: '$#'" % [lineId])
@@ -55,6 +62,12 @@ proc isAlphaNum*(leType: LineElementType): bool =
 
 proc isNumeric*(leType: LineElementType): bool =
    leType.fieldType == cFieldTypeNumeric
+
+proc isAmountType*(leType: LineElementType): bool = 
+    leType.isNumeric() and leType.code.startsWith(cAmountCodePrefix)
+
+proc isNumericType*(leType: LineElementType): bool = 
+    leType.isNumeric() and leType.code.startsWith(cNumberCodePrefix)
 
 proc isEmptyValue*(leType: LineElementType, value: string): bool =
    if value.len == 0:
@@ -116,13 +129,15 @@ proc getLineTypeForFullLine*(defaultDocType: DocumentType, line: string): LineTy
          raise newException(VektisFormatError, 
             "Invalid line length for debtor record: $#" % [intToStr(line.len)])
 
+proc subLineLinkWithId*(lineType: LineType, lineId: string): LineTypeLink =
+   lineType.childLinks.firstItemMatching(proc(link: LineTypeLink): bool = link.subLineId = lineId)
+
 proc hasSubLineTypeWithId*(docType: DocumentType, lineType: LineType, lineId: string): bool =
-   result = false
-   if lineType.subLineTypeIds.contains(lineId):
+   if lineType.childLinks.anyIt(it.subLineId == lineId):
       result = true
    else:
-      for subLineTypeId in lineType.subLineTypeIds:
-         let subLineType = getLineTypeForLineId(docType, subLineTypeId)
+      for childLink in lineType.childLinks:
+         let subLineType = getLineTypeForLineId(docType, childLink.subLineId)
          if hasSubLineTypeWithId(docType, subLineType, lineId):
             result = true
             break
@@ -172,12 +187,6 @@ proc getElementValueString*(line: string, leType: LineElementType): string =
 
 proc getElementValueInt*(line: string, leType: LineElementType): int =
    parseInt(getElementValueString(line, leType))
-
-proc isAmountType*(leType: LineElementType): bool = 
-   leType.code.startsWith(cAmountCodePrefix)
-
-proc isNumericType*(leType: LineElementType): bool = 
-   leType.code.startsWith(cNumberCodePrefix)
 
 proc getElementValueFormatted*(line: string, leType: LineElementType): string =
    if leType.isAmountType():

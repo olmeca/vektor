@@ -10,7 +10,10 @@
         "length": 310,
         "lineId": "01",
         "name": "VoorloopRecord",
-        "sublineTypeIds": [ "02", "99" ],
+        "childLinks": [ 
+           {"subLineId": "02", "multiple": true, "required": true}, 
+           {"subLineId": "99", "multiple": false, "required": true} 
+        ],
         "lineElementTypes": [
           {
             "code": "COD001",
@@ -197,7 +200,11 @@
       {
         "length": 310,
         "lineId": "02",
-        "sublineTypeIds": [ "03", "04", "98" ],
+        "childLinks": [ 
+           {"subLineId": "03", "multiple": false, "required": false}, 
+           {"subLineId": "04", "multiple": true, "required": true}, 
+           {"subLineId": "98", "multiple": true, "required": false} 
+        ],
         "name": "VerzekerdenRecord",
         "lineElementTypes": [
           {
@@ -224,6 +231,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0203",
+            "slaveId": "0403",
             "required": true,
             "startPosition": 15
           },
@@ -233,6 +241,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0204",
+            "slaveId": "0404",
             "required": true,
             "startPosition": 24
           },
@@ -242,6 +251,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0205",
+            "slaveId": "0405",
             "required": false,
             "startPosition": 28
           },
@@ -430,7 +440,7 @@
       {
         "length": 310,
         "lineId": "03",
-        "sublineTypeIds": [ "98" ],
+        "childLinks": [ {"subLineId": "98", "multiple": true, "required": false} ],
         "name": "DebiteurRecord",
         "lineElementTypes": [
           {
@@ -681,7 +691,7 @@
       {
         "length": 310,
         "lineId": "04",
-        "sublineTypeIds": [ "98" ],
+        "childLinks": [ {"subLineId": "98", "multiple": true, "required": false} ],
         "name": "PrestatieRecord",
         "lineElementTypes": [
           {
@@ -708,6 +718,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0403",
+            "sourceId": "0203",
             "required": true,
             "startPosition": 15
           },
@@ -717,6 +728,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0404",
+            "sourceId": "0204",
             "required": true,
             "startPosition": 24
           },
@@ -726,6 +738,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0405",
+            "sourceId": "0205",
             "required": false,
             "startPosition": 28
           },
@@ -1058,7 +1071,7 @@
       {
         "length": 310,
         "lineId": "98",
-        "sublineTypeIds": [  ],
+        "childLinks": [  ],
         "name": "CommentaarRecord",
         "lineElementTypes": [
           {
@@ -1111,7 +1124,7 @@
       {
         "length": 310,
         "lineId": "99",
-        "sublineTypeIds": [  ],
+        "childLinks": [  ],
         "name": "SluitRecord",
         "lineElementTypes": [
           {
@@ -1216,7 +1229,10 @@
       {
         "length": 360,
         "lineId": "01",
-        "sublineTypeIds": [ "02", "99" ],
+        "childLinks": [ 
+           {"subLineId": "02", "multiple": false, "required": true}, 
+           {"subLineId": "99", "multiple": false, "required": true} 
+        ],
         "name": "VoorloopRecord",
         "lineElementTypes": [
           {
@@ -1404,7 +1420,11 @@
       {
         "length": 360,
         "lineId": "02",
-        "sublineTypeIds": [ "03", "04", "98" ],
+        "childLinks": [ 
+           {"subLineId": "03", "multiple": false, "required": false}, 
+           {"subLineId": "04", "multiple": true, "required": false}, 
+           {"subLineId": "98", "multiple": true, "required": false} 
+        ],
         "name": "VerzekerdenRecord",
         "lineElementTypes": [
           {
@@ -1431,6 +1451,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0203",
+            "slaveId": "0403",
             "required": true,
             "startPosition": 15
           },
@@ -1440,6 +1461,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0204",
+            "slaveId": "0404",
             "required": true,
             "startPosition": 24
           },
@@ -1449,6 +1471,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0205",
+            "slaveId": "0405",
             "required": false,
             "startPosition": 28
           },
@@ -1636,8 +1659,304 @@
       },
       {
         "length": 360,
+        "lineId": "03",
+        "childLinks": [ {"subLineId": "98", "multiple": true, "required": false} ],
+        "name": "DebiteurRecord",
+        "lineElementTypes": [
+          {
+            "code": "COD001",
+            "description": "KENMERK RECORD",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0301",
+            "required": true,
+            "startPosition": 1
+          },
+          {
+            "code": "NUM040",
+            "description": "IDENTIFICATIE DETAILRECORD",
+            "fieldType": "N",
+            "length": 12,
+            "lineElementId": "0302",
+            "required": true,
+            "startPosition": 3
+          },
+          {
+            "code": "COD316",
+            "description": "DEBITEURNUMMER",
+            "fieldType": "AN",
+            "length": 11,
+            "lineElementId": "0303",
+            "required": false,
+            "startPosition": 15
+          },
+          {
+            "code": "DAT264",
+            "description": "DATUM GEBOORTE DEBITEUR",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0304",
+            "required": false,
+            "startPosition": 26
+          },
+          {
+            "code": "COD446",
+            "description": "CODE GESLACHT DEBITEUR",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0305",
+            "required": false,
+            "startPosition": 34
+          },
+          {
+            "code": "COD700",
+            "description": "NAAMCODE/NAAMGEBRUIK (01)",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0306",
+            "required": false,
+            "startPosition": 35
+          },
+          {
+            "code": "NAM214",
+            "description": "NAAM DEBITEUR (01)",
+            "fieldType": "AN",
+            "length": 25,
+            "lineElementId": "0307",
+            "required": false,
+            "startPosition": 36
+          },
+          {
+            "code": "NAM216",
+            "description": "VOORVOEGSEL DEBITEUR (01)",
+            "fieldType": "AN",
+            "length": 10,
+            "lineElementId": "0308",
+            "required": false,
+            "startPosition": 61
+          },
+          {
+            "code": "COD701",
+            "description": "NAAMCODE/NAAMGEBRUIK (02)",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0309",
+            "required": false,
+            "startPosition": 71
+          },
+          {
+            "code": "NAM215",
+            "description": "NAAM DEBITEUR (02)",
+            "fieldType": "AN",
+            "length": 25,
+            "lineElementId": "0310",
+            "required": false,
+            "startPosition": 72
+          },
+          {
+            "code": "NAM217",
+            "description": "VOORVOEGSEL DEBITEUR (02)",
+            "fieldType": "AN",
+            "length": 10,
+            "lineElementId": "0311",
+            "required": false,
+            "startPosition": 97
+          },
+          {
+            "code": "NAM089",
+            "description": "VOORLETTERS DEBITEUR",
+            "fieldType": "AN",
+            "length": 6,
+            "lineElementId": "0312",
+            "required": false,
+            "startPosition": 107
+          },
+          {
+            "code": "COD829",
+            "description": "NAAMCODE/NAAMGEBRUIK (03)",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0313",
+            "required": false,
+            "startPosition": 113
+          },
+          {
+            "code": "COD843",
+            "description": "TITULATUUR",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0314",
+            "required": false,
+            "startPosition": 114
+          },
+          {
+            "code": "NAM141",
+            "description": "STRAATNAAM DEBITEUR",
+            "fieldType": "AN",
+            "length": 24,
+            "lineElementId": "0315",
+            "required": false,
+            "startPosition": 116
+          },
+          {
+            "code": "NUM098",
+            "description": "HUISNUMMER (HUISADRES) DEBITEUR",
+            "fieldType": "N",
+            "length": 5,
+            "lineElementId": "0316",
+            "required": false,
+            "startPosition": 140
+          },
+          {
+            "code": "NUM099",
+            "description": "HUISNUMMERTOEVOEGING (HUISADRES) DEBITEUR",
+            "fieldType": "AN",
+            "length": 6,
+            "lineElementId": "0317",
+            "required": false,
+            "startPosition": 145
+          },
+          {
+            "code": "COD312",
+            "description": "POSTCODE (HUISADRES) DEBITEUR",
+            "fieldType": "AN",
+            "length": 6,
+            "lineElementId": "0318",
+            "required": false,
+            "startPosition": 151
+          },
+          {
+            "code": "COD434",
+            "description": "POSTCODE BUITENLAND",
+            "fieldType": "AN",
+            "length": 9,
+            "lineElementId": "0319",
+            "required": false,
+            "startPosition": 157
+          },
+          {
+            "code": "NAM142",
+            "description": "WOONPLAATSNAAM DEBITEUR",
+            "fieldType": "AN",
+            "length": 24,
+            "lineElementId": "0320",
+            "required": false,
+            "startPosition": 166
+          },
+          {
+            "code": "COD313",
+            "description": "CODE LAND DEBITEUR",
+            "fieldType": "AN",
+            "length": 2,
+            "lineElementId": "0321",
+            "required": false,
+            "startPosition": 190
+          },
+          {
+            "code": "NUM364",
+            "description": "TELEFOONNUMMER DEBITEUR",
+            "fieldType": "AN",
+            "length": 15,
+            "lineElementId": "0322",
+            "required": false,
+            "startPosition": 192
+          },
+          {
+            "code": "NUM092",
+            "description": "LANDNUMMER TELEFOON (CODE LAND)",
+            "fieldType": "N",
+            "length": 3,
+            "lineElementId": "0323",
+            "required": false,
+            "startPosition": 207
+          },
+          {
+            "code": "NAM221",
+            "description": "E-MAILADRES DEBITEUR",
+            "fieldType": "AN",
+            "length": 50,
+            "lineElementId": "0324",
+            "required": false,
+            "startPosition": 210
+          },
+          {
+            "code": "NUM406",
+            "description": "IBAN",
+            "fieldType": "AN",
+            "length": 34,
+            "lineElementId": "0325",
+            "required": false,
+            "startPosition": 260
+          },
+          {
+            "code": "COD819",
+            "description": "SOORT RELATIE DEBITEUR",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0326",
+            "required": false,
+            "startPosition": 294
+          },
+          {
+            "code": "COD908",
+            "description": "CODE INCASSO",
+            "fieldType": "AN",
+            "length": 2,
+            "lineElementId": "0327",
+            "required": false,
+            "startPosition": 296
+          },
+          {
+            "code": "NUM413",
+            "description": "VERSIENUMMER DEBITEURRECORD",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0328",
+            "required": false,
+            "startPosition": 298
+          },
+          {
+            "code": "FAM001",
+            "description": "MACHTIGINGSDATUM",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0329",
+            "required": false,
+            "startPosition": 300
+          },
+          {
+            "code": "FAM002",
+            "description": "FACTURATIEVORM",
+            "fieldType": "AN",
+            "length": 1,
+            "lineElementId": "0330",
+            "required": false,
+            "startPosition": 308
+          },
+          {
+            "code": "FAM003",
+            "description": "EXTRA ADRESREGEL",
+            "fieldType": "AN",
+            "length": 35,
+            "lineElementId": "0331",
+            "required": false,
+            "startPosition": 309
+          },
+          {
+            "code": "TEC007",
+            "description": "RESERVE",
+            "fieldType": "AN",
+            "length": 17,
+            "lineElementId": "0380",
+            "required": false,
+            "startPosition": 344
+          }
+        ]
+      },
+      {
+        "length": 360,
         "lineId": "04",
-        "sublineTypeIds": [ "98" ],
+        "childLinks": [ {"subLineId": "98", "multiple": true, "required": false} ],
         "name": "PrestatieRecord",
         "lineElementTypes": [
           {
@@ -1664,6 +1983,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0403",
+            "sourceId": "0203",
             "required": true,
             "startPosition": 15
           },
@@ -1673,6 +1993,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0404",
+            "sourceId": "0204",
             "required": true,
             "startPosition": 24
           },
@@ -1682,6 +2003,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0405",
+            "sourceId": "0205",
             "required": false,
             "startPosition": 28
           },
@@ -2068,7 +2390,7 @@
       {
         "length": 360,
         "lineId": "98",
-        "sublineTypeIds": [  ],
+        "childLinks": [  ],
         "name": "CommentaarRecord",
         "lineElementTypes": [
           {
@@ -2121,7 +2443,7 @@
       {
         "length": 360,
         "lineId": "99",
-        "sublineTypeIds": [  ],
+        "childLinks": [  ],
         "name": "SluitRecord",
         "lineElementTypes": [
           {
@@ -2206,302 +2528,6 @@
             "startPosition": 46
           }
         ]
-      },
-      {
-        "length": 360,
-        "lineId": "03",
-        "sublineTypeIds": [ "98" ],
-        "name": "DebiteurenenRecord",
-        "lineElementTypes": [
-          {
-            "code": "COD001",
-            "description": "KENMERK RECORD",
-            "fieldType": "N",
-            "length": 2,
-            "lineElementId": "0301",
-            "required": true,
-            "startPosition": 1
-          },
-          {
-            "code": "NUM040",
-            "description": "IDENTIFICATIE DETAILRECORD",
-            "fieldType": "N",
-            "length": 12,
-            "lineElementId": "0302",
-            "required": true,
-            "startPosition": 3
-          },
-          {
-            "code": "COD316",
-            "description": "DEBITEURNUMMER",
-            "fieldType": "AN",
-            "length": 11,
-            "lineElementId": "0303",
-            "required": false,
-            "startPosition": 15
-          },
-          {
-            "code": "DAT264",
-            "description": "DATUM GEBOORTE DEBITEUR",
-            "fieldType": "N",
-            "length": 8,
-            "lineElementId": "0304",
-            "required": false,
-            "startPosition": 26
-          },
-          {
-            "code": "COD446",
-            "description": "CODE GESLACHT DEBITEUR",
-            "fieldType": "N",
-            "length": 1,
-            "lineElementId": "0305",
-            "required": false,
-            "startPosition": 34
-          },
-          {
-            "code": "COD700",
-            "description": "NAAMCODE/NAAMGEBRUIK (01)",
-            "fieldType": "N",
-            "length": 1,
-            "lineElementId": "0306",
-            "required": false,
-            "startPosition": 35
-          },
-          {
-            "code": "NAM214",
-            "description": "NAAM DEBITEUR (01)",
-            "fieldType": "AN",
-            "length": 25,
-            "lineElementId": "0307",
-            "required": false,
-            "startPosition": 36
-          },
-          {
-            "code": "NAM216",
-            "description": "VOORVOEGSEL DEBITEUR (01)",
-            "fieldType": "AN",
-            "length": 10,
-            "lineElementId": "0308",
-            "required": false,
-            "startPosition": 61
-          },
-          {
-            "code": "COD701",
-            "description": "NAAMCODE/NAAMGEBRUIK (02)",
-            "fieldType": "N",
-            "length": 1,
-            "lineElementId": "0309",
-            "required": false,
-            "startPosition": 71
-          },
-          {
-            "code": "NAM215",
-            "description": "NAAM DEBITEUR (02)",
-            "fieldType": "AN",
-            "length": 25,
-            "lineElementId": "0310",
-            "required": false,
-            "startPosition": 72
-          },
-          {
-            "code": "NAM217",
-            "description": "VOORVOEGSEL DEBITEUR (02)",
-            "fieldType": "AN",
-            "length": 10,
-            "lineElementId": "0311",
-            "required": false,
-            "startPosition": 97
-          },
-          {
-            "code": "NAM089",
-            "description": "VOORLETTERS DEBITEUR",
-            "fieldType": "AN",
-            "length": 6,
-            "lineElementId": "0312",
-            "required": false,
-            "startPosition": 107
-          },
-          {
-            "code": "COD829",
-            "description": "NAAMCODE/NAAMGEBRUIK (03)",
-            "fieldType": "N",
-            "length": 1,
-            "lineElementId": "0313",
-            "required": false,
-            "startPosition": 113
-          },
-          {
-            "code": "COD843",
-            "description": "TITULATUUR",
-            "fieldType": "N",
-            "length": 2,
-            "lineElementId": "0314",
-            "required": false,
-            "startPosition": 114
-          },
-          {
-            "code": "NAM141",
-            "description": "STRAATNAAM DEBITEUR",
-            "fieldType": "AN",
-            "length": 24,
-            "lineElementId": "0315",
-            "required": false,
-            "startPosition": 116
-          },
-          {
-            "code": "NUM098",
-            "description": "HUISNUMMER (HUISADRES) DEBITEUR",
-            "fieldType": "N",
-            "length": 5,
-            "lineElementId": "0316",
-            "required": false,
-            "startPosition": 140
-          },
-          {
-            "code": "NUM099",
-            "description": "HUISNUMMERTOEVOEGING (HUISADRES) DEBITEUR",
-            "fieldType": "AN",
-            "length": 6,
-            "lineElementId": "0317",
-            "required": false,
-            "startPosition": 145
-          },
-          {
-            "code": "COD312",
-            "description": "POSTCODE (HUISADRES) DEBITEUR",
-            "fieldType": "AN",
-            "length": 6,
-            "lineElementId": "0318",
-            "required": false,
-            "startPosition": 151
-          },
-          {
-            "code": "COD434",
-            "description": "POSTCODE BUITENLAND",
-            "fieldType": "AN",
-            "length": 9,
-            "lineElementId": "0319",
-            "required": false,
-            "startPosition": 157
-          },
-          {
-            "code": "NAM142",
-            "description": "WOONPLAATSNAAM DEBITEUR",
-            "fieldType": "AN",
-            "length": 24,
-            "lineElementId": "0320",
-            "required": false,
-            "startPosition": 166
-          },
-          {
-            "code": "COD313",
-            "description": "CODE LAND DEBITEUR",
-            "fieldType": "AN",
-            "length": 2,
-            "lineElementId": "0321",
-            "required": false,
-            "startPosition": 190
-          },
-          {
-            "code": "NUM364",
-            "description": "TELEFOONNUMMER DEBITEUR",
-            "fieldType": "AN",
-            "length": 15,
-            "lineElementId": "0322",
-            "required": false,
-            "startPosition": 192
-          },
-          {
-            "code": "NUM092",
-            "description": "LANDNUMMER TELEFOON (CODE LAND)",
-            "fieldType": "N",
-            "length": 3,
-            "lineElementId": "0323",
-            "required": false,
-            "startPosition": 207
-          },
-          {
-            "code": "NAM221",
-            "description": "E-MAILADRES DEBITEUR",
-            "fieldType": "AN",
-            "length": 50,
-            "lineElementId": "0324",
-            "required": false,
-            "startPosition": 210
-          },
-          {
-            "code": "NUM406",
-            "description": "IBAN",
-            "fieldType": "AN",
-            "length": 34,
-            "lineElementId": "0325",
-            "required": false,
-            "startPosition": 260
-          },
-          {
-            "code": "COD819",
-            "description": "SOORT RELATIE DEBITEUR",
-            "fieldType": "N",
-            "length": 2,
-            "lineElementId": "0326",
-            "required": false,
-            "startPosition": 294
-          },
-          {
-            "code": "COD908",
-            "description": "CODE INCASSO",
-            "fieldType": "AN",
-            "length": 2,
-            "lineElementId": "0327",
-            "required": false,
-            "startPosition": 296
-          },
-          {
-            "code": "NUM413",
-            "description": "VERSIENUMMER DEBITEURRECORD",
-            "fieldType": "N",
-            "length": 2,
-            "lineElementId": "0328",
-            "required": false,
-            "startPosition": 298
-          },
-          {
-            "code": "FAM001",
-            "description": "MACHTIGINGSDATUM",
-            "fieldType": "N",
-            "length": 8,
-            "lineElementId": "0329",
-            "required": false,
-            "startPosition": 300
-          },
-          {
-            "code": "FAM002",
-            "description": "FACTURATIEVORM",
-            "fieldType": "AN",
-            "length": 1,
-            "lineElementId": "0330",
-            "required": false,
-            "startPosition": 308
-          },
-          {
-            "code": "FAM003",
-            "description": "EXTRA ADRESREGEL",
-            "fieldType": "AN",
-            "length": 35,
-            "lineElementId": "0331",
-            "required": false,
-            "startPosition": 309
-          },
-          {
-            "code": "TEC007",
-            "description": "RESERVE",
-            "fieldType": "AN",
-            "length": 17,
-            "lineElementId": "0380",
-            "required": false,
-            "startPosition": 344
-          }
-        ]
       }
     ]
   },
@@ -2516,7 +2542,10 @@
         "length": 310,
         "lineId": "01",
         "name": "VoorloopRecord",
-        "sublineTypeIds": [ "02", "99" ],
+        "childLinks": [ 
+           {"subLineId": "02", "multiple": false, "required": true}, 
+           {"subLineId": "99", "multiple": false, "required": true} 
+        ],
         "lineElementTypes": [
           {
             "code": "COD001",
@@ -2703,7 +2732,11 @@
       {
         "length": 310,
         "lineId": "02",
-        "sublineTypeIds": [ "03", "04", "98" ],
+        "childLinks": [ 
+           {"subLineId": "03", "multiple": false, "required": false}, 
+           {"subLineId": "04", "multiple": true, "required": true}, 
+           {"subLineId": "98", "multiple": true, "required": false} 
+        ],
         "name": "VerzekerdenRecord",
         "lineElementTypes": [
           {
@@ -2927,7 +2960,7 @@
       {
         "length": 310,
         "lineId": "03",
-        "sublineTypeIds": [ "98" ],
+        "childLinks": [ {"subLineId": "98", "multiple": true, "required": false} ],
         "name": "DebiteurRecord",
         "lineElementTypes": [
           {
@@ -3178,7 +3211,7 @@
       {
         "length": 310,
         "lineId": "04",
-        "sublineTypeIds": [ "98" ],
+        "childLinks": [ {"subLineId": "98", "multiple": true, "required": false} ],
         "name": "PrestatieRecord",
         "lineElementTypes": [
           {
@@ -3205,6 +3238,7 @@
             "fieldType": "N",
             "length": 9,
             "lineElementId": "0403",
+            "sourceId": "0203",
             "required": true,
             "startPosition": 15
           },
@@ -3214,6 +3248,7 @@
             "fieldType": "N",
             "length": 4,
             "lineElementId": "0404",
+            "sourceId": "0204",
             "required": true,
             "startPosition": 24
           },
@@ -3223,6 +3258,7 @@
             "fieldType": "AN",
             "length": 15,
             "lineElementId": "0405",
+            "sourceId": "0205",
             "required": false,
             "startPosition": 28
           },
@@ -3492,7 +3528,7 @@
       {
         "length": 310,
         "lineId": "98",
-        "sublineTypeIds": [  ],
+        "childLinks": [  ],
         "name": "CommentaarRecord",
         "lineElementTypes": [
           {
@@ -3545,7 +3581,7 @@
       {
         "length": 310,
         "lineId": "99",
-        "sublineTypeIds": [  ],
+        "childLinks": [  ],
         "name": "SluitRecord",
         "lineElementTypes": [
           {

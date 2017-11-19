@@ -19,6 +19,9 @@ const
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
    msgSourceOrDestMissing = "You need to specify a source file and a destination file (e.g: vektor copy source.asc dest.asc -e:...)."
    msgCommandMissing = "Please specify one of the following commands: info, show, copy or help."
+   gTableLinePrefix = "| "
+   gTableLineInfix = " | "
+   gTableLinePostfix = " |"
 
 
 var 
@@ -36,9 +39,6 @@ var
    commandWasRead: bool = false
    gRootContext: Context = nil
    gCurrentContext: Context = nil
-   # only lines of leaf line type or its parents
-   # will trigger printing of previous leaf
-   leafLineType: LineType
    argDocTypeName: string
    optLineId: string
    argSourceFilePath: string
@@ -76,19 +76,6 @@ proc toString(fs: FieldSpec): string =
 proc hasOwnRandomizationContext(line: string): bool =
    let lineIdNr = parseInt(line[0..1])
    lineIdNr <= 2 or lineIdNr == 99
-
-
-proc setLeafLineType(lineType: LineType) =
-   debug("setLeafLineType: $#" % [lineType.lineId])
-   leafLineType = lineType
-
-
-proc checkForNewLeaf(lineId: string) =
-   debug("checkForNewLeaf: " & lineId)
-   let lineType = docType.getLineTypeForLineId(lineId)
-   if docType.hasSubLineTypeWithId(leafLineType, lineId):
-      setLeafLineType(lineType)
-   else: discard
 
 
 proc setCurrentLine(line: string) =
@@ -136,17 +123,6 @@ proc getNextSequenceNumber(): int =
    gSequenceNumber = gSequenceNumber + 1
    gSequenceNumber
 
-proc getElementValue(field: FieldValueSpec, oldValue: string): string =
-   # if derived value specified we first check if old value has already been
-   # used for derivation in this context. If so reuse value generated earlier.
-   if field.value.isDerived:
-      if not field.leType.isEmptyValue(oldValue) and gRandomizedValuesMap.hasKey(oldValue):
-         result = gRandomizedValuesMap[oldValue]
-      else:
-         result = field.value.evaluate()
-         gRandomizedValuesMap[oldValue] = result
-   else:
-      result = field.value.evaluate()
 
 proc copyChars(buf: var openArray[char], start: int, length: int, newValue: string) =
    assert newValue.len == length
@@ -165,13 +141,11 @@ proc conditionIsMet(qualifier: LineQualifier): bool =
    else:
       try:
          result = qualifier.qualifies(gRootContext)
-      except NotFoundError:
+      except ContextWithLineIdNotFoundError:
          result = false
 
-proc isLeafLine(line: string): bool =
-   let lineId = line[0..1]
-   result = leafLineType.lineId == lineId
-   debug("isLeafLine: $# -> $#" % [lineId, repr(result)])
+proc maxLineIndex(fields: seq[FieldSpec]): int =
+   foldl(fields, max(a, parseInt(b.leType.lineElementId[0..1])), 0)
 
 proc printLineAddToSubtotals(context: var Context) =
    if context.state != csExported:
@@ -181,42 +155,58 @@ proc printLineAddToSubtotals(context: var Context) =
    for sub in context.subContexts.mvalues:
       printLineAddToSubtotals(sub)
 
+proc getHeaderForField(field: FieldSpec): string =
+   let length = field.leType.length
+   let leType = field.leType
+   if length >= 4:
+      if leType.isNumericType or leType.isAmountType:
+         leType.lineElementId|R(length)
+      else:
+         leType.lineElementId|L(length)
+   else:
+      spaces(length)
 
-proc printLine(stream:File, line: string) = 
-   if isNil(line) or (line.isLeafLine() and conditionIsMet(gSelectionQualifier)):
-      stream.write("| ")
-      for field in showFields:
-         if isNil(line):
-            let length = field.leType.length
-            if length >= 4:
-               if field.leType.isNumericType or field.leType.isAmountType:
-                  stream.write(field.leType.lineElementId|R(length))
-               else:
-                  stream.write(field.leType.lineElementId|L(length))
-            else:
-               stream.write(spaces(length))
-         else:
-            stream.write(getFieldValueFullString(field))
-         stream.write(" | ")
-      stream.write("\n")
-      if not isNil(line) and not isNil(gSubtotals):
-         printLineAddToSubtotals(gRootContext)
+proc tabularLine(fields: seq[FieldSpec], stringValue: proc(field: FieldSpec): string, 
+                  prefix: string, infix: string, postfix: string): string =
+   let values = lc[stringValue(field) | (field <- fields), string]
+   result = prefix & values.join(infix) & postfix
 
-proc printHorLine(stream: File) =
+proc printColumnHeaders(stream: Stream, fields: seq[FieldSpec]) =
+   stream.write(tabularLine(fields, getHeaderForField, gTableLinePrefix, gTableLineInfix, gTableLinePostfix))
+   stream.write("\n")
+
+proc printLine(stream: Stream, line: string, fields: seq[FieldSpec]) =
+   stream.write(tabularLine(fields, getFieldValueFullString, gTableLinePrefix, gTableLineInfix, gTableLinePostfix))
+   stream.write("\n")
+
+
+proc conditionallyPrintLine(outStream: Stream, line: string, fields: seq[FieldSpec], maxLineIndex: int) = 
+   var tempStream = newStringStream()
+   if parseInt(line[0..1]) <= maxLineIndex and conditionIsMet(gSelectionQualifier):
+      try:
+         printLine(tempStream, line, fields)
+         outStream.write(tempStream.data)
+      except ContextWithLineIdNotFoundError:
+         debug(">>>>>> Referring to line id '$#' out of context." % [line[0..1]])
+   
+   if not isNil(gSubtotals):
+      printLineAddToSubtotals(gRootContext)
+
+proc printHorLine(stream: Stream, fields: seq[FieldSpec]) =
    stream.write("+-")
    var index = 0
-   for field in showFields:
-      stream.write(repeatChar(Natural(field.leType.length), '-'))
+   for field in fields:
+      stream.write(repeat('-', Natural(field.leType.length)))
       index = index + 1
       if index < showFields.len:
          stream.write("-+-")
       else:
          stream.write("-+\n")
 
-proc printHeaders(stream: File) = 
-   printHorLine(stream)
-   printLine(stream, nil)
-   printHorLine(stream)
+proc printHeaders(stream: Stream, fields: seq[FieldSpec]) = 
+   printHorLine(stream, fields)
+   printColumnHeaders(stream, fields)
+   printHorLine(stream, fields)
 
 proc writeToStream(line: string, stream: Stream) =
    if line.isContentLine():
@@ -232,6 +222,7 @@ proc writeToStream(context: var Context, stream: Stream) =
 
 proc mutateAndWrite(line: var string, outStream: Stream) =
    debug("mutateAndWrite: " & line[0..13])
+   let lineType = docType.getLineTypeForFullLine(line)
    var buf = toSeq(line.mitems)
    # Bottom line cumulative values get updated
    # We don't allow bottom line values to be modified
@@ -244,23 +235,30 @@ proc mutateAndWrite(line: var string, outStream: Stream) =
          line = buf.toString()
          debug(line)
       writeToStream(buf, outStream)
-   elif conditionIsMet(gSelectionQualifier):
-      debug("maw: selection qualifier is met")
-      if conditionIsMet(gReplacementQualifier):
-         debug("maw: replacement qualifier is met")
-         # Only attempt replacement if there are target fields defined
-         if not isNil(copyFields):
-            for field in copyFields:
-               let leType = field.leType
-               if leType.isElementOfLine(line):
-                  let oldValue = line.getElementValueString(leType)
-                  let newValue = getElementValue(FieldValueSpec(field), oldValue)
-                  copyChars(buf, leType.startPosition-1, leType.length, newValue)
-#      if line.isContentLine():
-#         gTotals.addLine(buf)
+   else:
+      if conditionIsMet(gSelectionQualifier):
+         debug("maw: selection qualifier is met")
+         if conditionIsMet(gReplacementQualifier):
+            debug("maw: replacement qualifier is met")
+            # Only attempt replacement if there are target fields defined
+            if not isNil(copyFields):
+               for field in copyFields:
+                  let leType = field.leType
+                  if leType.isElementOfLine(line):
+                     let newValue = FieldValueSpec(field).value.evaluate()
+                     debug("maw: setting new value for leId '$#': '$#'" % [leType.lineElementId, newValue])
+                     copyChars(buf, leType.startPosition-1, leType.length, newValue)
+      
+      if lineType.hasDependentElements:
+         for leType in lineType.lineElementTypes:
+            if not isNil(leType.sourceId):
+               debug("maw: getting source value for '$#'" % [leType.sourceId])
+               let newValue = gRootContext.getElementValueFullString(leType.sourceId)
+               debug("maw: got new source value: '$#'" % [newValue])
+               copyChars(buf, leType.startPosition-1, leType.length, newValue)
+      
       gCurrentContext.line = buf.toString()
       writeToStream(gRootContext, outStream)
-   else: discard # nor selection nor bottom line
 
 
 proc isSelected(dt: DocumentType): bool =
@@ -307,7 +305,7 @@ proc showInfo() =
    if isNil(argDocTypeName) or isVersionMissing():
       showDocumentTypes()
    else:
-      let doctype = documentTypeMatching(argDocTypeName.toUpper(), optVersion, optSubversion)
+      let doctype = documentTypeMatching(argDocTypeName.toUpperAscii(), optVersion, optSubversion)
       if isNil(optLineId):
          showDocumentTypeInfo(doctype)
       else:
@@ -381,10 +379,14 @@ proc readCommand(cmdString: string) =
 proc readExpression (leType: LineElementType, valueSpec: string): Expression =
    readExpression(valueSpec, leType.lineElementId, leType.code, leType.length)
 
+proc checkSupportedLineType(leId: string) =
+   if parseInt(leId[0..1]) >= 98:
+      raise newException(FieldSpecError, "Unsupported line ID: '$#'" % [leId[0..1]])
+
 proc readFieldSpec(spec: string): FieldSpec =
    if spec =~ fieldSpecPattern:
       let leTypeId = matches[0]
-      checkForNewLeaf(leTypeId[0..1])
+      checkSupportedLineType(leTypeId)
       let leType = docType.getLineElementType(leTypeId)
       result = FieldSpec(leType: leType)
    else:
@@ -393,9 +395,12 @@ proc readFieldSpec(spec: string): FieldSpec =
 proc readFieldValueSpec(spec: string): FieldValueSpec =
    if spec =~ fieldValueSpecPattern:
       let leTypeId = matches[0]
+      checkSupportedLineType(leTypeId)
       let value = matches[1]
-      checkForNewLeaf(leTypeId[0..1])
       let leType = docType.getLineElementType(leTypeId)
+      if leType.isDependent():
+         raise newException(FieldSpecError, 
+            "Modification of dependent line element '$#' not allowed. Modify element '$#' instead." % [leType.lineElementId, leType.sourceId])
       let valueExpression = readExpression(leType, value)
       result = FieldValueSpec(leType: leType, value: valueExpression)
    else:
@@ -502,7 +507,6 @@ elif command == cmdInfo:
    showInfo()
 elif command == cmdPrint:
    echo "Print command not supported yet"
-   # printDocumentTypesCode(stdout)
 else:
    if not existsFile(argSourceFilePath):
       quit("Specified source file not found: $#" % [argSourceFilePath])
@@ -520,16 +524,17 @@ else:
                   checkAndPrepareQualifiers()
                   let topLineType = docType.getLineTypeForLineId(cTopLineId)
                   setCurrentLine(line)
-                  setLeafLineType(topLineType)
                   echo("Document type: $#" % [description(docType)])
                   readFieldSpecs(showFieldsArg, showFields, fieldSpecArgName())
-                  printHeaders(stdout)
-                  printLine(stdout, line)
+                  let outStream = newFileStream(stdout)
+                  printHeaders(outStream, showFields)
+                  let maxShownLineIndex = maxLineIndex(showFields)
+                  conditionallyPrintLine(outStream, line, showFields, maxShownLineIndex)
                   while input.readLine(line):
                      setCurrentLine(line)
-                     printLine(stdout, line)
+                     conditionallyPrintLine(outStream, line, showFields, maxShownLineIndex)
                      gTotals.addLine(line)
-                  printHorLine(stdout)
+                  printHorLine(outStream, showFields)
                   if not isNil(gSubtotals):
                      echo "Subtotals: " & gSubtotals.asString()
                   echo "Totals:    " & gTotals.asString()
@@ -538,7 +543,6 @@ else:
                   checkAndPrepareQualifiers()
                   let topLineType = docType.getLineTypeForLineId(cTopLineId)
                   setCurrentLine(line)
-                  setLeafLineType(topLineType)
                   echo("Document type: $#" % [description(docType)])
                   readFieldValueSpecs(copyFieldsArg, copyFields, fieldSpecArgName())
                   var outStream: Stream = newFileStream(argDestFilePath, fmWrite)

@@ -2,7 +2,9 @@ import tables, json, os, ospaths, logging, strutils, times, pegs
 
 type
    DocumentTypeError* = object of Exception
-   NotFoundError* = object of Exception
+   ContextWithLineIdNotFoundError* = object of Exception
+   ChildLinkWithLineIdNotFoundError* = object of Exception
+   NoMatchingItemFound* = object of Exception
    
    LineElementType* = ref object
       lineElementId*: string
@@ -12,14 +14,22 @@ type
       length*: int
       description*: string
       countable*: string
+      sourceId*: string
+      slaveId*: string
+      required*: bool
+   
+   LineTypeLink* = ref object
+      subLineId*: string
+      multiple*: bool
       required*: bool
    
    LineType* = ref object
       name*: string
       length*: int
       lineId*: string
-      sublineTypeIds*: seq[string]
       lineElementTypes*: seq[LineElementType]
+      childLinks*: seq[LineTypeLink]
+      hasDependentElements*: bool
    
    DocumentType* = ref object
       name*: string
@@ -121,4 +131,16 @@ proc parseVektisDate*(dateString: string): TimeInfo =
       result = parse(dateString, cVektisDateFormat)
    except Exception:
       raise newException(ValueError, "Invalid date format: '$#'" % [dateString])
+
+proc firstItemMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.}): T {.inline.} =
+   for i in 0..<list.len:
+      if pred(list[i]):
+         return list[i]
+   raise newException(NoMatchingItemFound, "No item in list matching given criteria")
+
+proc firstIndexMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.}): int {.inline.} =
+   for i in 0..<list.len:
+      if pred(list[i]):
+         return i
+   raise newException(NoMatchingItemFound, "No item in list matching given criteria")
 

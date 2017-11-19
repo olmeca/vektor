@@ -10,7 +10,7 @@ type
 
    ExpressionReader* = ref ExpressionReaderObj
    ExpressionReaderObj* = object of RootObj
-      pattern*: TPeg
+      pattern*: Peg
       readImpl*: proc(valueSpec: string, leId: string, typeCode: string, length: int): Expression
 
 proc evaluate*(expr: Expression): string =

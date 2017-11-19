@@ -13,13 +13,13 @@ type
 
 proc padRight(s: string, width: Natural): string =
   if width > len(s):
-    result = s & repeatChar(width - len(s), ' ')
+    result = s & repeat(' ', width - len(s))
   else:
     result = s
 
 proc padLeft(s: string, width: Natural): string =
   if width > len(s):
-    result = repeatChar(width - len(s), ' ') & s
+    result = repeat(' ', width - len(s)) & s
   else:
     result = s
 
