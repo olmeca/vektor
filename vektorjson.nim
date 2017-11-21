@@ -37,7 +37,8 @@ proc readLineType*(node: JsonNode): LineType =
    )
 
 proc readDocumentType*(node: JsonNode): DocumentType =
-   let lineTypes = lc[readLineType(item) | (item <- node["lineTypes"].items()), LineType]
+   let ltNode = node{"lineTypes"}
+   let lineTypes = if isNil(ltNode): nil else: lc[readLineType(item) | (item <- ltNode.items()), LineType]
    result = DocumentType(
       name: node["name"].getStr(),
       description: node["description"].getStr(),

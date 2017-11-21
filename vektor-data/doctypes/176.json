@@ -1,0 +1,1144 @@
+  {
+    "description": "DECLARATIE MONDZORG",
+    "formatSubVersion": 3,
+    "formatVersion": 1,
+    "name": "MZ301",
+    "vektisEICode": 176,
+    "lineTypes": [
+      {
+        "length": 310,
+        "lineId": "01",
+        "name": "VoorloopRecord",
+        "childLinks": [ 
+           {"subLineId": "02", "multiple": false, "required": true}, 
+           {"subLineId": "99", "multiple": false, "required": true} 
+        ],
+        "lineElementTypes": [
+          {
+            "code": "COD001",
+            "description": "KENMERK RECORD",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0101",
+            "required": true,
+            "startPosition": 1
+          },
+          {
+            "code": "COD002",
+            "description": "CODE EXTERNE-INTEGRATIEBERICHT",
+            "fieldType": "N",
+            "length": 3,
+            "lineElementId": "0102",
+            "required": true,
+            "startPosition": 3
+          },
+          {
+            "code": "NUM001",
+            "description": "VERSIENUMMER BERICHTSTANDAARD",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0103",
+            "required": true,
+            "startPosition": 6
+          },
+          {
+            "code": "NUM309",
+            "description": "SUBVERSIENUMMER BERICHTSTANDAARD",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0104",
+            "required": false,
+            "startPosition": 8
+          },
+          {
+            "code": "COD856",
+            "description": "SOORT BERICHT",
+            "fieldType": "AN",
+            "length": 1,
+            "lineElementId": "0105",
+            "required": true,
+            "startPosition": 10
+          },
+          {
+            "code": "COD805",
+            "description": "CODE INFORMATIESYSTEEM SOFTWARELEVERANCIER",
+            "fieldType": "N",
+            "length": 6,
+            "lineElementId": "0106",
+            "required": false,
+            "startPosition": 11
+          },
+          {
+            "code": "NUM284",
+            "description": "VERSIEAANDUIDING INFORMATIESYSTEEM SOFTWARELEVERANCIER",
+            "fieldType": "AN",
+            "length": 10,
+            "lineElementId": "0107",
+            "required": false,
+            "startPosition": 17
+          },
+          {
+            "code": "COD061",
+            "description": "UZOVI-NUMMER",
+            "fieldType": "N",
+            "length": 4,
+            "lineElementId": "0108",
+            "required": false,
+            "startPosition": 27
+          },
+          {
+            "code": "COD377",
+            "description": "CODE SERVICEBUREAU",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0109",
+            "required": false,
+            "startPosition": 31
+          },
+          {
+            "code": "COD009",
+            "description": "ZORGVERLENERSCODE",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0110",
+            "required": false,
+            "startPosition": 39
+          },
+          {
+            "code": "COD181",
+            "description": "PRAKTIJKCODE",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0111",
+            "required": false,
+            "startPosition": 47
+          },
+          {
+            "code": "COD031",
+            "description": "INSTELLINGSCODE",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0112",
+            "required": false,
+            "startPosition": 55
+          },
+          {
+            "code": "COD833",
+            "description": "IDENTIFICATIECODE BETALING AAN",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0113",
+            "required": true,
+            "startPosition": 63
+          },
+          {
+            "code": "DAT043",
+            "description": "BEGINDATUM DECLARATIEPERIODE",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0114",
+            "required": true,
+            "startPosition": 65
+          },
+          {
+            "code": "DAT044",
+            "description": "EINDDATUM DECLARATIEPERIODE",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0115",
+            "required": true,
+            "startPosition": 73
+          },
+          {
+            "code": "NUM029",
+            "description": "FACTUURNUMMER DECLARANT",
+            "fieldType": "AN",
+            "length": 12,
+            "lineElementId": "0116",
+            "required": true,
+            "startPosition": 81
+          },
+          {
+            "code": "DAT031",
+            "description": "DAGTEKENING FACTUUR",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0117",
+            "required": true,
+            "startPosition": 93
+          },
+          {
+            "code": "NUM351",
+            "description": "BTW-IDENTIFICATIENUMMER",
+            "fieldType": "AN",
+            "length": 14,
+            "lineElementId": "0118",
+            "required": false,
+            "startPosition": 101
+          },
+          {
+            "code": "COD363",
+            "description": "VALUTACODE",
+            "fieldType": "AN",
+            "length": 3,
+            "lineElementId": "0119",
+            "required": true,
+            "startPosition": 115
+          },
+          {
+            "code": "TEC007",
+            "description": "RESERVE",
+            "fieldType": "AN",
+            "length": 193,
+            "lineElementId": "0180",
+            "required": false,
+            "startPosition": 118
+          }
+        ]
+      },
+      {
+        "length": 310,
+        "lineId": "02",
+        "childLinks": [ 
+           {"subLineId": "03", "multiple": false, "required": false}, 
+           {"subLineId": "04", "multiple": true, "required": true}, 
+           {"subLineId": "98", "multiple": true, "required": false} 
+        ],
+        "name": "VerzekerdenRecord",
+        "lineElementTypes": [
+          {
+            "code": "COD001",
+            "description": "KENMERK RECORD",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0201",
+            "required": true,
+            "startPosition": 1
+          },
+          {
+            "code": "NUM040",
+            "description": "IDENTIFICATIE DETAILRECORD",
+            "fieldType": "N",
+            "length": 12,
+            "lineElementId": "0202",
+            "required": true,
+            "startPosition": 3
+          },
+          {
+            "code": "NUM313",
+            "description": "BURGERSERVICENUMMER (BSN) VERZEKERDE",
+            "fieldType": "N",
+            "length": 9,
+            "lineElementId": "0203",
+            "required": true,
+            "startPosition": 15
+          },
+          {
+            "code": "COD061",
+            "description": "UZOVI-NUMMER",
+            "fieldType": "N",
+            "length": 4,
+            "lineElementId": "0204",
+            "required": true,
+            "startPosition": 24
+          },
+          {
+            "code": "NUM003",
+            "description": "VERZEKERDENNUMMER (INSCHRIJVINGSNUMMER, RELATIENUMMER)",
+            "fieldType": "AN",
+            "length": 15,
+            "lineElementId": "0205",
+            "required": false,
+            "startPosition": 28
+          },
+          {
+            "code": "NUM366",
+            "description": "PATIENT(IDENTIFICATIE)NUMMER",
+            "fieldType": "AN",
+            "length": 11,
+            "lineElementId": "0206",
+            "required": false,
+            "startPosition": 43
+          },
+          {
+            "code": "DAT006",
+            "description": "DATUM GEBOORTE VERZEKERDE",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0207",
+            "required": true,
+            "startPosition": 54
+          },
+          {
+            "code": "COD134",
+            "description": "CODE GESLACHT VERZEKERDE",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0208",
+            "required": true,
+            "startPosition": 62
+          },
+          {
+            "code": "COD700",
+            "description": "NAAMCODE/NAAMGEBRUIK (01)",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0209",
+            "required": true,
+            "startPosition": 63
+          },
+          {
+            "code": "NAM193",
+            "description": "NAAM VERZEKERDE (01)",
+            "fieldType": "AN",
+            "length": 25,
+            "lineElementId": "0210",
+            "required": true,
+            "startPosition": 64
+          },
+          {
+            "code": "NAM194",
+            "description": "VOORVOEGSEL VERZEKERDE (01)",
+            "fieldType": "AN",
+            "length": 10,
+            "lineElementId": "0211",
+            "required": false,
+            "startPosition": 89
+          },
+          {
+            "code": "COD701",
+            "description": "NAAMCODE/NAAMGEBRUIK (02)",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0212",
+            "required": false,
+            "startPosition": 99
+          },
+          {
+            "code": "NAM191",
+            "description": "NAAM VERZEKERDE (02)",
+            "fieldType": "AN",
+            "length": 25,
+            "lineElementId": "0213",
+            "required": false,
+            "startPosition": 100
+          },
+          {
+            "code": "NAM192",
+            "description": "VOORVOEGSEL VERZEKERDE (02)",
+            "fieldType": "AN",
+            "length": 10,
+            "lineElementId": "0214",
+            "required": false,
+            "startPosition": 125
+          },
+          {
+            "code": "NAM025",
+            "description": "VOORLETTERS VERZEKERDE",
+            "fieldType": "AN",
+            "length": 6,
+            "lineElementId": "0215",
+            "required": true,
+            "startPosition": 135
+          },
+          {
+            "code": "COD829",
+            "description": "NAAMCODE/NAAMGEBRUIK (03)",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0216",
+            "required": false,
+            "startPosition": 141
+          },
+          {
+            "code": "COD083",
+            "description": "POSTCODE (HUISADRES) VERZEKERDE",
+            "fieldType": "AN",
+            "length": 6,
+            "lineElementId": "0217",
+            "required": false,
+            "startPosition": 142
+          },
+          {
+            "code": "COD434",
+            "description": "POSTCODE BUITENLAND",
+            "fieldType": "AN",
+            "length": 9,
+            "lineElementId": "0218",
+            "required": false,
+            "startPosition": 148
+          },
+          {
+            "code": "NUM030",
+            "description": "HUISNUMMER (HUISADRES) VERZEKERDE",
+            "fieldType": "N",
+            "length": 5,
+            "lineElementId": "0219",
+            "required": true,
+            "startPosition": 157
+          },
+          {
+            "code": "NUM079",
+            "description": "HUISNUMMERTOEVOEGING (HUISADRES) VERZEKERDE",
+            "fieldType": "AN",
+            "length": 6,
+            "lineElementId": "0220",
+            "required": false,
+            "startPosition": 162
+          },
+          {
+            "code": "COD090",
+            "description": "CODE LAND VERZEKERDE",
+            "fieldType": "AN",
+            "length": 2,
+            "lineElementId": "0221",
+            "required": false,
+            "startPosition": 168
+          },
+          {
+            "code": "COD316",
+            "description": "DEBITEURNUMMER",
+            "fieldType": "AN",
+            "length": 11,
+            "lineElementId": "0222",
+            "required": false,
+            "startPosition": 170
+          },
+          {
+            "code": "COD841",
+            "description": "INDICATIE CLIENT OVERLEDEN",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0223",
+            "required": true,
+            "startPosition": 181
+          },
+          {
+            "code": "TEC007",
+            "description": "RESERVE",
+            "fieldType": "AN",
+            "length": 129,
+            "lineElementId": "0280",
+            "required": false,
+            "startPosition": 182
+          }
+        ]
+      },
+      {
+        "length": 310,
+        "lineId": "03",
+        "childLinks": [ {"subLineId": "98", "multiple": true, "required": false} ],
+        "name": "DebiteurRecord",
+        "lineElementTypes": [
+          {
+            "code": "COD001",
+            "description": "KENMERK RECORD",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0301",
+            "required": false,
+            "startPosition": 1
+          },
+          {
+            "code": "NUM040",
+            "description": "IDENTIFICATIE DETAILRECORD",
+            "fieldType": "N",
+            "length": 12,
+            "lineElementId": "0302",
+            "required": false,
+            "startPosition": 3
+          },
+          {
+            "code": "COD316",
+            "description": "DEBITEURNUMMER",
+            "fieldType": "AN",
+            "length": 11,
+            "lineElementId": "0303",
+            "required": false,
+            "startPosition": 15
+          },
+          {
+            "code": "DAT264",
+            "description": "DATUM GEBOORTE DEBITEUR",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0304",
+            "required": false,
+            "startPosition": 26
+          },
+          {
+            "code": "COD446",
+            "description": "CODE GESLACHT DEBITEUR",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0305",
+            "required": false,
+            "startPosition": 34
+          },
+          {
+            "code": "COD700",
+            "description": "NAAMCODE/NAAMGEBRUIK (01)",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0306",
+            "required": false,
+            "startPosition": 35
+          },
+          {
+            "code": "NAM214",
+            "description": "NAAM DEBITEUR (01)",
+            "fieldType": "AN",
+            "length": 25,
+            "lineElementId": "0307",
+            "required": false,
+            "startPosition": 36
+          },
+          {
+            "code": "NAM216",
+            "description": "VOORVOEGSEL DEBITEUR (01)",
+            "fieldType": "AN",
+            "length": 10,
+            "lineElementId": "0308",
+            "required": false,
+            "startPosition": 61
+          },
+          {
+            "code": "COD701",
+            "description": "NAAMCODE/NAAMGEBRUIK (02)",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0309",
+            "required": false,
+            "startPosition": 71
+          },
+          {
+            "code": "NAM215",
+            "description": "NAAM DEBITEUR (02)",
+            "fieldType": "AN",
+            "length": 25,
+            "lineElementId": "0310",
+            "required": false,
+            "startPosition": 72
+          },
+          {
+            "code": "NAM217",
+            "description": "VOORVOEGSEL DEBITEUR (02)",
+            "fieldType": "AN",
+            "length": 10,
+            "lineElementId": "0311",
+            "required": false,
+            "startPosition": 97
+          },
+          {
+            "code": "NAM089",
+            "description": "VOORLETTERS DEBITEUR",
+            "fieldType": "AN",
+            "length": 6,
+            "lineElementId": "0312",
+            "required": false,
+            "startPosition": 107
+          },
+          {
+            "code": "COD829",
+            "description": "NAAMCODE/NAAMGEBRUIK (03)",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0313",
+            "required": false,
+            "startPosition": 113
+          },
+          {
+            "code": "COD843",
+            "description": "TITULATUUR",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0314",
+            "required": false,
+            "startPosition": 114
+          },
+          {
+            "code": "NAM141",
+            "description": "STRAATNAAM DEBITEUR",
+            "fieldType": "AN",
+            "length": 24,
+            "lineElementId": "0315",
+            "required": false,
+            "startPosition": 116
+          },
+          {
+            "code": "NUM098",
+            "description": "HUISNUMMER (HUISADRES) DEBITEUR",
+            "fieldType": "N",
+            "length": 5,
+            "lineElementId": "0316",
+            "required": false,
+            "startPosition": 140
+          },
+          {
+            "code": "NUM099",
+            "description": "HUISNUMMERTOEVOEGING (HUISADRES) DEBITEUR",
+            "fieldType": "AN",
+            "length": 6,
+            "lineElementId": "0317",
+            "required": false,
+            "startPosition": 145
+          },
+          {
+            "code": "COD312",
+            "description": "POSTCODE (HUISADRES) DEBITEUR",
+            "fieldType": "AN",
+            "length": 6,
+            "lineElementId": "0318",
+            "required": false,
+            "startPosition": 151
+          },
+          {
+            "code": "COD434",
+            "description": "POSTCODE BUITENLAND",
+            "fieldType": "AN",
+            "length": 9,
+            "lineElementId": "0319",
+            "required": false,
+            "startPosition": 157
+          },
+          {
+            "code": "NAM142",
+            "description": "WOONPLAATSNAAM DEBITEUR",
+            "fieldType": "AN",
+            "length": 24,
+            "lineElementId": "0320",
+            "required": false,
+            "startPosition": 166
+          },
+          {
+            "code": "COD313",
+            "description": "CODE LAND DEBITEUR",
+            "fieldType": "AN",
+            "length": 2,
+            "lineElementId": "0321",
+            "required": false,
+            "startPosition": 190
+          },
+          {
+            "code": "NUM364",
+            "description": "TELEFOONNUMMER DEBITEUR",
+            "fieldType": "AN",
+            "length": 15,
+            "lineElementId": "0322",
+            "required": false,
+            "startPosition": 192
+          },
+          {
+            "code": "NUM092",
+            "description": "LANDNUMMER TELEFOON (CODE LAND)",
+            "fieldType": "N",
+            "length": 3,
+            "lineElementId": "0323",
+            "required": false,
+            "startPosition": 207
+          },
+          {
+            "code": "NAM221",
+            "description": "E-MAILADRES DEBITEUR",
+            "fieldType": "AN",
+            "length": 70,
+            "lineElementId": "0324",
+            "required": false,
+            "startPosition": 210
+          },
+          {
+            "code": "NUM008",
+            "description": "BANKREKENINGNUMMER",
+            "fieldType": "N",
+            "length": 16,
+            "lineElementId": "0325",
+            "required": false,
+            "startPosition": 280
+          },
+          {
+            "code": "COD819",
+            "description": "SOORT RELATIE DEBITEUR",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0326",
+            "required": false,
+            "startPosition": 296
+          },
+          {
+            "code": "TEC007",
+            "description": "RESERVE",
+            "fieldType": "AN",
+            "length": 13,
+            "lineElementId": "0380",
+            "required": false,
+            "startPosition": 298
+          }
+        ]
+      },
+      {
+        "length": 310,
+        "lineId": "04",
+        "childLinks": [ {"subLineId": "98", "multiple": true, "required": false} ],
+        "name": "PrestatieRecord",
+        "lineElementTypes": [
+          {
+            "code": "COD001",
+            "description": "KENMERK RECORD",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0401",
+            "required": true,
+            "startPosition": 1
+          },
+          {
+            "code": "NUM040",
+            "description": "IDENTIFICATIE DETAILRECORD",
+            "fieldType": "N",
+            "length": 12,
+            "lineElementId": "0402",
+            "required": true,
+            "startPosition": 3
+          },
+          {
+            "code": "NUM313",
+            "description": "BURGERSERVICENUMMER (BSN) VERZEKERDE",
+            "fieldType": "N",
+            "length": 9,
+            "lineElementId": "0403",
+            "sourceId": "0203",
+            "required": true,
+            "startPosition": 15
+          },
+          {
+            "code": "COD061",
+            "description": "UZOVI-NUMMER",
+            "fieldType": "N",
+            "length": 4,
+            "lineElementId": "0404",
+            "sourceId": "0204",
+            "required": true,
+            "startPosition": 24
+          },
+          {
+            "code": "NUM003",
+            "description": "VERZEKERDENNUMMER (INSCHRIJVINGSNUMMER, RELATIENUMMER)",
+            "fieldType": "AN",
+            "length": 15,
+            "lineElementId": "0405",
+            "sourceId": "0205",
+            "required": false,
+            "startPosition": 28
+          },
+          {
+            "code": "NUM013",
+            "description": "MACHTIGINGSNUMMER",
+            "fieldType": "AN",
+            "length": 15,
+            "lineElementId": "0406",
+            "required": false,
+            "startPosition": 43
+          },
+          {
+            "code": "COD820",
+            "description": "DOORSTUREN TOEGESTAAN",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0407",
+            "required": true,
+            "startPosition": 58
+          },
+          {
+            "code": "DAT272",
+            "description": "DATUM PRESTATIE",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0408",
+            "required": true,
+            "startPosition": 59
+          },
+          {
+            "code": "COD853",
+            "description": "INDICATIE SOORT PRESTATIERECORD",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0409",
+            "required": true,
+            "startPosition": 67
+          },
+          {
+            "code": "COD854",
+            "description": "INDICATIE BIJZONDERE TANDHEELKUNDE",
+            "fieldType": "AN",
+            "length": 1,
+            "lineElementId": "0410",
+            "required": true,
+            "startPosition": 69
+          },
+          {
+            "code": "COD859",
+            "description": "SOORT BIJZONDERE TANDHEELKUNDE",
+            "fieldType": "N",
+            "length": 3,
+            "lineElementId": "0411",
+            "required": false,
+            "startPosition": 70
+          },
+          {
+            "code": "COD367",
+            "description": "AANDUIDING PRESTATIECODELIJST",
+            "fieldType": "N",
+            "length": 3,
+            "lineElementId": "0412",
+            "required": true,
+            "startPosition": 73
+          },
+          {
+            "code": "COD388",
+            "description": "PRESTATIECODE",
+            "fieldType": "AN",
+            "length": 6,
+            "lineElementId": "0413",
+            "required": true,
+            "startPosition": 76
+          },
+          {
+            "code": "COD176",
+            "description": "INDICATIE BOVEN/ONDER TANDHEELKUNDE",
+            "fieldType": "N",
+            "length": 1,
+            "lineElementId": "0414",
+            "required": false,
+            "startPosition": 82
+          },
+          {
+            "code": "COD040",
+            "description": "GEBITSELEMENTCODE",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "0415",
+            "required": false,
+            "startPosition": 83
+          },
+          {
+            "code": "COD041",
+            "description": "VLAKCODE",
+            "fieldType": "AN",
+            "length": 6,
+            "lineElementId": "0416",
+            "required": false,
+            "startPosition": 85
+          },
+          {
+            "code": "COD392",
+            "description": "AANDUIDING DIAGNOSECODELIJST",
+            "fieldType": "N",
+            "length": 3,
+            "lineElementId": "0417",
+            "required": false,
+            "startPosition": 91
+          },
+          {
+            "code": "COD852",
+            "description": "DIAGNOSECODE BIJZONDERE TANDHEELKUNDE",
+            "fieldType": "N",
+            "length": 4,
+            "lineElementId": "0418",
+            "required": false,
+            "startPosition": 94
+          },
+          {
+            "code": "COD183",
+            "description": "INDICATIE ONGEVAL (ONGEVALSGEVOLG)",
+            "fieldType": "AN",
+            "length": 1,
+            "lineElementId": "0419",
+            "required": false,
+            "startPosition": 98
+          },
+          {
+            "code": "COD089",
+            "description": "ZORGVERLENERSCODE BEHANDELAAR/UITVOERDER",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0420",
+            "required": false,
+            "startPosition": 99
+          },
+          {
+            "code": "COD952",
+            "description": "SPECIALISME BEHANDELAAR/UITVOERDER",
+            "fieldType": "N",
+            "length": 4,
+            "lineElementId": "0421",
+            "required": false,
+            "startPosition": 107
+          },
+          {
+            "code": "COD836",
+            "description": "ZORGVERLENERSCODE VOORSCHRIJVER/VERWIJZER",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0422",
+            "required": false,
+            "startPosition": 111
+          },
+          {
+            "code": "COD953",
+            "description": "SPECIALISME VOORSCHRIJVER/VERWIJZER",
+            "fieldType": "N",
+            "length": 4,
+            "lineElementId": "0423",
+            "required": false,
+            "startPosition": 119
+          },
+          {
+            "code": "BED160",
+            "description": "TARIEF PRESTATIE (INCL. BTW)",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0424",
+            "required": true,
+            "startPosition": 123
+          },
+          {
+            "code": "ANT054",
+            "description": "AANTAL UITGEVOERDE PRESTATIES",
+            "fieldType": "N",
+            "length": 4,
+            "lineElementId": "0425",
+            "required": true,
+            "startPosition": 131
+          },
+          {
+            "code": "BED153",
+            "description": "BEREKEND BEDRAG (INCL. BTW)",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0426",
+            "required": true,
+            "startPosition": 135
+          },
+          {
+            "code": "COD668",
+            "description": "INDICATIE DEBET/CREDIT (01)",
+            "fieldType": "AN",
+            "length": 1,
+            "lineElementId": "0427",
+            "required": true,
+            "startPosition": 143
+          },
+          {
+            "code": "BED151",
+            "description": "BEDRAG VERMINDERING BIJZONDERE TANDHEELKUNDE",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0428",
+            "required": false,
+            "startPosition": 144
+          },
+          {
+            "code": "NUM352",
+            "description": "BTW-PERCENTAGE DECLARATIEBEDRAG",
+            "fieldType": "N",
+            "length": 4,
+            "lineElementId": "0429",
+            "required": false,
+            "startPosition": 152
+          },
+          {
+            "code": "BED161",
+            "description": "DECLARATIEBEDRAG (INCL. BTW)",
+            "fieldType": "N",
+            "length": 8,
+            "lineElementId": "0430",
+            "required": true,
+            "startPosition": 156
+          },
+          {
+            "code": "COD665",
+            "description": "INDICATIE DEBET/CREDIT (02)",
+            "fieldType": "AN",
+            "length": 1,
+            "lineElementId": "0431",
+            "required": true,
+            "startPosition": 164
+          },
+          {
+            "code": "NUM362",
+            "description": "REFERENTIENUMMER DIT PRESTATIERECORD",
+            "fieldType": "AN",
+            "length": 20,
+            "lineElementId": "0432",
+            "required": true,
+            "startPosition": 165
+          },
+          {
+            "code": "NUM363",
+            "description": "REFERENTIENUMMER VOORGAANDE GERELATEERDE PRESTATIERECORD",
+            "fieldType": "AN",
+            "length": 20,
+            "lineElementId": "0433",
+            "required": false,
+            "startPosition": 185
+          },
+          {
+            "code": "TEC007",
+            "description": "RESERVE",
+            "fieldType": "AN",
+            "length": 106,
+            "lineElementId": "0480",
+            "required": false,
+            "startPosition": 205
+          }
+        ]
+      },
+      {
+        "length": 310,
+        "lineId": "98",
+        "childLinks": [  ],
+        "name": "CommentaarRecord",
+        "lineElementTypes": [
+          {
+            "code": "COD001",
+            "description": "KENMERK RECORD",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "9801",
+            "required": true,
+            "startPosition": 1
+          },
+          {
+            "code": "NUM040",
+            "description": "IDENTIFICATIE DETAILRECORD",
+            "fieldType": "N",
+            "length": 12,
+            "lineElementId": "9802",
+            "required": true,
+            "startPosition": 3
+          },
+          {
+            "code": "NUM109",
+            "description": "REGELNUMMER VRIJE TEKST",
+            "fieldType": "N",
+            "length": 4,
+            "lineElementId": "9803",
+            "required": true,
+            "startPosition": 15
+          },
+          {
+            "code": "OMS016",
+            "description": "VRIJE TEKST",
+            "fieldType": "AN",
+            "length": 140,
+            "lineElementId": "9804",
+            "required": true,
+            "startPosition": 19
+          },
+          {
+            "code": "TEC007",
+            "description": "RESERVE",
+            "fieldType": "AN",
+            "length": 152,
+            "lineElementId": "9880",
+            "required": false,
+            "startPosition": 159
+          }
+        ]
+      },
+      {
+        "length": 310,
+        "lineId": "99",
+        "childLinks": [  ],
+        "name": "SluitRecord",
+        "lineElementTypes": [
+          {
+            "code": "COD001",
+            "description": "KENMERK RECORD",
+            "fieldType": "N",
+            "length": 2,
+            "lineElementId": "9901",
+            "required": true,
+            "startPosition": 1
+          },
+          {
+            "code": "ANT085",
+            "description": "AANTAL VERZEKERDENRECORDS",
+            "fieldType": "N",
+            "length": 6,
+            "lineElementId": "9902",
+            "required": true,
+            "startPosition": 3,
+            "countable": "0200"
+          },
+          {
+            "code": "ANT086",
+            "description": "AANTAL DEBITEURRECORDS",
+            "fieldType": "N",
+            "length": 6,
+            "lineElementId": "9903",
+            "required": false,
+            "startPosition": 9,
+            "countable": "0300"
+          },
+          {
+            "code": "ANT087",
+            "description": "AANTAL PRESTATIERECORDS",
+            "fieldType": "N",
+            "length": 6,
+            "lineElementId": "9904",
+            "required": true,
+            "startPosition": 15,
+            "countable": "0400"
+          },
+          {
+            "code": "ANT089",
+            "description": "AANTAL COMMENTAARRECORDS",
+            "fieldType": "N",
+            "length": 6,
+            "lineElementId": "9905",
+            "required": false,
+            "startPosition": 21,
+            "countable": "9800"
+          },
+          {
+            "code": "ANT265",
+            "description": "TOTAAL AANTAL DETAILRECORDS",
+            "fieldType": "N",
+            "length": 7,
+            "lineElementId": "9906",
+            "required": true,
+            "startPosition": 27,
+            "countable": "0000"
+          },
+          {
+            "code": "BED025",
+            "description": "TOTAAL DECLARATIEBEDRAG",
+            "fieldType": "N",
+            "length": 11,
+            "lineElementId": "9907",
+            "required": false,
+            "startPosition": 34,
+            "countable": "0426"
+          },
+          {
+            "code": "COD043",
+            "description": "INDICATIE DEBET/CREDIT",
+            "fieldType": "AN",
+            "length": 1,
+            "lineElementId": "9908",
+            "required": true,
+            "startPosition": 45
+          },
+          {
+            "code": "TEC007",
+            "description": "RESERVE",
+            "fieldType": "AN",
+            "length": 265,
+            "lineElementId": "9980",
+            "required": false,
+            "startPosition": 46
+          }
+        ]
+      }
+    ]
+  }

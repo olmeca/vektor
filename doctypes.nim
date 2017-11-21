@@ -6,15 +6,15 @@ const
    cDebtorRecordVersionStartIndex = 297
    cDebtorRecordVersionEndIndex = 298
    cDocTypesJsonFileName = "doctypes.json"
-   cSB311TypesJsonFileName = "sb311-types.json"
-   cSB311v1 = "01"
-   cSB311v2 = "02"
+   cSB311DebtorRecordVersion0 = "  "
+   cSB311DebtorRecordVersion1 = "01"
+   cSB311DebtorRecordVersion2 = "02"
 
 var
-   types: seq[DocumentType]
-   debtorRecordTypes: seq[DocumentType]
+   gDocTypes: seq[DocumentType]
+   gDebtorLineTypes: OrderedTableRef[string, LineType]
    
-#let types = lc[readDocumentType(node) | (node <- getJsonData(cDocTypesJsonFileName)), DocumentType]
+#let gDocTypes = lc[readDocumentType(node) | (node <- getJsonData(cDocTypesJsonFileName)), DocumentType]
 #let debtorRecordTypes = lc[readDocumentType(node) | (node <- getJsonData(cSB311TypesJsonFileName)), DocumentType]
 
 proc indexes(leId: string): array[0..1, int] =
@@ -41,8 +41,7 @@ proc readTypes(fileName: string): seq[DocumentType] =
    result = lc[readDocumentType(node) | (node <- getJsonData(fileName)), DocumentType]
 
 proc readDocumentTypes*() =
-   types = readTypes(cDocTypesJsonFileName)
-   debtorRecordTypes = readTypes(cSB311TypesJsonFileName)
+   gDocTypes = readTypes(cDocTypesJsonFileName)
 
 proc isOneCharRepeated(value: string, theChar: char): bool =
    result = true
@@ -80,8 +79,12 @@ proc isEmptyValue*(leType: LineElementType, value: string): bool =
 proc isValueMandatory*(leType: LineElementType): bool = 
    leType.required
 
+proc getDocumentType*(eiCode: int): DocumentType =
+   let fileName = intToStr(eiCode) & ".json"
+   readDocumentType(getJsonData(fileName))
+
 proc getDocumentType*(typeId: int, version: int, subversion: int): DocumentType = 
-   let matches = filter(types, 
+   let matches = filter(gDocTypes, 
                         proc(t: DocumentType): bool = 
                            t.vektisEICode == typeId and 
                               t.formatVersion == version and 
@@ -94,7 +97,7 @@ proc getDocumentType*(typeId: int, version: int, subversion: int): DocumentType 
       result = matches[0]
 
 proc allDocumentTypes*(): seq[DocumentType] = 
-   concat(types, debtorRecordTypes)
+   gDocTypes
 
 proc documentTypeMatching*(name: string, version: int, subversion: int): DocumentType = 
    let matches = filter(allDocumentTypes(), 
@@ -117,10 +120,10 @@ proc getLineTypeForFullLine*(defaultDocType: DocumentType, line: string): LineTy
       if line.len > cDebtorRecordVersionEndIndex:
          var doctype = defaultDocType
          case line[cDebtorRecordVersionStartIndex..cDebtorRecordVersionEndIndex]
-         of cSB311v1:
+         of cSB311DebtorRecordVersion1:
             debug("Using SB311v1 record")
             doctype = debtorRecordTypes[0]
-         of cSB311v2:
+         of cSB311DebtorRecordVersion2:
             debug("Using SB311v2 record")
             doctype = debtorRecordTypes[1]
          else: discard

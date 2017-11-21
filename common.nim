@@ -56,6 +56,7 @@ type
 
 const
    cDataDir* = "vektor-data"
+   cDocTypesDir* = "doctypes"
    cBlanksSet*: set[char] = { ' ' }
    cBottomLineId* = "99"
    cTopLineId* = "01"
@@ -76,7 +77,7 @@ let
    """
 
 proc getJsonData*(fileName: string): JsonNode =
-   let fullPath = joinPath(getAppDir(), cDataDir, fileName)
+   let fullPath = joinPath(getAppDir(), cDataDir, cDocTypesDir, fileName)
    debug("getJsonData reading from: " & fullPath)
    let jsonString = system.readFile(fullPath)
    result = parseJson(jsonString)

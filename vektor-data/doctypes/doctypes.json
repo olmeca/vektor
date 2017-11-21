@@ -1,0 +1,38 @@
+[
+  {
+    "description": "DECLARATIE FARMACEUTISCHE HULP",
+    "formatSubVersion": 2,
+    "formatVersion": 7,
+    "name": "AP304",
+    "vektisEICode": 106
+  },
+  {
+    "description": "DECLARATIE FARMACEUTISCHE HULP",
+    "formatSubVersion": 0,
+    "formatVersion": 8,
+    "name": "AP304",
+    "vektisEICode": 193,
+    "lineLength": 360
+  },
+  {
+    "description": "DECLARATIE MONDZORG",
+    "formatSubVersion": 3,
+    "formatVersion": 1,
+    "name": "MZ301",
+    "vektisEICode": 176
+  },
+  {
+    "description": "DEBITEURRECORD bij DECLARATIEBERICHTEN",
+    "formatSubVersion": 0,
+    "formatVersion": 1,
+    "name": "SB311",
+    "vektisEICode": 901
+  },
+  {
+    "description": "DEBITEURRECORD bij DECLARATIEBERICHTEN",
+    "formatSubVersion": 0,
+    "formatVersion": 2,
+    "name": "SB311",
+    "vektisEICode": 902
+  }
+]
