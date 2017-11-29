@@ -39,14 +39,19 @@ proc getRandomString*(minlen: int, maxlen: int, capitalize: bool): string =
    for i in 0..length-1:
       result.add(source[random(26)])
 
+proc asStringRSE(expression: Expression): string =
+   let exp = RandomStringExpression(expression)
+   "RandomStringExpression(fieldLength: $#, minlen: $#, maxlen:$#, caps:$#)" % 
+                           [intToStr(exp.fieldLength), intToStr(exp.minLength), intToStr(exp.maxLength), if exp.capitalize: "true" else: "false"]
 
-proc evaluateRSE(expr: Expression): string =
+proc serializeRSE(expr: Expression): string =
    let rse = RandomStringExpression(expr)
    getRandomString(rse.minLength, rse.maxLength, rse.capitalize)|L(rse.fieldLength)
 
 proc newRandomStringExpression*(flen: int, minlen: int, maxlen: int, caps: bool): RandomStringExpression =
    result = RandomStringExpression(fieldLength: flen, minLength: minlen, maxLength: maxlen, capitalize: caps, isDerived: true)
-   result.evaluateImpl = evaluateRSE
+   result.serializeImpl = serializeRSE
+   result.asStringImpl = asStringRSE
 
 proc readRSE(valueSpec: string, leId: string, typeCode: string, length: int): Expression =
    if valueSpec =~ randomStringPattern:

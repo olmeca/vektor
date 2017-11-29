@@ -7,14 +7,16 @@ const
    cDebtorRecordVersionEndIndex = 298
    cDocTypesJsonFileName = "doctypes.json"
    cSB311TypesJsonFileName = "sb311-types.json"
+   cSB311v0 = "  "
    cSB311v1 = "01"
    cSB311v2 = "02"
+   cStandardLineLength = 310
 
 var
-   types: seq[DocumentType]
+   gDocTypes: seq[DocumentType]
    debtorRecordTypes: seq[DocumentType]
    
-#let types = lc[readDocumentType(node) | (node <- getJsonData(cDocTypesJsonFileName)), DocumentType]
+#let gDocTypes = lc[readDocumentType(node) | (node <- getJsonData(cDocTypesJsonFileName)), DocumentType]
 #let debtorRecordTypes = lc[readDocumentType(node) | (node <- getJsonData(cSB311TypesJsonFileName)), DocumentType]
 
 proc indexes(leId: string): array[0..1, int] =
@@ -24,6 +26,21 @@ proc indexes(leId: string): array[0..1, int] =
 
 proc isDependent*(leType: LineElementType): bool =
    not isNil(leType.sourceId)
+
+proc toString*(version: DebtorRecordVersion): string =
+   case version
+   of drvDefault: cSB311v0
+   of drvSB1: cSB311v1
+   of drvSB2: cSB311v2
+
+proc repr*(drv: DebtorRecordVersion): string =
+   case drv
+   of drvDefault: "0"
+   of drvSB1: "1"
+   of drvSB2: "2"
+
+proc matchesDebtorRecordVersion*(line: string, version: DebtorRecordVersion): bool =
+   line[cDebtorRecordVersionStartIndex..cDebtorRecordVersionEndIndex] == version.toString()
 
 proc indexOfLineType*(docType: DocumentType, lineId: string): int =
    docType.lineTypes.firstIndexMatching(proc(lt: LineType): bool = lt.lineId = lineId)
@@ -37,12 +54,28 @@ proc getLineTypeForLineId*(doctype: DocumentType, lineId: string): LineType =
    else:
       result = lineTypes[0]
 
-proc readTypes(fileName: string): seq[DocumentType] =
-   result = lc[readDocumentType(node) | (node <- getJsonData(fileName)), DocumentType]
+proc isDebtorLine*(line: string): bool =
+   line[0..1] == cDebtorLineId
+
+proc readTypes(fileName: string, lineLength: int): seq[DocumentType] =
+   result = lc[readDocumentType(node, lineLength) | (node <- getJsonData(fileName)), DocumentType]
+
+proc enableSB311Types*(lineLength: int) =
+   if isNil(debtorRecordTypes):
+      debtorRecordTypes = readTypes(cSB311TypesJsonFileName, lineLength)
+
+proc loadDebtorRecordType*(docType: DocumentType, version: DebtorRecordVersion) =
+   if version != drvDefault:
+      enableSB311Types(docType.lineLength)
+      let chosenDebRecDocType = if version == drvSB1: debtorRecordTypes[0] else: debtorRecordTypes[1]
+      # Remove default debtor record from the doc type
+      docType.lineTypes.keepIf(proc (lt: LineType): bool = lt.lineId != cDebtorRecordLineId)
+      # Now add the chosen debtor record line type
+      docType.lineTypes.add(chosenDebRecDocType.lineTypes[0])
+
 
 proc readDocumentTypes*() =
-   types = readTypes(cDocTypesJsonFileName)
-   debtorRecordTypes = readTypes(cSB311TypesJsonFileName)
+   gDocTypes = readTypes(cDocTypesJsonFileName, 0)
 
 proc isOneCharRepeated(value: string, theChar: char): bool =
    result = true
@@ -81,7 +114,7 @@ proc isValueMandatory*(leType: LineElementType): bool =
    leType.required
 
 proc getDocumentType*(typeId: int, version: int, subversion: int): DocumentType = 
-   let matches = filter(types, 
+   let matches = filter(gDocTypes, 
                         proc(t: DocumentType): bool = 
                            t.vektisEICode == typeId and 
                               t.formatVersion == version and 
@@ -94,7 +127,8 @@ proc getDocumentType*(typeId: int, version: int, subversion: int): DocumentType 
       result = matches[0]
 
 proc allDocumentTypes*(): seq[DocumentType] = 
-   concat(types, debtorRecordTypes)
+   enableSB311Types(cStandardLineLength)
+   concat(gDocTypes, debtorRecordTypes)
 
 proc documentTypeMatching*(name: string, version: int, subversion: int): DocumentType = 
    let matches = filter(allDocumentTypes(), 
@@ -109,25 +143,6 @@ proc documentTypeMatching*(name: string, version: int, subversion: int): Documen
    else:
       result = matches[0]
 
-proc getLineTypeForFullLine*(defaultDocType: DocumentType, line: string): LineType =
-   let lineId = line[0..1]
-   result = getLineTypeForLineId(defaultDocType, lineId)
-   if lineId == cDebtorRecordLineId:
-      debug("handling debtor record, version: " & line[cDebtorRecordVersionStartIndex..cDebtorRecordVersionEndIndex])
-      if line.len > cDebtorRecordVersionEndIndex:
-         var doctype = defaultDocType
-         case line[cDebtorRecordVersionStartIndex..cDebtorRecordVersionEndIndex]
-         of cSB311v1:
-            debug("Using SB311v1 record")
-            doctype = debtorRecordTypes[0]
-         of cSB311v2:
-            debug("Using SB311v2 record")
-            doctype = debtorRecordTypes[1]
-         else: discard
-         result = getLineTypeForLineId(doctype, lineId)
-      else:
-         raise newException(VektisFormatError, 
-            "Invalid line length for debtor record: $#" % [intToStr(line.len)])
 
 proc subLineLinkWithId*(lineType: LineType, lineId: string): LineTypeLink =
    lineType.childLinks.firstItemMatching(proc(link: LineTypeLink): bool = link.subLineId = lineId)
@@ -175,7 +190,7 @@ proc getElementValueFullString(line: string, leType: LineElementType): string =
 proc getElementValueFullString*(docType: DocumentType, line: string, lineElementId: string): string =
    #debug("getElementValueFullString: '$#'" % [lineElementId])
    assert line[0..1] == lineElementId[0..1]
-   let lineType = docType.getLineTypeForFullLine(line)
+   let lineType = docType.getLineTypeForLineId(line[0..1])
    let leType = lineType.getLineElementType(lineElementId)
    getElementValueFullString(line, leType)
 

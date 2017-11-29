@@ -17,6 +17,10 @@ let
 
 var namesList: seq[string] = nil
 
+proc asStringRNE(exp: Expression): string =
+   let rne = RandomNameExpression(exp)
+   "RandomNameExpression(length: $#)" % [intToStr(rne.fieldLength)]
+
 proc readNamesList(): seq[string] =
    result = @[]
    let fullPath = joinPath(getAppDir(), cDataDir, cNamesListFile)
@@ -29,14 +33,15 @@ proc getRandomName(): string =
    else: discard
    namesList[random(namesList.len)]
 
-proc evaluateRNE(expr: Expression): string =
+proc serializeRNE(expr: Expression): string =
    let rne = RandomNameExpression(expr)
    let name = getRandomName()
    result = if name.len > rne.fieldLength: name.substr(rne.fieldLength) else: name|L(rne.fieldLength)
 
 proc newRandomNameExpression*(length: int): RandomNameExpression =
    result = RandomNameExpression(fieldLength: length, isDerived: true)
-   result.evaluateImpl = evaluateRNE
+   result.serializeImpl = serializeRNE
+   result.asStringImpl = asStringRNE
 
 proc readRNE(valueSpec: string, leId: string, typeCode: string, length: int): Expression =
    if valueSpec =~ randomNamePattern:

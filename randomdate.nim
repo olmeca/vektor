@@ -16,7 +16,11 @@ let
    Spc <- \s*
    """
 
-proc evaluateRDE(expr: Expression): string =
+proc asStringRDE(expression: Expression): string = 
+   let rde = RandomDateExpression(expression)
+   "RandomDateExpression(from: $#, to: $#)" % [$(fromSeconds(rde.fromSeconds)), $(fromSeconds(rde.toSeconds))]
+
+proc serializeRDE(expr: Expression): string =
    let rde = RandomDateExpression(expr)
    let randomSeconds = random(rde.toSeconds-rde.fromSeconds) + rde.fromSeconds
    let randomDate = fromSeconds(randomSeconds).getLocalTime()
@@ -24,7 +28,8 @@ proc evaluateRDE(expr: Expression): string =
 
 proc newRandomDateExpression*(min: float, max: float): RandomDateExpression =
    result = RandomDateExpression(fromSeconds: min, toSeconds: max, isDerived: true)
-   result.evaluateImpl = evaluateRDE
+   result.serializeImpl = serializeRDE
+   result.asStringImpl = asStringRDE
 
 proc readRDE(valueSpec: string, leId: string, typeCode: string, length: int): Expression =
    if valueSpec =~ randomDatePattern:

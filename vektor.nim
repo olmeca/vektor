@@ -43,6 +43,7 @@ var
    optLineId: string
    argSourceFilePath: string
    argDestFilePath: string
+   argReplacementScriptPath: string
    gReplacementQualifier: LineQualifier = nil
    gReplacementQualifierString: string = nil
    gSelectionQualifier: LineQualifier = nil
@@ -55,6 +56,8 @@ var
    gRandomizedValuesMap: TableRef[string, string]
    gSequenceNumber: int = 0
    cMaxErrors: int = 20
+   gDebRecVersion: DebtorRecordVersion = drvDefault
+   argDebRevVersionSpecified = false
 
 proc setLoggingLevel(level: Level) =
    let filePath = joinPath(getAppDir(), "vektor.log")
@@ -79,7 +82,7 @@ proc hasOwnRandomizationContext(line: string): bool =
 
 
 proc setCurrentLine(line: string) =
-   let lineType = docType.getLineTypeForFullLine(line)
+   let lineType = docType.getLineTypeForLineId(line[0..1])
    if isNil(gCurrentContext):
       debug("setCurrentLine: setting root: " & line[0..4])
       gCurrentContext = createContext(lineType, line)
@@ -222,7 +225,7 @@ proc writeToStream(context: var Context, stream: Stream) =
 
 proc mutateAndWrite(line: var string, outStream: Stream) =
    debug("mutateAndWrite: " & line[0..13])
-   let lineType = docType.getLineTypeForFullLine(line)
+   let lineType = docType.getLineTypeForLineId(line[0..1])
    var buf = toSeq(line.mitems)
    # Bottom line cumulative values get updated
    # We don't allow bottom line values to be modified
@@ -245,7 +248,9 @@ proc mutateAndWrite(line: var string, outStream: Stream) =
                for field in copyFields:
                   let leType = field.leType
                   if leType.isElementOfLine(line):
-                     let newValue = FieldValueSpec(field).value.evaluate()
+                     # if debtor record then field.leType is the default debtor record type, so get the real leType
+                     # let leType = if line.isDebtorLine(): lineType.getLineElementType(field.leType.lineElementId) else: field.leType
+                     let newValue = FieldValueSpec(field).value.serialize()
                      debug("maw: setting new value for leId '$#': '$#'" % [leType.lineElementId, newValue])
                      copyChars(buf, leType.startPosition-1, leType.length, newValue)
       
@@ -394,6 +399,7 @@ proc readFieldSpec(spec: string): FieldSpec =
 
 proc readFieldValueSpec(spec: string): FieldValueSpec =
    if spec =~ fieldValueSpecPattern:
+      debug("readFieldValueSpec: matches: '$#', '$#'" % [matches[0], matches[1]])
       let leTypeId = matches[0]
       checkSupportedLineType(leTypeId)
       let value = matches[1]
@@ -409,7 +415,7 @@ proc readFieldValueSpec(spec: string): FieldValueSpec =
 proc readFieldSpecs(value: string, fields: var seq[FieldSpec], argName: string) = 
    if not isNil(value):
       if value =~ fieldSpecsPattern:
-         fields = lc[readFieldSpec(s)|(s <- matches, not isNil(s)), FieldSpec]
+         fields =  concat(fields, lc[readFieldSpec(s)|(s <- matches, not isNil(s)), FieldSpec])
       else:
          quit("Invalid elements specification in argument ($#): '$#'." % [argName, value])
    else: discard
@@ -421,6 +427,12 @@ proc readFieldValueSpecs(value: string, fields: var seq[FieldValueSpec], argName
       else:
          quit("Invalid element values specification in argument ($#)." % [argName])
    else: discard
+
+proc readDebtorRecordVersion(value: string): DebtorRecordVersion =
+   case value
+   of "1": drvSB1
+   of "2": drvSB2
+   else: drvDefault
 
 proc checkCommandArgs(minCount: int, errorMessage: string) =
    if commandArgs.len < minCount:
@@ -437,6 +449,22 @@ proc fieldSpecArgName(): string =
 
 proc showFieldsRequired(): bool =
    command == cmdQuery
+
+proc determineDebtorRecordVersion(): DebtorRecordVersion =
+   result = drvDefault
+   let input = newFileStream(argSourceFilePath, fmRead)
+   var line: string = ""
+   var i = 0
+   while input.readLine(line) and i < 50:
+      i = i + 1
+      if isDebtorLine(line):
+         if line.matchesDebtorRecordVersion(drvSB1):
+            result = drvSB1
+         elif line.matchesDebtorRecordVersion(drvSB2):
+            result = drvSB2
+         else:
+            result = drvDefault
+   close(input)
 
 proc processCommandArgs() =
    if command == cmdInfo:
@@ -466,10 +494,15 @@ for kind, key, value in getopt():
    case kind
    of cmdLongoption, cmdShortOption:
       case key 
-      of "d", "debug-level":
+      of "D", "debug-level":
          logLevel = value
+      of "d", "debtor-record":
+         argDebRevVersionSpecified = true
+         gDebRecVersion = readDebtorRecordVersion(value)
       of "r", "replacements":
          copyFieldsArg = value
+      of "R", "replacement-script":
+         argReplacementScriptPath = value
       of "e", "elements":
          showFieldsArg = value
       of "f", "filter":
@@ -513,24 +546,29 @@ else:
    elif showFieldsRequired() and (isNil(showFieldsArg) or showFieldsArg.len == 0):
       quit("You need to specify line elements (-e:0203,0207 or --elements 0203,0207 )")
    else:
+      if not argDebRevVersionSpecified:
+         gDebRecVersion = determineDebtorRecordVersion()
       let input = newFileStream(argSourceFilePath, fmRead)
       var line: string = ""
       if input.readLine(line):
          if line.startswith(cTopLineId):
             try:
                docType = fetch_doctype(line)
+               loadDebtorRecordType(docType, gDebRecVersion)
                if command == cmdQuery:
                   gTotals = newAccumulator(docType)
                   checkAndPrepareQualifiers()
                   let topLineType = docType.getLineTypeForLineId(cTopLineId)
                   setCurrentLine(line)
-                  echo("Document type: $#" % [description(docType)])
+                  echo("Document type: $#, SB311v$#" % [description(docType), repr(gDebRecVersion)])
                   readFieldSpecs(showFieldsArg, showFields, fieldSpecArgName())
                   let outStream = newFileStream(stdout)
                   printHeaders(outStream, showFields)
                   let maxShownLineIndex = maxLineIndex(showFields)
                   conditionallyPrintLine(outStream, line, showFields, maxShownLineIndex)
                   while input.readLine(line):
+                     if line.isDebtorLine and not line.matchesDebtorRecordVersion(gDebRecVersion):
+                        quit("Input file has unexpected value for debtor record version in 03 lines.")
                      setCurrentLine(line)
                      conditionallyPrintLine(outStream, line, showFields, maxShownLineIndex)
                      gTotals.addLine(line)
@@ -543,7 +581,14 @@ else:
                   checkAndPrepareQualifiers()
                   let topLineType = docType.getLineTypeForLineId(cTopLineId)
                   setCurrentLine(line)
-                  echo("Document type: $#" % [description(docType)])
+                  echo("Document type: $#, SB311v$#" % [description(docType), repr(gDebRecVersion)])
+                  var script: string
+                  if not isNil(argReplacementScriptPath):
+                     try:
+                        script = system.readFile(argReplacementScriptPath)
+                        readFieldValueSpecs(script, copyFields, "-R (--replacementscript)")
+                     except IOError:
+                        quit("Cannot open file $#" % argReplacementScriptPath)
                   readFieldValueSpecs(copyFieldsArg, copyFields, fieldSpecArgName())
                   var outStream: Stream = newFileStream(argDestFilePath, fmWrite)
                   if not isNil(outStream):

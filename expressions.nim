@@ -5,7 +5,8 @@ type
    ExpressionError* = object of Exception
    Expression* = ref ExpressionObj
    ExpressionObj* = object of RootObj
-      evaluateImpl*: proc(expr: Expression): string
+      serializeImpl*: proc(expr: Expression): string
+      asStringImpl*: proc(expr: Expression): string
       isDerived*: bool
 
    ExpressionReader* = ref ExpressionReaderObj
@@ -13,8 +14,11 @@ type
       pattern*: Peg
       readImpl*: proc(valueSpec: string, leId: string, typeCode: string, length: int): Expression
 
-proc evaluate*(expr: Expression): string =
-   expr.evaluateImpl(expr)
+proc serialize*(expr: Expression): string =
+   expr.serializeImpl(expr)
+
+proc asString*(expr: Expression): string =
+   expr.asStringImpl(expr)
 
 proc read*(exprReader: ExpressionReader, valueSpec: string, leId: string, typeCode: string, length: int): Expression =
    exprReader.readImpl(valueSpec, leId, typeCode, length)
@@ -28,17 +32,18 @@ let
 
    fieldValueSpecPattern* = peg"""
    Pattern <- ^ ElementSpec !.
-   ElementSpec <- Spc {ElementId} Spc '=' Spc {ElementValue} Spc
+   ElementSpec <- Spc {ElementId} Spc '=' Spc {ElementValue} \n*
    ElementId <- \d \d \d \d
    Spc <- \s*
-   ElementValue <- .*
+   ElementValue <- (!Sep .)+
+   Sep <- [;\x13\x10]
    """
 
-   # Semicolon separated list of element spec
+   # Semicolon or line separated list of element spec
    fieldSpecsPattern* = peg"""
-   Pattern <- ^ ElementsSpec !.
-   ElementsSpec <- ElementSpec Sep ElementsSpec / ElementSpec 
+   Pattern <- ^ ElementsSpec Sep* !.
+   ElementsSpec <- ElementSpec Sep+ ElementsSpec / ElementSpec
    ElementSpec <- {(!Sep .)+}
-   Sep <- ';'
+   Sep <- [;\x13\x10]
    """
    

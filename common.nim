@@ -5,6 +5,8 @@ type
    ContextWithLineIdNotFoundError* = object of Exception
    ChildLinkWithLineIdNotFoundError* = object of Exception
    NoMatchingItemFound* = object of Exception
+   DebtorRecordVersion* = enum
+      drvDefault, drvSB1, drvSB2
    
    LineElementType* = ref object
       lineElementId*: string
