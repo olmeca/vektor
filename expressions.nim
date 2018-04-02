@@ -24,26 +24,37 @@ proc read*(exprReader: ExpressionReader, valueSpec: string, leId: string, typeCo
    exprReader.readImpl(valueSpec, leId, typeCode, length)
 
 let
-   fieldSpecPattern* = peg"""
+   fieldSpecPatternSpec = """
    Pattern <- ^ Spc {ElementId} Spc !.
    ElementId <- \d \d \d \d
-   Spc <- \s*
+   Spc <- ' '*
    """
-
-   fieldValueSpecPattern* = peg"""
+   
+   fieldValueSpecPatternSpec = """
    Pattern <- ^ ElementSpec !.
-   ElementSpec <- Spc {ElementId} Spc '=' Spc {ElementValue} \n*
+   ElementSpec <- Spc {ElementId} Spc '=' Spc {ElementValue} Sep*
    ElementId <- \d \d \d \d
-   Spc <- \s*
    ElementValue <- (!Sep .)+
-   Sep <- [;\x13\x10]
+   Sep <- (';' / Cr? Lf) Spc*
+   Cr <- \13
+   Lf <- \10
+   Spc <- ' '*
    """
 
    # Semicolon or line separated list of element spec
-   fieldSpecsPattern* = peg"""
+   fieldSpecsPatternSpec = """
    Pattern <- ^ ElementsSpec Sep* !.
    ElementsSpec <- ElementSpec Sep+ ElementsSpec / ElementSpec
-   ElementSpec <- {(!Sep .)+}
-   Sep <- [;\x13\x10]
+   ElementSpec <- {(!SepStart .)+}
+   SepStart <- (';' / Cr / Lf)
+   Sep <- (';' / LineSep) Spc* Comment*
+   Comment <- '#' (!LineSep .)* LineSep
+   LineSep <- Cr? Lf
+   Spc <- ' '*
+   Cr <- \13
+   Lf <- \10
    """
    
+   fieldSpecPattern* = peg(fieldSpecPatternSpec)
+   fieldValueSpecPattern* = peg(fieldValueSpecPatternSpec)
+   fieldSpecsPattern* = peg(fieldSpecsPatternSpec)

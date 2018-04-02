@@ -10,14 +10,17 @@ let
    literalValuePattern = peg"""
    Pattern <- .*
    """
+   
    literalAlphaNumPattern = peg"""
    Pattern <- Spc {Word} Spc
    Word <- [0-9a-zA-Z]+
    Spc <- \s*
    """
+   
+   # Literal string must be enclosed in double quotes: "mystring"
    literalTextPattern = peg"""
-   Pattern <- Spc ''\' {Word} ''\' Spc
-   Word <- (![';] .)+
+   Pattern <- Spc '"' {Word} '"' Spc
+   Word <- (![";] .)+
    Spc <- \s*
    """
    literalNumberPattern = peg"""

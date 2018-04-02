@@ -9,9 +9,9 @@ type
 
 let
    randomDatePattern* = peg"""#
-   Pattern <- ^ '{' Spc RandomDateSpec Spc '}' !.
+   Pattern <- ^ Spc RandomDateSpec Spc !.
    RandomDateSpec <- Symbol Spc '(' Spc Date Spc ',' Spc Date Spc ')'
-   Symbol <- 'date'
+   Symbol <- 'randomdate'
    Date <- {\d \d \d \d \d \d \d \d}
    Spc <- \s*
    """
@@ -31,15 +31,15 @@ proc newRandomDateExpression*(min: float, max: float): RandomDateExpression =
    result.serializeImpl = serializeRDE
    result.asStringImpl = asStringRDE
 
-proc readRDE(valueSpec: string, leId: string, typeCode: string, length: int): Expression =
+proc readRDE(valueSpec: string, leId: string, vektisTypeCode: string, length: int): Expression =
    if valueSpec =~ randomDatePattern:
-      if isDateType(typeCode):
+      if isDateType(vektisTypeCode):
          let fromSeconds = parseVektisDate(matches[0]).toTime().toSeconds()
          let toSeconds = parseVektisDate(matches[1]).toTime().toSeconds()
          result = newRandomDateExpression(fromSeconds, toSeconds)
       else:
          raise newException(ExpressionError, 
-            "Cannot apply random date expression '$#' to field '$#' with Vektis type '$#'." % [valueSpec, leId, typeCode])
+            "Cannot apply random date expression '$#' to field '$#' with Vektis type '$#'." % [valueSpec, leId, vektisTypeCode])
 
 proc newRandomDateExpressionReader*(): ExpressionReader =
    ExpressionReader(pattern: randomDatePattern, readImpl: readRDE)

@@ -27,24 +27,30 @@ type
    OrQualifierObj* = object of LineQualifierObj
       qualifiers: seq[LineQualifier]
 
-let keyValueQualifierPattern = peg"""#
+let cAndOperator = "&"
+let cOrOperator = "|"
+
+let keyValueQualifierPatternSpec = """
 Qualifier <- ^ {Key} {Operator} {Value} !.
 Key <- \d \d \d \d
 Value <- (!Operator .)+
 Operator <- '=' / '!=' / '<' / '>'
 """
 
-let andQualifierPattern = peg"""#
+let cCompositeQualifierPatternSpec = """
 Pattern <- ^ Composite !.
-Composite <- Qualifier '&' Composite / Qualifier '&' Qualifier
-Qualifier <- {(!'&' .)+}
+Composite <- Parenthesized {Op} Parenthesized / ''
+Parenthesized <- Open {Sub} Close
+Sub <- (!Paren .)+ &Close / Composite
+Paren <- Open / Close
+Open <- '('
+Close <- ')'
+Op <- '&' / '|'
 """
 
-let orQualifierPattern = peg"""#
-Pattern <- ^ Composite !.
-Composite <- Qualifier '|' Composite / Qualifier '|' Qualifier
-Qualifier <- {(!'|' .)+}
-"""
+let keyValueQualifierPattern = peg(keyValueQualifierPatternSpec)
+let compositeQualifierPattern = peg(cCompositeQualifierPatternSpec)
+
 
 proc kvqQualify(lq: LineQualifier, context: Context): bool =
    var kvq = KeyValueQualifier(lq)
@@ -106,21 +112,26 @@ proc newOrQualifier*(qualifiers: seq[LineQualifier]): OrQualifier =
    result.qualifiesImpl = orQualify
    result.qualifiers = qualifiers
 
+proc newCompositeQualifier(operator: string, leftQual: LineQualifier, rightQual: LineQualifier): LineQualifier =
+   let qualifiers = @[leftQual, rightQual]
+   result = LineQualifier(if operator == cAndOperator: newAndQualifier(qualifiers) else: newOrQualifier(qualifiers))
+
 proc parseQualifier*(docType: DocumentType, qualString: string): LineQualifier =
-   if qualString =~ andQualifierPattern:
-      debug("parseQualifier found And: [$#]" % [join(lc[m | (m <- matches, not isNil(m)), string], ", ")])
-      if matches.len > 1:
-         let qualifiers = lc[parseQualifier(docType, item) | (item <- matches, not isNil(item)), LineQualifier]
-         result = LineQualifier(newAndQualifier(qualifiers))
-   elif qualString =~ orQualifierPattern:
-      if matches.len > 1:
-         let qualifiers = lc[parseQualifier(docType, item) | (item <- matches, not isNil(item)), LineQualifier]
-         result = LineQualifier(newOrQualifier(qualifiers))
+   if qualString =~ compositeQualifierPattern:
+      debug("parseQualifier found composite: [$#]" % [join(lc[m | (m <- matches, not isNil(m)), string], ", ")])
+      if matches.len > 2:
+         # For now we only support parsing a binary And/Or expression, with a left and a right operand.
+         # Both operands can themselves be And/Or expressions
+         #let qualifiers = lc[parseQualifier(docType, item) | (item <- matches, not isNil(item)), LineQualifier]
+         let leftQual = parseQualifier(docType, matches[0])
+         let rightQual = parseQualifier(docType, matches[2])
+         let operation = matches[1]
+         result = newCompositeQualifier(operation, leftQual, rightQual)
    elif qualString =~ keyValueQualifierPattern:
+      debug("parseQualifier: '$#' '$#' '$#'" % matches)
       let oper = operatorFromString(matches[1])
       let key = matches[0]
       let value = matches[2]
-      # echo "parseQualifier: '$#' '$#' '$#'" % matches
       result = LineQualifier(newKeyVAlueQualifier(key, oper, value))
    else:
       raise newException(ValueError, "Could not parse qualifier '$#'" % [qualString])

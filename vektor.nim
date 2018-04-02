@@ -333,6 +333,7 @@ proc readVersion(versionString: string) =
 
 proc readQualifier(source: string, qualifier: var LineQualifier) =
    if not isNil(source):
+      debug("readQualifier: $#" % source)
       qualifier = docType.parseQualifier(source)
       if isNil(gSubTotals):
          gSubTotals = newAccumulator(docType)
@@ -409,6 +410,7 @@ proc readFieldValueSpec(spec: string): FieldValueSpec =
             "Modification of dependent line element '$#' not allowed. Modify element '$#' instead." % [leType.lineElementId, leType.sourceId])
       let valueExpression = readExpression(leType, value)
       result = FieldValueSpec(leType: leType, value: valueExpression)
+      debug("readFieldValueSpec: leType: '$#', value: $#" % [leType.asString, valueExpression.asString])
    else:
       raise newException(FieldSpecError, "Invalid line element specification: '$#'" % [spec])
 

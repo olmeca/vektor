@@ -14,20 +14,24 @@ type
       capitalize: bool
 
 let
+   # Expression defining a random lower case string
+   # variations: '{randomtext}' or '{randomtext(3)}' or '{randomtext(3, 6)}'
    randomStringPattern* = peg"""#
-   Pattern <- ^ '{' Spc RandomStringSpec Spc '}' !.
+   Pattern <- ^ RandomStringSpec Spc !.
    RandomStringSpec <- Symbol Spc '(' Spc Params Spc ')' Spc / Symbol
    Params <- Digits Spc ',' Spc Digits / Digits
-   Symbol <- 'text'
+   Symbol <- 'randomtext'
    Digits <- {\d+}
    Spc <- \s*
    """
 
+   # Expression defining a random lower case string
+   # variations: '{RANDOMTEXT}' or '{RANDOMTEXT(3)}' or '{RANDOMTEXT(3, 6)}'
    randomCapsPattern* = peg"""#
-   Pattern <- ^ '{' Spc RandomStringSpec Spc '}' !.
+   Pattern <- ^ Spc RandomStringSpec Spc !.
    RandomStringSpec <- Symbol Spc '(' Spc Params Spc ')' Spc / Symbol
    Params <- Digits Spc ',' Spc Digits / Digits
-   Symbol <- 'TEXT'
+   Symbol <- 'RANDOMTEXT'
    Digits <- {\d+}
    Spc <- \s*
    """
@@ -53,20 +57,22 @@ proc newRandomStringExpression*(flen: int, minlen: int, maxlen: int, caps: bool)
    result.serializeImpl = serializeRSE
    result.asStringImpl = asStringRSE
 
-proc readRSE(valueSpec: string, leId: string, typeCode: string, length: int): Expression =
+proc readRSE(valueSpec: string, leId: string, vektisTypeCode: string, length: int): Expression =
    if valueSpec =~ randomStringPattern:
-      if isTextType(typeCode):
+      if isTextType(vektisTypeCode):
+         let minlenString = matches[0]
+         let maxlenString = matches[1]
          var minlen, maxlen: int
-         if isNil(matches[0]):
+         if isNil(minlenString):
             minlen = length div 4
             maxlen = length
          else:
-            minlen = parseInt(matches[0])
-            maxlen = if isNil(matches[1]): minlen else: min(parseInt(matches[1]), length)
+            minlen = parseInt(minlenString)
+            maxlen = if isNil(maxlenString): minlen else: min(parseInt(maxlenString), length)
          result = newRandomStringExpression(length, minlen, maxlen, false)
       else:
          raise newException(ExpressionError, 
-            "Cannot apply random string expression '$#' to field '$#' with Vektis type '$#'." % [valueSpec, leId, typeCode])
+            "Cannot apply random string expression '$#' to field '$#' with Vektis type '$#'." % [valueSpec, leId, vektisTypeCode])
 
 proc readRCE(valueSpec: string, leId: string, typeCode: string, length: int): Expression =
    if valueSpec =~ randomCapsPattern:
