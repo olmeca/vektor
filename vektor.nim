@@ -29,7 +29,6 @@ var
    copyFields: seq[FieldValueSpec] = @[]
    showFieldsArg: string
    showFields: seq[FieldSpec] = @[]
-   filterFieldsArg: string
    outputPath: string = nil
    command: TCommand = cmdCopy
    commandArgs: seq[string] = @[]
@@ -507,8 +506,6 @@ for kind, key, value in getopt():
          argReplacementScriptPath = value
       of "e", "elements":
          showFieldsArg = value
-      of "f", "filter":
-         filterFieldsArg = value
       of "l", "lineid":
          optLineId = value
       of "v", "version":

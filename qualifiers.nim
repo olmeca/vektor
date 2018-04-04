@@ -2,9 +2,9 @@ import pegs, strutils, sequtils, lists, future, logging
 import "common", "doctypes", "context"
 
 type
-   QualifierOperator = enum
+   QualifierOperator* = enum
       OpEquals, OpUnequal, OpGreaterThan, OpGreaterThanOrEqual, OpLessThan, OpLessThanOrEqual
-   CompositionOperator = enum
+   CompositionOperator* = enum
       OpNone, OpAnd, OpOr
    
    LineQualifier* = ref LineQualifierObj
@@ -27,8 +27,8 @@ type
    
    CompositeQualifier* = ref CompositeQualifierObj
    CompositeQualifierObj* = object of LineQualifierObj
-      operator: CompositionOperator
-      qualifiers: seq[LineQualifier]
+      operator*: CompositionOperator
+      qualifiers*: seq[LineQualifier]
       
 let cAndOperator = "&"
 let cOrOperator = "|"
@@ -147,13 +147,6 @@ proc newCompositeQualifier*(oper: CompositionOperator, qualifiers: seq[LineQuali
    result.operator = oper
    result.toStringImpl = printCompositeQualifier
    debug("newCompositeQualifier: $#" % [$result])
-
-proc newCompositeQualifier(operator: string, leftQual: LineQualifier, rightQual: LineQualifier): LineQualifier =
-   let qualifiers = @[leftQual, rightQual]
-   result = newCompositeQualifier(compositionOperatorFromString(operator), qualifiers)
-
-proc isFullyRead(cq: CompositeQualifier): bool =
-   cq.operator != OpNone and cq.qualifiers.len() == 2
 
 proc backtrack(cqStack: SinglyLinkedNode[CompositeQualifier]): SinglyLinkedNode[CompositeQualifier] =
       result = cqStack
