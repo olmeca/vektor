@@ -11,8 +11,7 @@ type
 
 let
    randomNamePattern* = peg"""
-   Pattern <-  ^'{' RandomNameSpec '}' !.
-   RandomNameSpec <- 'name'
+   Pattern <-  ^ 'name' !.
    """
 
 var namesList: seq[string] = nil

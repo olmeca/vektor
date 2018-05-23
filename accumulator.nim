@@ -11,7 +11,7 @@ type
       empty: bool
 
 let
-   gAnyId = "00"
+   cAnyId = "00"
 
 proc toString*(str: seq[char]): string =
   result = newStringOfCap(len(str))
@@ -30,27 +30,32 @@ proc newAccumulator*(dType:DocumentType): Accumulator =
 proc increment(total: var Total, extra: int) =
    total.value = total.value + extra
 
+proc getSourceLineElementType*(acc: Accumulator, total: Total): LineElementType =
+    acc.docType.getLineElementType(total.leType.countable)
+
+proc getIntegerValue*(docType: DocumentType, leType: LineElementType, line: string): int =
+    if leType.isAmountType():
+        getElementValueSigned(docType, leType, line)
+    else:
+        line.getElementValueInt(leType)
+
 proc addLine*(acc: Accumulator, line: string) =
    debug("addLine: " & line[0..13])
    for total in acc.totals.mitems():
       let leId = total.leType.countable
       # match any line type, except bottom line
-      if leId.startsWith(gAnyId) and line.isContentLine():
+      if getLineId(leId) == cAnyId and line.isContentLine():
          total.increment(1)
          acc.empty = false
       # match line ID
-      elif leId[0..1] == line[0..1]:
+      elif getLineId(leId) == getLineId(line):
          # match the whole line
-         if leId[2..3] == gAnyId:
+         if getLineElementSubId(leId) == cAnyId:
             total.increment(1)
             acc.empty = false
          else:
             let leType = acc.docType.getLineElementType(leId)
-            var elemValue = 0 
-            if leType.isAmountType():
-               elemValue = getElementValueSigned(acc.docType, leType, line)
-            else:
-               elemValue = line.getElementValueInt(leType)
+            let elemValue = getIntegerValue(acc.docType, leType, line)
             total.increment(elemValue)
             #debug("inc $# -> $#" % [intToStr(elemValue), intToStr(total.value)])
             acc.empty = false
@@ -78,3 +83,21 @@ proc write*(acc: Accumulator, buf: var seq[char]) =
 proc asString*(acc: Accumulator): string =
    let items = lc[t.asString() | (t <- acc.totals), string]
    result = items.join(", ")
+
+proc validateBottomLine*(docType: DocumentType, line: string, nr: int, errors: var seq[ValidationResult], acc: Accumulator) =
+    for total in acc.totals.items():
+        let leType = total.leType
+        let itemValue = getIntegerValue(acc.docType, leType, line)
+        if itemValue != total.value:
+            var errorString = ""
+            if total.leType.isAmountType():
+                errorString = "Value of field $# ($#) not equal to the sum ($#) of $# field values." %
+                              [ intToStr(itemValue), leType.description, intTostr(total.value), leType.countable ]
+            else:
+                errorString = "Value of field $# ($#) not equal to the number ($#) of $# records." %
+                              [ intToStr(itemValue), leType.description, intTostr(total.value), getLineId(leType.countable) ]
+            errors.add(ValidationResult(lineNr: nr,
+                                            leId: leType.lineElementId,
+                                            vrType: vrSummationError,
+                                            info: errorString))
+        else: discard

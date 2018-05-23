@@ -10,17 +10,11 @@ let
    literalValuePattern = peg"""
    Pattern <- .*
    """
-   
-   literalAlphaNumPattern = peg"""
-   Pattern <- Spc {Word} Spc
-   Word <- [0-9a-zA-Z]+
-   Spc <- \s*
-   """
-   
+
    # Literal string must be enclosed in double quotes: "mystring"
    literalTextPattern = peg"""
    Pattern <- Spc '"' {Word} '"' Spc
-   Word <- (![";] .)+
+   Word <- (!["] .)+
    Spc <- \s*
    """
    literalNumberPattern = peg"""
@@ -31,7 +25,7 @@ let
 
    literalDatePattern = peg"""
    Pattern <- Spc {Date} Spc
-   Date <- \d \d \d \d \d \d \d \d
+   Date <- ('19' / '20') \d \d \d \d \d \d
    Spc <- \s*
    """
 
@@ -58,23 +52,23 @@ proc newLiteralExpression*(literal: string, typeCode: string, length: int): Lite
 proc readLiteralDate(valueSpec: string, leId: string, typeCode: string, length: int): Expression =
    if valueSpec =~ literalDatePattern:
       result = newLiteralExpression(matches[0], typeCode, length)
-#   else:
-#      raise newException(ExpressionError, 
-#         "Invalid date expression '$#' for field '$#' with Vektis type '$#'." % [valueSpec, leId, typeCode])
+   else:
+      raise newException(ExpressionError,
+         "Invalid date expression '$#' for field '$#' with Vektis type '$#'." % [valueSpec, leId, typeCode])
 
 proc readLiteralNumber(valueSpec: string, leId: string, typeCode: string, length: int): Expression =
    if valueSpec =~ literalNumberPattern:
       result = newLiteralExpression(matches[0], typeCode, length)
-#   else:
-#      raise newException(ExpressionError, 
-#         "Invalid numeric expression '$#' for field '$#' with Vektis type '$#'." % [valueSpec, leId, typeCode])
+   else:
+      raise newException(ExpressionError,
+         "Invalid numeric expression '$#' for field '$#' with Vektis type '$#'." % [valueSpec, leId, typeCode])
 
 proc readLiteralText(valueSpec: string, leId: string, typeCode: string, length: int): Expression =
    if valueSpec =~ literalTextPattern:
       result = newLiteralExpression(matches[0], typeCode, length)
-#   else:
-#      raise newException(ExpressionError, 
-#         "Invalid literal text expression '$#' for field '$#' with Vektis type '$#'." % [valueSpec, leId, typeCode])
+   else:
+      raise newException(ExpressionError,
+         "Invalid literal text expression '$#' for field '$#' with Vektis type '$#'." % [valueSpec, leId, typeCode])
 
 proc newLiteralDateReader*(): ExpressionReader = 
    ExpressionReader(pattern: literalDatePattern, readImpl: readLiteralDate)

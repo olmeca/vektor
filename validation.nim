@@ -35,7 +35,6 @@ proc validate*(docType: DocumentType, line: string, nr: int, errors: var seq[Val
                                     leId: nil, 
                                     vrType: vrInvalidLineLength, 
                                     info: "Line length is $# but should be $#" % [intToStr(line.len), intToStr(docType.lineLength)]))
-      
-   let lineType = docType.getLineTypeForLineId(line[0..1])
-   for leType in lineType.lineElementTypes:
+
+   for leType in docType.getLineTypeForLine(line).lineElementTypes:
       leType.validate(line, nr, errors)

@@ -51,7 +51,6 @@ var
    gNames: seq[string] = nil
    subject: string
    gTotals: Accumulator
-   gSubtotals: Accumulator
    gRandomizedValuesMap: TableRef[string, string]
    gSequenceNumber: int = 0
    cMaxErrors: int = 20
@@ -144,18 +143,19 @@ proc conditionIsMet(qualifier: LineQualifier): bool =
       try:
          result = qualifier.qualifies(gRootContext)
       except ContextWithLineIdNotFoundError:
+         debug("conditionIsMet: '$#'" % getCurrentExceptionMsg())
          result = false
 
 proc maxLineIndex(fields: seq[FieldSpec]): int =
-   foldl(fields, max(a, parseInt(b.leType.lineElementId[0..1])), 0)
+   foldl(fields, max(a, parseInt(getLineId(b.leType.lineElementId))), 0)
 
-proc printLineAddToSubtotals(context: var Context) =
+proc printLineAddToSubtotals(context: var Context, subtotals: Accumulator) =
    if context.state != csExported:
       if context.line.isContentLine():
-         gSubTotals.addLine(context.line)
+         subTotals.addLine(context.line)
       context.state = csExported
-   for sub in context.subContexts.mvalues:
-      printLineAddToSubtotals(sub)
+   for subcontext in context.subContexts.mvalues:
+      printLineAddToSubtotals(subcontext, subtotals)
 
 proc getHeaderForField(field: FieldSpec): string =
    let length = field.leType.length
@@ -182,17 +182,17 @@ proc printLine(stream: Stream, line: string, fields: seq[FieldSpec]) =
    stream.write("\n")
 
 
-proc conditionallyPrintLine(outStream: Stream, line: string, fields: seq[FieldSpec], maxLineIndex: int) = 
+proc conditionallyPrintLine(outStream: Stream, line: string, fields: seq[FieldSpec], maxLineIndex: int, subtotals: Accumulator) =
    var tempStream = newStringStream()
-   if parseInt(line[0..1]) <= maxLineIndex and conditionIsMet(gSelectionQualifier):
+   if parseInt(getLineId(line)) <= maxLineIndex and conditionIsMet(gSelectionQualifier):
       try:
          printLine(tempStream, line, fields)
          outStream.write(tempStream.data)
+         if not isNil(subtotals):
+            printLineAddToSubtotals(gRootContext, subtotals)
       except ContextWithLineIdNotFoundError:
          debug(">>>>>> Referring to line id '$#' out of context." % [line[0..1]])
    
-   if not isNil(gSubtotals):
-      printLineAddToSubtotals(gRootContext)
 
 proc printHorLine(stream: Stream, fields: seq[FieldSpec]) =
    stream.write("+-")
@@ -224,8 +224,8 @@ proc writeToStream(context: var Context, stream: Stream) =
 
 proc mutateAndWrite(line: var string, outStream: Stream) =
    debug("mutateAndWrite: " & line[0..13])
-   let lineType = docType.getLineTypeForLineId(line[0..1])
-   var buf = toSeq(line.mitems)
+   let lineType = docType.getLineTypeForLine(line)
+   var lineBuffer = toSeq(line.mitems)
    # Bottom line cumulative values get updated
    # We don't allow bottom line values to be modified
    if line.startsWith(cBottomLineId):
@@ -233,15 +233,14 @@ proc mutateAndWrite(line: var string, outStream: Stream) =
       gRootContext.dropContentSubContexts()
       # Bottom line needs to first be updated with accumulated values
       if not gTotals.isEmpty():
-         gTotals.write(buf)
-         line = buf.toString()
-         debug(line)
-      writeToStream(buf, outStream)
+         gTotals.write(lineBuffer)
+         line = lineBuffer.toString()
+      writeToStream(lineBuffer, outStream)
    else:
       if conditionIsMet(gSelectionQualifier):
-         debug("maw: selection qualifier is met")
+         debug("mutateAndWrite: selection qualifier is met")
          if conditionIsMet(gReplacementQualifier):
-            debug("maw: replacement qualifier is met")
+            debug("mutateAndWrite: replacement qualifier is met")
             # Only attempt replacement if there are target fields defined
             if not isNil(copyFields):
                for field in copyFields:
@@ -250,18 +249,18 @@ proc mutateAndWrite(line: var string, outStream: Stream) =
                      # if debtor record then field.leType is the default debtor record type, so get the real leType
                      # let leType = if line.isDebtorLine(): lineType.getLineElementType(field.leType.lineElementId) else: field.leType
                      let newValue = FieldValueSpec(field).value.serialize()
-                     debug("maw: setting new value for leId '$#': '$#'" % [leType.lineElementId, newValue])
-                     copyChars(buf, leType.startPosition-1, leType.length, newValue)
+                     debug("mutateAndWrite: setting new value for leId '$#': '$#'" % [leType.lineElementId, newValue])
+                     copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
       
       if lineType.hasDependentElements:
          for leType in lineType.lineElementTypes:
             if not isNil(leType.sourceId):
-               debug("maw: getting source value for '$#'" % [leType.sourceId])
+               debug("mutateAndWrite: getting source value for '$#'" % [leType.sourceId])
                let newValue = gRootContext.getElementValueFullString(leType.sourceId)
-               debug("maw: got new source value: '$#'" % [newValue])
-               copyChars(buf, leType.startPosition-1, leType.length, newValue)
+               debug("mutateAndWrite: got new source value: '$#'" % [newValue])
+               copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
       
-      gCurrentContext.line = buf.toString()
+      gCurrentContext.line = lineBuffer.toString()
       writeToStream(gRootContext, outStream)
 
 
@@ -334,9 +333,6 @@ proc readQualifier(source: string, qualifier: var LineQualifier) =
    if not isNil(source):
       debug("readQualifier: $#" % source)
       qualifier = docType.parseQualifier(source)
-      if isNil(gSubTotals):
-         gSubTotals = newAccumulator(docType)
-      else: discard
    else: discard
 
 proc checkAndPrepareQualifiers() =
@@ -406,7 +402,7 @@ proc readFieldValueSpec(spec: string): FieldValueSpec =
       let leType = docType.getLineElementType(leTypeId)
       if leType.isDependent():
          raise newException(FieldSpecError, 
-            "Modification of dependent line element '$#' not allowed. Modify element '$#' instead." % [leType.lineElementId, leType.sourceId])
+            "Setting the value of derived field '$#' is not allowed. \nSet value of field $# instead and Vektor will also update field $# accordingly." % [leType.lineElementId, leType.sourceId, leType.lineElementId])
       let valueExpression = readExpression(leType, value)
       result = FieldValueSpec(leType: leType, value: valueExpression)
       debug("readFieldValueSpec: leType: '$#', value: $#" % [leType.asString, valueExpression.asString])
@@ -555,8 +551,11 @@ else:
                docType = fetch_doctype(line)
                loadDebtorRecordType(docType, gDebRecVersion)
                if command == cmdQuery:
-                  gTotals = newAccumulator(docType)
                   checkAndPrepareQualifiers()
+                  gTotals = newAccumulator(docType)
+                  var subtotals: Accumulator = nil
+                  if not isNil(gSelectionQualifier):
+                    subtotals = newAccumulator(docType)
                   let topLineType = docType.getLineTypeForLineId(cTopLineId)
                   setCurrentLine(line)
                   echo("Document type: $#, SB311v$#" % [description(docType), repr(gDebRecVersion)])
@@ -564,20 +563,20 @@ else:
                   let outStream = newFileStream(stdout)
                   printHeaders(outStream, showFields)
                   let maxShownLineIndex = maxLineIndex(showFields)
-                  conditionallyPrintLine(outStream, line, showFields, maxShownLineIndex)
+                  conditionallyPrintLine(outStream, line, showFields, maxShownLineIndex, subtotals)
                   while input.readLine(line):
                      if line.isDebtorLine and not line.matchesDebtorRecordVersion(gDebRecVersion):
                         quit("Input file has unexpected value for debtor record version in 03 lines.")
                      setCurrentLine(line)
-                     conditionallyPrintLine(outStream, line, showFields, maxShownLineIndex)
+                     conditionallyPrintLine(outStream, line, showFields, maxShownLineIndex, subtotals)
                      gTotals.addLine(line)
                   printHorLine(outStream, showFields)
-                  if not isNil(gSubtotals):
-                     echo "Subtotals: " & gSubtotals.asString()
-                  echo "Totals:    " & gTotals.asString()
+                  if not isNil(subtotals):
+                     echo "Subtotals: " & subtotals.asString()
+                  else: echo "Totals:    " & gTotals.asString()
                elif command == cmdCopy:
-                  gTotals = newAccumulator(docType)
                   checkAndPrepareQualifiers()
+                  gTotals = newAccumulator(docType)
                   let topLineType = docType.getLineTypeForLineId(cTopLineId)
                   setCurrentLine(line)
                   echo("Document type: $#, SB311v$#" % [description(docType), repr(gDebRecVersion)])
@@ -607,7 +606,11 @@ else:
                   docType.validate(line, lineNr, errors)
                   while input.readLine(line) and errors.len < cMaxErrors:
                      lineNr = lineNr + 1
-                     docType.validate(line, lineNr, errors)
+                     if not lineHasId(line, cBottomLineId):
+                        docType.validate(line, lineNr, errors)
+                        gTotals.addLine(line)
+                     else:
+                        docType.validateBottomLine(line, lineNr, errors, gTotals)
                   if errors.len == 0:
                      echo "OK."
                   else:

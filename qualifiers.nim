@@ -34,17 +34,20 @@ let cAndOperator = "&"
 let cOrOperator = "|"
 
 let elementaryQualifierPatternSpec = """
-Qualifier <- ^ Sp {Key} Sp {Operator} Sp {Value} Sp !.
+Qualifier <- ^ Sp {Key} Sp {Operator} Sp Value Sp !.
 Key <- \d \d \d \d
-Value <- (!Operator .)+
+Value <- '"' {TextValue} '"' / {DateValue} / {NumericalValue}
+TextValue <- (!'"' .)*
+DateValue <- ('19' / '20') \d \d \d \d \d \d
+NumericalValue <- \d+
 Operator <- '=' / '!=' / '<' / '>'
-Sp <- ' '*
+Sp <- \s*
 """
 
 let cCompositeQualifierPatternSpec = """
 Pattern <- ^ Sp Qualifier Sp !.
 Qualifier <- ElementaryQualifier / Open Composite Close 
-Composite <- Sp {Qualifier} Sp {Op} Sp {Qualifier} Sp / ''
+Composite <- Sp {Qualifier} Sp {LogicalOper} Sp {Qualifier} Sp / ''
 ElementaryQualifier <- Key Sp Comparator Sp Value
 Key <- \d \d \d \d
 Value <- Number / Text
@@ -53,8 +56,8 @@ Number <- \d+
 Text <- '"' (!'"' .)* '"'
 Open <- '('
 Close <- ')'
-Op <- '&' / '|'
-Sp <- ' '*
+LogicalOper <- '&' / '|'
+Sp <- \s*
 """
 
 let elementaryQualifierPattern = peg(elementaryQualifierPatternSpec)

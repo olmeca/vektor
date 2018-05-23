@@ -146,13 +146,32 @@ let helpSubjects* = {
       
    Replacement:   -r:'<element ID>=<value>[; <element ID>=<value>]'
       e.g.        -r:'0203=999999999; 0210 = "Johnson"'
+      
       Specifies a list of replacements to be applied during the copy command.
+      Replacement items in the list are separated by a semi-colon. A replacement
+      item consists of a line element ID, the '=' token and a value specification.
+      For legibility, spaces are allowed between these parts.
       A replacement specifies which line elements in the declaration will be replaced 
       and which new value to assign to the line element. A literal value can be
-      specified as replacement value (e.g. -r:'0203=999999999; 0210="Johnson"'),
-      but some special symbols can be specified, that indicate that a random
+      specified as replacement value (e.g. -r:'0203=999999999; 0210="Johnson"').
+      Here a numerical literal value is specified as new value for the BSN field
+      of the patient record and the literal text "Johnson" is specified as the new
+      value for the patient name field.
+      Some special symbols can be specified as value, that indicate that a random
       value should be generated. For details on using symbols, use 'help symbols'.
       Commands where applicable: copy
+      
+   Replacements   -R:<replacements file path>
+      e.g.        -R:anonymize.txt
+      
+      Specifies a file that contains the replacement specifications. As entering
+      the replacement specifications on the command line can become tedious, you 
+      can store the replacement specs in a file and refer to this file with -R.
+      In the file you can put every replacement spec on a separate line to make
+      the whole matter more legible. E.g. the above example could be stored in
+      a file with two lines:
+      0203 = 999999999
+      0210 = "Johnson"
       
    Condition:     -c:"<list of conditions for applying replacement>"
       e.g.        -c:"0207 < 20100314 "

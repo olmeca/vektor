@@ -19,10 +19,25 @@ var
 #let gDocTypes = lc[readDocumentType(node) | (node <- getJsonData(cDocTypesJsonFileName)), DocumentType]
 #let debtorRecordTypes = lc[readDocumentType(node) | (node <- getJsonData(cSB311TypesJsonFileName)), DocumentType]
 
+proc getLineId*(line: string): string =
+   if isNil(line) or line.len < cRecordIdSize:
+      raise newException(ValueError, "Cannot get line id from '$#'" % [line])
+   else:
+      result = line[0 .. (cRecordIdSize - 1)]
+
+proc getLineElementSubId*(leId: string): string =
+   if isNil(leId) or leId.len < cFieldIdSize:
+      raise newException(ValueError, "Cannot get line element id from '$#'" % [leId])
+   else:
+      result = leId[cRecordIdSize .. (cFieldIdSize - 1)]
+
+proc lineHasId*(line: string, id: string): bool =
+    getLineId(line) == id
+
 proc indexes(leId: string): array[0..1, int] =
-   assert(len(leId) == 4)
+   assert(len(leId) == cFieldIdSize)
    assert(isDigit(leId))
-   result = [parseInt(leId[0..1]), parseInt(leId[2..3])]
+   result = [parseInt(leId[0 .. cRecordIdSize - 1]), parseInt(leId[cRecordIdSize .. cFieldIdSize - 1])]
 
 proc isDependent*(leType: LineElementType): bool =
    not isNil(leType.sourceId)
@@ -54,8 +69,11 @@ proc getLineTypeForLineId*(doctype: DocumentType, lineId: string): LineType =
    else:
       result = lineTypes[0]
 
+proc getLineTypeForLine*(docType: DocumentType, line: string): LineType =
+    getLineTypeForLineId(docType, getLineId(line))
+
 proc isDebtorLine*(line: string): bool =
-   line[0..1] == cDebtorLineId
+   lineHasId(line, cDebtorLineId)
 
 proc readTypes(fileName: string, lineLength: int): seq[DocumentType] =
    result = lc[readDocumentType(node, lineLength) | (node <- getJsonData(fileName)), DocumentType]
@@ -84,8 +102,10 @@ proc isOneCharRepeated(value: string, theChar: char): bool =
          result = false
 
 proc isContentLine*(line: string): bool =
-   line[0..1] != cTopLineId and line[0..1] != cBottomLineId
+   not lineHasId(line, cTopLineId) and not lineHasId(line, cBottomLineId)
 
+proc isTypeOfLine*(lineType: LineType, line: string): bool =
+    lineHasId(line, lineType.lineId)
 
 proc isDate*(leType: LineElementType): bool =
    leType.length == 8 and leType.code.startsWith(cDateCodePrefix)
@@ -157,12 +177,6 @@ proc hasSubLineTypeWithId*(docType: DocumentType, lineType: LineType, lineId: st
             result = true
             break
 
-proc getLineId*(line: string): string = 
-   if isNil(line) or line.len < 4:
-      raise newException(ValueError, "Cannot get line id from '$#'" % [line])
-   else:
-      result = line[0 .. 1]
-
 proc getLineElementType*(lineType: LineType, leId: string): LineElementType =
    #debug("getLineElementType: lt: $#, leId: $#" % [lineType.lineId, leId])
    #assert(leId.startsWith(lineType.lineId))
@@ -175,7 +189,7 @@ proc getLineElementType*(lineType: LineType, leId: string): LineElementType =
       result = results[0]
 
 proc isElementOfLine*(leType: LineElementType, line: string): bool =
-   leType.lineElementId[0..1] == line[0..1]
+   getLineId(leType.lineElementId) == getLineId(line)
 
 proc getLineElementType*(docType: DocumentType, leId: string): LineElementType =
    #debug("getLineType: d: $#, leId: $#" % [docType.name, leId])
@@ -225,6 +239,7 @@ proc sign(docType: DocumentType, leType: LineElementType, line: string): int =
    else: discard
 
 proc getElementValueSigned*(docType: DocumentType, leType: LineElementType, line: string): int =
-   assert(line[0..1] == leType.lineElementId[0..1])
+   if not isElementOfLine(leType, line):
+      raise newException(LineTypeMisMatch, "Cannot get value of type $# on line of type $#" % [leType.lineElementId, getLineId(line)])
    # Precondition: leType must be of type "BED***"
    result = getElementValueInt(line, leType) * sign(docType, leType, line)

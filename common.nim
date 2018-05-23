@@ -5,6 +5,7 @@ type
    ContextWithLineIdNotFoundError* = object of Exception
    ChildLinkWithLineIdNotFoundError* = object of Exception
    NoMatchingItemFound* = object of Exception
+   LineTypeMisMatch* = object of Exception
    DebtorRecordVersion* = enum
       drvDefault, drvSB1, drvSB2
    
@@ -47,7 +48,7 @@ type
    
    # Validation
    ValidationResultType* = enum
-      vrMissingFieldValue, vrInvalidFieldValue, vrInvalidLineLength
+      vrMissingFieldValue, vrInvalidFieldValue, vrInvalidLineLength, vrSummationError
    TooManyErrors* = object of Exception
    ValidationResult* = ref object
       lineNr*: int
@@ -59,6 +60,8 @@ type
 const
    cDataDir* = "vektor-data"
    cBlanksSet*: set[char] = { ' ' }
+   cRecordIdSize* = 2
+   cFieldIdSize* = 4
    cBottomLineId* = "99"
    cTopLineId* = "01"
    cPatientLineId* = "02"
@@ -125,8 +128,8 @@ proc asString*(leType: LineElementType): string =
    ]
 
 proc asString*(err: ValidationResult): string =
-   let leId = if isNil(err.leId): "" else: ", element " & err.leId
-   "Line $#$#: $#" % [intToStr(err.lineNr, 4), leId, err.info]
+   let leId = if isNil(err.leId): "" else: ", field " & err.leId
+   "Line $#$#: $#" % [intToStr(err.lineNr), leId, err.info]
 
 proc parseVektisDate*(dateString: string): TimeInfo =
    try:
