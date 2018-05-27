@@ -14,6 +14,18 @@ type
    TCommand = enum
       cmdCopy, cmdQuery, cmdInfo, cmdHelp, cmdPrint, cmdValidate
 
+   VektorJob = ref object of RootObj
+        logLevel: string
+   DocumentJob = ref object of VektorJob
+        inputPath: string
+        debRecVersion: DebtorRecordVersion
+        docType: DocumentType
+   SelectiveJob = ref object of DocumentJob
+        selectionQualifier: LineQualifier
+        fields: seq[FieldValueSpec]
+   CopyJob = ref object of DocumentJob
+        replacementQualifier: LineQualifier
+        outputPath: string
 
 const
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
@@ -36,8 +48,6 @@ var
    optVersion: int = -1
    optSubversion: int = -1
    commandWasRead: bool = false
-   gRootContext: Context = nil
-   gCurrentContext: Context = nil
    argDocTypeName: string
    optLineId: string
    argSourceFilePath: string
@@ -50,7 +60,6 @@ var
    logLevel: string = nil
    gNames: seq[string] = nil
    subject: string
-   gTotals: Accumulator
    gRandomizedValuesMap: TableRef[string, string]
    gSequenceNumber: int = 0
    cMaxErrors: int = 20
@@ -79,20 +88,6 @@ proc hasOwnRandomizationContext(line: string): bool =
    lineIdNr <= 2 or lineIdNr == 99
 
 
-proc setCurrentLine(line: string) =
-   let lineType = docType.getLineTypeForLineId(line[0..1])
-   if isNil(gCurrentContext):
-      debug("setCurrentLine: setting root: " & line[0..4])
-      gCurrentContext = createContext(lineType, line)
-      gRootContext = gCurrentContext
-   else:
-      var parentContext = gCurrentContext.findParentContextForLineType(lineType.lineId)
-      assert(not isNil(parentContext))
-      gCurrentContext = createContext(lineType, line, parentContext)
-      debug("setCurrentLine: parent: $#, line: $#" % [parentContext.lineType.lineId, line[0..13]])
-   gCurrentContext.state = csRegistered
-
-
 proc stripBlanks(source: string): string =
    strip(source, true, true, cBlanksSet)
 
@@ -111,7 +106,7 @@ proc padright(source: string, length: int, fillChar: char = ' '): string =
    else:
       source & repeat(fillChar, length - source.len)
 
-proc writeToStream(buf: seq[char], stream: Stream) = 
+proc writeCharsToStream(buf: seq[char], stream: Stream) =
    for c in buf:
       stream.write(c)
    stream.write('\r')
@@ -132,30 +127,30 @@ proc copyChars(buf: var openArray[char], start: int, length: int, newValue: stri
    for i in 0..(length-1):
       buf[start+i] = newValueSeq[i]
 
-proc getFieldValueFullString(fSpec: FieldSpec): string =
-   debug("getFieldValueFullString: " & fSpec.leType.lineElementId) 
-   result = gRootContext.getElementValueFullString(fSpec.leType.lineElementId)
+proc getFieldValueFullString(rootContext: Context, fSpec: FieldSpec): string =
+   debug("get FieldValueFullString: " & fSpec.leType.lineElementId)
+   result = rootContext.getElementValueFullString(fSpec.leType.lineElementId)
 
-proc conditionIsMet(qualifier: LineQualifier): bool =
+proc conditionIsMet(context: Context, qualifier: LineQualifier): bool =
    if isNil(qualifier):
       result = true
    else:
       try:
-         result = qualifier.qualifies(gRootContext)
+         result = qualifier.qualifies(context)
       except ContextWithLineIdNotFoundError:
-         debug("conditionIsMet: '$#'" % getCurrentExceptionMsg())
+         debug("condition Is Met: '$#'" % getCurrentExceptionMsg())
          result = false
 
-proc maxLineIndex(fields: seq[FieldSpec]): int =
+proc maxLineTypeIndex(fields: seq[FieldSpec]): int =
    foldl(fields, max(a, parseInt(getLineId(b.leType.lineElementId))), 0)
 
-proc printLineAddToSubtotals(context: var Context, subtotals: Accumulator) =
+proc accumulate(context: var Context, acc: Accumulator) =
    if context.state != csExported:
       if context.line.isContentLine():
-         subTotals.addLine(context.line)
+         acc.addLine(context.line)
       context.state = csExported
    for subcontext in context.subContexts.mvalues:
-      printLineAddToSubtotals(subcontext, subtotals)
+      accumulate(subcontext, acc)
 
 proc getHeaderForField(field: FieldSpec): string =
    let length = field.leType.length
@@ -168,33 +163,39 @@ proc getHeaderForField(field: FieldSpec): string =
    else:
       spaces(length)
 
-proc tabularLine(fields: seq[FieldSpec], stringValue: proc(field: FieldSpec): string, 
+proc tabularLine(ctx: Context, fields: seq[FieldSpec], stringValue: proc(field: FieldSpec): string,
                   prefix: string, infix: string, postfix: string): string =
    let values = lc[stringValue(field) | (field <- fields), string]
    result = prefix & values.join(infix) & postfix
 
-proc printColumnHeaders(stream: Stream, fields: seq[FieldSpec]) =
-   stream.write(tabularLine(fields, getHeaderForField, gTableLinePrefix, gTableLineInfix, gTableLinePostfix))
+proc printColumnHeaders(ctx: Context, fields: seq[FieldSpec], stream: Stream) =
+   stream.write(tabularLine(ctx, fields, getHeaderForField, gTableLinePrefix, gTableLineInfix, gTableLinePostfix))
    stream.write("\n")
 
-proc printLine(stream: Stream, line: string, fields: seq[FieldSpec]) =
-   stream.write(tabularLine(fields, getFieldValueFullString, gTableLinePrefix, gTableLineInfix, gTableLinePostfix))
+proc printLine(ctx: Context, fields: seq[FieldSpec], stream: Stream) =
+   stream.write(tabularLine(ctx, fields,
+                            proc (fs: FieldSpec): string = getElementValueFullString(ctx, fs.leType.lineElementId),
+                            gTableLinePrefix,
+                            gTableLineInfix,
+                            gTableLinePostfix))
    stream.write("\n")
 
 
-proc conditionallyPrintLine(outStream: Stream, line: string, fields: seq[FieldSpec], maxLineIndex: int, subtotals: Accumulator) =
+proc conditionallyPrintLine(rootContext: var Context, outStream: Stream, fields: seq[FieldSpec], maxLineIndex: int, accumulator: Accumulator) =
+   let currentContext = rootContext.current()
    var tempStream = newStringStream()
-   if parseInt(getLineId(line)) <= maxLineIndex and conditionIsMet(gSelectionQualifier):
+   # Do not print subtypes of the subbest record type in the field specs (index > maxLineIndex)
+   if currentContext.lineType.index <= maxLineIndex and rootContext.conditionIsMet(gSelectionQualifier):
       try:
-         printLine(tempStream, line, fields)
+         printLine(rootContext, fields, tempStream)
          outStream.write(tempStream.data)
-         if not isNil(subtotals):
-            printLineAddToSubtotals(gRootContext, subtotals)
+         if not isNil(accumulator):
+            rootContext.accumulate(accumulator)
       except ContextWithLineIdNotFoundError:
-         debug(">>>>>> Referring to line id '$#' out of context." % [line[0..1]])
+         debug(">>>>>> Referring to line id '$#' out of context." % [currentContext.lineType.lineId])
    
 
-proc printHorLine(stream: Stream, fields: seq[FieldSpec]) =
+proc printHorLine(fields: seq[FieldSpec], stream: Stream) =
    stream.write("+-")
    var index = 0
    for field in fields:
@@ -205,63 +206,66 @@ proc printHorLine(stream: Stream, fields: seq[FieldSpec]) =
       else:
          stream.write("-+\n")
 
-proc printHeaders(stream: Stream, fields: seq[FieldSpec]) = 
-   printHorLine(stream, fields)
-   printColumnHeaders(stream, fields)
-   printHorLine(stream, fields)
+proc printHeaders(ctx: Context, fields: seq[FieldSpec], stream: Stream) =
+   printHorLine(fields, stream)
+   printColumnHeaders(ctx, fields, stream)
+   printHorLine(fields, stream)
 
-proc writeToStream(line: string, stream: Stream) =
-   if line.isContentLine():
-      gTotals.addLine(line)
-   writeToStream(toSeq(line.items), stream)
+proc writeLineToStream(line: string, stream: Stream) =
+   writeCharsToStream(toSeq(line.items), stream)
 
-proc writeToStream(context: var Context, stream: Stream) =
+proc writeContextToStream(context: var Context, stream: Stream) =
    if context.state != csExported:
-      writeToStream(context.line, stream)
+      writeLineToStream(context.line, stream)
       context.state = csExported
    for sub in context.subContexts.mvalues:
-      writeToStream(sub, stream)
+      writeContextToStream(sub, stream)
 
-proc mutateAndWrite(line: var string, outStream: Stream) =
-   debug("mutateAndWrite: " & line[0..13])
-   let lineType = docType.getLineTypeForLine(line)
-   var lineBuffer = toSeq(line.mitems)
+proc updateDependentLineElements(rootContext: Context, linebuffer: var openArray[char]) =
+  let context = rootContext.currentSubContext
+  if context.lineType.hasDependentElements:
+     for leType in context.lineType.lineElementTypes:
+        if not isNil(leType.sourceId):
+           debug("maw: getting source value for '$#'" % [leType.sourceId])
+           let newValue = rootContext.getElementValueFullString(leType.sourceId)
+           debug("maw: got new source value: '$#'" % [newValue])
+           copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
+
+
+proc mutateAndWrite(rootContext: var Context, acc: var Accumulator, outStream: Stream) =
+   let context = rootContext.currentSubContext
+   var lineBuffer = toSeq(context.line.mitems)
    # Bottom line cumulative values get updated
    # We don't allow bottom line values to be modified
-   if line.startsWith(cBottomLineId):
+   if context.lineType.lineId == cBottomLineId:
+      debug("maw: writing bottom line")
       # Clean up context from residual content
-      gRootContext.dropContentSubContexts()
+      rootContext.dropContentSubContexts()
       # Bottom line needs to first be updated with accumulated values
-      if not gTotals.isEmpty():
-         gTotals.write(lineBuffer)
-         line = lineBuffer.toString()
-      writeToStream(lineBuffer, outStream)
+      acc.write(lineBuffer)
+      context.line = lineBuffer.toString()
+      writeCharsToStream(lineBuffer, outStream)
    else:
-      if conditionIsMet(gSelectionQualifier):
-         debug("mutateAndWrite: selection qualifier is met")
-         if conditionIsMet(gReplacementQualifier):
-            debug("mutateAndWrite: replacement qualifier is met")
+      if rootContext.conditionIsMet(gSelectionQualifier):
+         debug("maw: selection qualifier is met")
+         if rootContext.conditionIsMet(gReplacementQualifier):
+            debug("maw: replacement qualifier is met")
             # Only attempt replacement if there are target fields defined
             if not isNil(copyFields):
                for field in copyFields:
                   let leType = field.leType
-                  if leType.isElementOfLine(line):
+                  if leType.isElementOfLine(context.line):
                      # if debtor record then field.leType is the default debtor record type, so get the real leType
                      # let leType = if line.isDebtorLine(): lineType.getLineElementType(field.leType.lineElementId) else: field.leType
                      let newValue = FieldValueSpec(field).value.serialize()
-                     debug("mutateAndWrite: setting new value for leId '$#': '$#'" % [leType.lineElementId, newValue])
+                     debug("maw: setting new value for leId '$#': '$#'" % [leType.lineElementId, newValue])
                      copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
-      
-      if lineType.hasDependentElements:
-         for leType in lineType.lineElementTypes:
-            if not isNil(leType.sourceId):
-               debug("mutateAndWrite: getting source value for '$#'" % [leType.sourceId])
-               let newValue = gRootContext.getElementValueFullString(leType.sourceId)
-               debug("mutateAndWrite: got new source value: '$#'" % [newValue])
-               copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
-      
-      gCurrentContext.line = lineBuffer.toString()
-      writeToStream(gRootContext, outStream)
+         else: discard
+
+         updateDependentLineElements(rootContext, linebuffer)
+         context.line = lineBuffer.toString()
+         acc.addLine(context.line)
+         writeContextToStream(rootContext, outStream)
 
 
 proc isSelected(dt: DocumentType): bool =
@@ -551,56 +555,54 @@ else:
                docType = fetch_doctype(line)
                loadDebtorRecordType(docType, gDebRecVersion)
                if command == cmdQuery:
+                  var lineNr = 1
                   checkAndPrepareQualifiers()
-                  gTotals = newAccumulator(docType)
-                  var subtotals: Accumulator = nil
-                  if not isNil(gSelectionQualifier):
-                    subtotals = newAccumulator(docType)
+                  var accumulator = newAccumulator(docType)
                   let topLineType = docType.getLineTypeForLineId(cTopLineId)
-                  setCurrentLine(line)
-                  echo("Document type: $#, SB311v$#" % [description(docType), repr(gDebRecVersion)])
+                  var context = createContext(docType, topLineType, line)
+                  stderr.writeline("Document type: $#, SB311v$#" % [description(docType), repr(gDebRecVersion)])
                   readFieldSpecs(showFieldsArg, showFields, fieldSpecArgName())
                   let outStream = newFileStream(stdout)
-                  printHeaders(outStream, showFields)
-                  let maxShownLineIndex = maxLineIndex(showFields)
-                  conditionallyPrintLine(outStream, line, showFields, maxShownLineIndex, subtotals)
+                  printHeaders(context, showFields, outStream)
+                  let maxShownLineIndex = maxLineTypeIndex(showFields)
+                  conditionallyPrintLine(context, outStream, showFields, maxShownLineIndex, accumulator)
                   while input.readLine(line):
                      if line.isDebtorLine and not line.matchesDebtorRecordVersion(gDebRecVersion):
                         quit("Input file has unexpected value for debtor record version in 03 lines.")
-                     setCurrentLine(line)
-                     conditionallyPrintLine(outStream, line, showFields, maxShownLineIndex, subtotals)
-                     gTotals.addLine(line)
-                  printHorLine(outStream, showFields)
-                  if not isNil(subtotals):
-                     echo "Subtotals: " & subtotals.asString()
-                  else: echo "Totals:    " & gTotals.asString()
+                     context.addLine(line)
+                     conditionallyPrintLine(context, outStream, showFields, maxShownLineIndex, accumulator)
+                  printHorLine(showFields, outStream)
+                  stderr.writeLine ( "Totals |$#" % [accumulator.asString()] )
                elif command == cmdCopy:
+                  var lineNr = 1
                   checkAndPrepareQualifiers()
-                  gTotals = newAccumulator(docType)
+                  var accumulator = newAccumulator(docType)
                   let topLineType = docType.getLineTypeForLineId(cTopLineId)
-                  setCurrentLine(line)
-                  echo("Document type: $#, SB311v$#" % [description(docType), repr(gDebRecVersion)])
-                  var script: string
+                  var context = createContext(docType, topLineType, line)
+                  stderr.writeline("Document type: $#, SB311v$#" % [description(docType), repr(gDebRecVersion)])
                   if not isNil(argReplacementScriptPath):
                      try:
-                        script = system.readFile(argReplacementScriptPath)
-                        readFieldValueSpecs(script, copyFields, "-R (--replacementscript)")
+                        let replacementScript = system.readFile(argReplacementScriptPath)
+                        readFieldValueSpecs(replacementScript, copyFields, "-R (--replacementscript)")
                      except IOError:
                         quit("Cannot open file $#" % argReplacementScriptPath)
                   readFieldValueSpecs(copyFieldsArg, copyFields, fieldSpecArgName())
                   var outStream: Stream = newFileStream(argDestFilePath, fmWrite)
                   if not isNil(outStream):
-                     mutateAndWrite(line, outStream)
+                     debug("process line $#" % intToStr(lineNr))
+                     mutateAndWrite(context, accumulator, outStream)
                      while input.readLine(line):
+                        lineNr = lineNr + 1
                         if line.hasOwnRandomizationContext():
                            gRandomizedValuesMap = newTable[string, string]()
-                        setCurrentLine(line)
-                        mutateAndWrite(line, outStream)
+                        context.addLine(line)
+                        debug("process line $#" % intToStr(lineNr))
+                        mutateAndWrite(context, accumulator, outStream)
                      outStream.close()
                   else:
                      quit("Could not create file '$#'" % [outputPath])
                elif command == cmdValidate:
-                  gTotals = newAccumulator(docType)
+                  var accumulator = newAccumulator(docType)
                   var lineNr = 1
                   var errors: seq[ValidationResult] = @[]
                   docType.validate(line, lineNr, errors)
@@ -608,11 +610,11 @@ else:
                      lineNr = lineNr + 1
                      if not lineHasId(line, cBottomLineId):
                         docType.validate(line, lineNr, errors)
-                        gTotals.addLine(line)
+                        accumulator.addLine(line)
                      else:
-                        docType.validateBottomLine(line, lineNr, errors, gTotals)
+                        docType.validateBottomLine(line, lineNr, errors, accumulator)
                   if errors.len == 0:
-                     echo "OK."
+                     stderr.writeLine( "OK.")
                   else:
                      for error in errors:
                         echo error.asString()

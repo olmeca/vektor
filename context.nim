@@ -7,17 +7,21 @@ type
    Context* = ref object
       parent*: Context
       state*: ContextState
+      docType*: DocumentType
       lineType*: LineType
       line*: string
       subContexts*: OrderedTableRef[string, Context]
+      currentSubContext*: Context
 
-proc createContext*(lineType: LineType, line: string, parentContext: var Context): Context =
-   result = Context(parent: parentContext, state: csInitial, lineType: linetype, line: line, subContexts: newOrderedTable[string, Context](4))
-   if not isNil(parentContext):
-      parentContext.subContexts[lineType.lineId] = result
+proc createSubContext*(parentContext: var Context, lineType: LineType, line: string): Context =
+   result = Context(docType: parentContext.docType, parent: parentContext, state: csInitial, lineType: linetype, line: line, subContexts: newOrderedTable[string, Context](4), currentSubContext: nil)
+   parentContext.subContexts[lineType.lineId] = result
 
-proc createContext*(lineType: LineType, line: string): Context =
-   result = Context(parent: nil, state: csInitial, lineType: linetype, line: line, subContexts: newOrderedTable[string, Context](4))
+
+proc createContext*(dType: DocumentType, lineType: LineType, line: string): Context =
+   result = Context(docType: dType, parent: nil, state: csInitial, lineType: linetype, line: line, subContexts: newOrderedTable[string, Context](4), currentSubContext: nil)
+   result.currentSubContext = result
+   result.state = csRegistered
 
 
 
@@ -73,7 +77,24 @@ proc findParentContextForLineType*(context: Context, lineId: string): Context =
    elif not isNil(context.parent):
       result = findParentContextForLineType(context.parent, lineId)
    else: discard
+   if isNil(result):
+        raise newException(ContextWithLineIdNotFoundError, "No context found supporting child record type $#" % lineId)
 
 proc toString*(ctx: Context): string = 
    "Context[lt: $#]" % [ctx.lineType.lineId]
 
+proc root*(context: Context): Context =
+    if isNil(context.parent):
+        context
+    else:
+        root(context.parent)
+
+proc current*(context: Context): Context =
+    context.currentSubContext
+
+proc addLine*(context: var Context, line: string) =
+    let lType = context.docType.getLineTypeForLine(line)
+    let lineId = getLineId(line)
+    var parentContext = findParentContextForLineType(context.currentSubContext, lineId)
+    context.currentSubContext = createSubContext(parentContext, lType, line)
+    context.currentSubContext.state = csRegistered

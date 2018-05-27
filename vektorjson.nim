@@ -1,4 +1,4 @@
-import json, sequtils, future, logging
+import json, sequtils, future, logging, strutils
 import "common"
 
 proc readLineElementType*(node: JsonNode): LineElementType =
@@ -35,6 +35,7 @@ proc readLineType*(node: JsonNode, lineLength: int): LineType =
       name: node["name"].getStr(),
       length: int(node["length"].getNum()),
       lineId: lineId,
+      index: parseInt(lineId),
       childLinks: children,
       lineElementTypes: leTypes,
       hasDependentElements: hasDependentEls

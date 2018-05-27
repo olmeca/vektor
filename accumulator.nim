@@ -82,7 +82,7 @@ proc write*(acc: Accumulator, buf: var seq[char]) =
 
 proc asString*(acc: Accumulator): string =
    let items = lc[t.asString() | (t <- acc.totals), string]
-   result = items.join(", ")
+   result = items.join("| ")
 
 proc validateBottomLine*(docType: DocumentType, line: string, nr: int, errors: var seq[ValidationResult], acc: Accumulator) =
     for total in acc.totals.items():

@@ -30,6 +30,7 @@ type
       name*: string
       length*: int
       lineId*: string
+      index*: int
       lineElementTypes*: seq[LineElementType]
       childLinks*: seq[LineTypeLink]
       hasDependentElements*: bool
@@ -131,7 +132,7 @@ proc asString*(err: ValidationResult): string =
    let leId = if isNil(err.leId): "" else: ", field " & err.leId
    "Line $#$#: $#" % [intToStr(err.lineNr), leId, err.info]
 
-proc parseVektisDate*(dateString: string): TimeInfo =
+proc parseVektisDate*(dateString: string): DateTime =
    try:
       result = parse(dateString, cVektisDateFormat)
    except Exception:

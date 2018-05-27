@@ -204,7 +204,7 @@ proc getElementValueFullString(line: string, leType: LineElementType): string =
 proc getElementValueFullString*(docType: DocumentType, line: string, lineElementId: string): string =
    #debug("getElementValueFullString: '$#'" % [lineElementId])
    assert line[0..1] == lineElementId[0..1]
-   let lineType = docType.getLineTypeForLineId(line[0..1])
+   let lineType = docType.getLineTypeForLine(line)
    let leType = lineType.getLineElementType(lineElementId)
    getElementValueFullString(line, leType)
 
@@ -216,6 +216,9 @@ proc getElementValueString*(line: string, leType: LineElementType): string =
 
 proc getElementValueInt*(line: string, leType: LineElementType): int =
    parseInt(getElementValueString(line, leType))
+
+proc getElementValueDate*(line: string, leType: LineElementType): DateTime =
+    parseVektisDate(getElementValueFullString(line, leType))
 
 proc getElementValueFormatted*(line: string, leType: LineElementType): string =
    if leType.isAmountType():
