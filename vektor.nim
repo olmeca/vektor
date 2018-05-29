@@ -60,14 +60,13 @@ var
    logLevel: string = nil
    gNames: seq[string] = nil
    subject: string
-   gRandomizedValuesMap: TableRef[string, string]
    gSequenceNumber: int = 0
    cMaxErrors: int = 20
    gDebRecVersion: DebtorRecordVersion = drvDefault
    argDebRevVersionSpecified = false
 
 proc setLoggingLevel(level: Level) =
-   let filePath = joinPath(getAppDir(), "vektor.log")
+   let filePath = getVektorLogPath()
    var fileLogger = newFileLogger(filePath, fmtStr = verboseFmtStr)
    addHandler(fileLogger)
    setLogFilter(level)
@@ -491,6 +490,11 @@ proc processCommandArgs() =
          subject = "none"
    else: discard
 
+randomize()
+readConfigurationFile()
+initializeExpressionReaders()
+readDocumentTypes()
+
 for kind, key, value in getopt():
    case kind
    of cmdLongoption, cmdShortOption:
@@ -525,10 +529,6 @@ if not isNil(logLevel):
    setLoggingLevel(readLogLevel(logLevel))
 else: discard
 # Initialize the random generator
-randomize()
-
-initializeExpressionReaders()
-readDocumentTypes()
 processCommandArgs()
 
 if not commandWasRead:
@@ -593,8 +593,6 @@ else:
                      mutateAndWrite(context, accumulator, outStream)
                      while input.readLine(line):
                         lineNr = lineNr + 1
-                        if line.hasOwnRandomizationContext():
-                           gRandomizedValuesMap = newTable[string, string]()
                         context.addLine(line)
                         debug("process line $#" % intToStr(lineNr))
                         mutateAndWrite(context, accumulator, outStream)

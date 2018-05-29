@@ -1,4 +1,4 @@
-import tables, json, os, ospaths, logging, strutils, times, pegs
+import tables, json, os, ospaths, logging, strutils, times, pegs, streams
 
 type
    DocumentTypeError* = object of Exception
@@ -74,6 +74,11 @@ const
    cNumberCodePrefix* = "NUM"
    cDateCodePrefix* = "DAT"
    cAmountCredit* = "C"
+   cVektorConfigFileKey* = "VEKTOR_CONFIG"
+   cVektorDataDirKey* = "VEKTOR_DATA_DIR"
+   cVektorLogFileKey* = "VEKTOR_LOG"
+   cLogFileName* = "vektor.log"
+   cDefaultConfigFileName = "vektor.conf"
 
 let
    vektisDatePattern* = peg"""#
@@ -81,8 +86,18 @@ let
    VektisDate <- \d \d \d \d \d \d \d \d
    """
 
+var
+   gConfiguration: TableRef[string, string]
+
+
+proc getVektorLogPath*(): string =
+    gConfiguration.mgetOrPut(cVektorLogFileKey, joinPath(getAppDir(), cLogFileName))
+
+proc getVektorDataDir*(): string =
+    gConfiguration.mgetOrPut(cVektorDataDirKey, joinPath(getAppDir(), cDataDir))
+
 proc getJsonData*(fileName: string): JsonNode =
-   let fullPath = joinPath(getAppDir(), cDataDir, fileName)
+   let fullPath = joinPath(getVektorDataDir(), fileName)
    debug("getJsonData reading from: " & fullPath)
    let jsonString = system.readFile(fullPath)
    result = parseJson(jsonString)
@@ -150,3 +165,24 @@ proc firstIndexMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.})
          return i
    raise newException(NoMatchingItemFound, "No item in list matching given criteria")
 
+proc readConfiguration(input: Stream): TableRef[string, string] =
+    var line: string = ""
+    var i = 0
+    result = newTable[string, string]()
+    while input.readLine(line):
+        i = i + 1
+        if len(line) > 0 and line[0] != '#':
+            let items = line.split('=')
+            if len(items) == 2:
+                let key = items[0]
+                let value = items[1]
+                result[key] = value
+
+proc readConfigurationFile*() =
+    let path = getEnv(cVektorConfigFileKey, joinPath(getAppDir(), cDefaultConfigFileName))
+    if existsFile(path):
+        let input = newFileStream(path, fmRead)
+        gConfiguration = readConfiguration(input)
+        input.close()
+    else:
+        quit("Vektor configuration not found: $#" % [path])
