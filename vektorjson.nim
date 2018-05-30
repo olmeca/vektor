@@ -1,4 +1,4 @@
-import json, sequtils, future, logging, strutils
+import json, sequtils, future, logging, strutils, tables
 import "common"
 
 proc readLineElementType*(node: JsonNode): LineElementType =
@@ -53,3 +53,19 @@ proc readDocumentType*(node: JsonNode, lineLength: int): DocumentType =
       lineLength: docLineLength,
       lineTypes: lineTypes
    )
+
+proc readElementSet(setNode: JsonNode): seq[string] =
+    lc[getStr(node) | (node <- setNode.elems), string]
+
+proc readElementSets(table: OrderedTable[string, JsonNode]): TableRef[string, seq[string]] =
+    result = newTable[string, seq[string]]()
+    for key, node in table.pairs():
+        result[key] = readElementSet(node)
+
+proc readAppConfig*(node: JsonNode): AppConfig =
+    let dataDir = getStr(node{"dataDir"}, defaultDataDir())
+    let logFile = getStr(node{"logFile"}, defaultLogPath())
+    let setNode = node{"showElementSets"}
+    result = AppConfig(dataDir: dataDir, logFile: logFile)
+    if not isNil(setNode):
+        result.showElementSets = readElementSets(setNode.fields)

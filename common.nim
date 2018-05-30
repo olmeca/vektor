@@ -57,6 +57,10 @@ type
       vrType*: ValidationResultType
       info*: string
 
+   AppConfig* = ref object
+        dataDir*: string
+        logFile*: string
+        showElementSets*: TableRef[string, seq[string]]
 
 const
    cDataDir* = "vektor-data"
@@ -78,7 +82,7 @@ const
    cVektorDataDirKey* = "VEKTOR_DATA_DIR"
    cVektorLogFileKey* = "VEKTOR_LOG"
    cLogFileName* = "vektor.log"
-   cDefaultConfigFileName = "vektor.conf"
+   cDefaultConfigFileName = "vektor.json"
 
 let
    vektisDatePattern* = peg"""#
@@ -87,14 +91,23 @@ let
    """
 
 var
-   gConfiguration: TableRef[string, string]
+   gAppConfig*: AppConfig
 
+
+proc defaultDataDir*(): string =
+    joinPath(getAppDir(), cDataDir)
+
+proc defaultLogPath*(): string =
+    joinPath(getAppDir(), cLogFileName)
 
 proc getVektorLogPath*(): string =
-    gConfiguration.mgetOrPut(cVektorLogFileKey, joinPath(getAppDir(), cLogFileName))
+    gAppConfig.logFile
 
 proc getVektorDataDir*(): string =
-    gConfiguration.mgetOrPut(cVektorDataDirKey, joinPath(getAppDir(), cDataDir))
+    gAppConfig.dataDir
+
+proc getConfigPath*(): string =
+    getEnv(cVektorConfigFileKey, joinPath(getAppDir(), cDefaultConfigFileName))
 
 proc getJsonData*(fileName: string): JsonNode =
    let fullPath = joinPath(getVektorDataDir(), fileName)
@@ -165,6 +178,7 @@ proc firstIndexMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.})
          return i
    raise newException(NoMatchingItemFound, "No item in list matching given criteria")
 
+# Deprecated
 proc readConfiguration(input: Stream): TableRef[string, string] =
     var line: string = ""
     var i = 0
@@ -178,11 +192,3 @@ proc readConfiguration(input: Stream): TableRef[string, string] =
                 let value = items[1]
                 result[key] = value
 
-proc readConfigurationFile*() =
-    let path = getEnv(cVektorConfigFileKey, joinPath(getAppDir(), cDefaultConfigFileName))
-    if existsFile(path):
-        let input = newFileStream(path, fmRead)
-        gConfiguration = readConfiguration(input)
-        input.close()
-    else:
-        quit("Vektor configuration not found: $#" % [path])

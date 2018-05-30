@@ -1,5 +1,5 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
-import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting", "expressions", "expressionsreader"
+import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting", "expressions", "expressionsreader", "vektorjson"
 
 type
    FieldSpec = ref FieldSpecObj
@@ -489,6 +489,15 @@ proc processCommandArgs() =
       else:
          subject = "none"
    else: discard
+
+proc readConfigurationFile() =
+    let path = getConfigPath()
+    if existsFile(path):
+        let jsonNode = system.readFile(path).parseJson()
+        gAppConfig = readAppConfig(jsonNode)
+    else:
+        gAppConfig = AppConfig(dataDir: defaultDataDir(), logFile: defaultLogPath())
+        #quit("Vektor configuration file not found at: $#\nMaybe you forgot to set the VEKTOR_CONFIG environment variable?" % path)
 
 randomize()
 readConfigurationFile()
