@@ -1,19 +1,6 @@
 import pegs, strutils, sequtils
 import "common"
 
-type
-   ExpressionError* = object of Exception
-   Expression* = ref ExpressionObj
-   ExpressionObj* = object of RootObj
-      serializeImpl*: proc(expr: Expression): string
-      asStringImpl*: proc(expr: Expression): string
-      isDerived*: bool
-
-   ExpressionReader* = ref ExpressionReaderObj
-   ExpressionReaderObj* = object of RootObj
-      pattern*: Peg
-      readImpl*: proc(valueSpec: string, leId: string, typeCode: string, length: int): Expression
-
 proc serialize*(expr: Expression): string =
    expr.serializeImpl(expr)
 

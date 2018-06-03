@@ -62,6 +62,32 @@ type
         logFile*: string
         showElementSets*: TableRef[string, seq[string]]
 
+   #Expressions
+   ExpressionError* = object of Exception
+   Expression* = ref ExpressionObj
+   ExpressionObj* = object of RootObj
+      serializeImpl*: proc(expr: Expression): string
+      asStringImpl*: proc(expr: Expression): string
+      isDerived*: bool
+
+   ExpressionReader* = ref ExpressionReaderObj
+   ExpressionReaderObj* = object of RootObj
+      pattern*: Peg
+      readImpl*: proc(valueSpec: string, leId: string, typeCode: string, length: int): Expression
+
+   # FieldSpecs
+   FieldSpec* = ref FieldSpecObj
+   FieldSpecObj = object of RootObj
+      leType: LineElementType
+   FieldValueSpec* = ref FieldValueSpecObj
+   FieldValueSpecObj = object of FieldSpecObj
+      value: Expression
+
+   FieldSpecError* = object of Exception
+
+   TCommand = enum
+      cmdCopy, cmdQuery, cmdInfo, cmdHelp, cmdPrint, cmdValidate
+
 const
    cDataDir* = "vektor-data"
    cBlanksSet*: set[char] = { ' ' }

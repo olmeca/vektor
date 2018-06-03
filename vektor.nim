@@ -2,30 +2,7 @@ import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, t
 import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting", "expressions", "expressionsreader", "vektorjson"
 
 type
-   FieldSpec = ref FieldSpecObj
-   FieldSpecObj = object of RootObj
-      leType: LineElementType
-   FieldValueSpec = ref FieldValueSpecObj
-   FieldValueSpecObj = object of FieldSpecObj
-      value: Expression
-   
-   FieldSpecError = object of Exception
-   
-   TCommand = enum
-      cmdCopy, cmdQuery, cmdInfo, cmdHelp, cmdPrint, cmdValidate
 
-   VektorJob = ref object of RootObj
-        logLevel: string
-   DocumentJob = ref object of VektorJob
-        inputPath: string
-        debRecVersion: DebtorRecordVersion
-        docType: DocumentType
-   SelectiveJob = ref object of DocumentJob
-        selectionQualifier: LineQualifier
-        fields: seq[FieldValueSpec]
-   CopyJob = ref object of DocumentJob
-        replacementQualifier: LineQualifier
-        outputPath: string
 
 const
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
