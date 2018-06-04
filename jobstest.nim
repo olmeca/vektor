@@ -1,4 +1,4 @@
-import unittest, logging
+import unittest, logging, parseopt2
 import "common", "qualifiers", "doctypes", "jobs"
 
 suite "info command":
@@ -48,3 +48,56 @@ suite "show command":
         check:
             job.fieldsString == "fieldsstring"
             job.fieldsFile == "fieldsfile"
+
+suite "copy command":
+    setup:
+        let job = newCopyJob()
+
+    test "copy command: inherited named parameter":
+        let param1 = newNamedJobParam(cParamNameDebugLevel, "debug")
+        param1.apply(job)
+        check:
+            job.logLevel == lvlDebug
+
+    test "copy command: inherited indexed parameters":
+        let param = newJobParam("test.asc")
+        param.apply(job)
+        check:
+             job.documentPath == "test.asc"
+
+    test "copy command: all named parameters":
+        newNamedJobParam(cParamNameFieldValuesString, "fieldvaluesstring").apply(job)
+        newNamedJobParam(cParamNameFieldValuesFile, "fieldvaluesfile").apply(job)
+        newNamedJobParam(cParamNameCondition, "replacementQualString").apply(job)
+        newNamedJobParam(cParamNameOutputPath, "outputPath").apply(job)
+        check:
+            job.fieldValuesString == "fieldvaluesstring"
+            job.fieldValuesFile == "fieldvaluesfile"
+            job.replacementQualifierString == "replacementQualString"
+            job.outputPath == "outputPath"
+
+suite "reading job":
+
+    test "info job with doctype":
+        var options = initOptParser("info MZ301")
+        let job = InfoJob(readJob(options))
+        check:
+             job.docTypeName == "MZ301"
+             isNil(job.docTypeVersion)
+
+    test "info job with doctype and debug level":
+        var options = initOptParser("info MZ301 -D:debug")
+        let job = InfoJob(readJob(options))
+        check:
+             job.docTypeName == "MZ301"
+             job.logLevel == lvlDebug
+             isNil(job.docTypeVersion)
+
+    test "info job with doctype and version and line id":
+        var options = initOptParser("info MZ301 1.3 -l:04")
+        let job = InfoJob(readJob(options))
+        check:
+             job.docTypeName == "MZ301"
+             job.docTypeVersion == "1.3"
+             job.lineId == "04"
+

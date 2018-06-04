@@ -1,4 +1,4 @@
-import os, logging, sets, strutils
+import os, logging, sets, strutils, sequtils, parseopt2
 import "common", "qualifiers", "doctypes"
 
 const cCommandInfo = "info"
@@ -33,7 +33,7 @@ const cInfoParamIndexDocTypeVersion = 1
 const cCommonParamIndexDocument = 0
 
 type
-    VektorJob = ref VektorJobObject
+    VektorJob* = ref VektorJobObject
     VektorJobObject = object of RootObj
         name*: string
         logLevel*: Level
@@ -44,7 +44,7 @@ type
         paramIndex: int
         maxParamIndex: int
 
-    HelpJob = ref HelpJobObject
+    HelpJob* = ref HelpJobObject
     HelpJobObject = object of VektorJobObject
         subject*: string
 
@@ -52,36 +52,36 @@ type
     DocTypeJobObject = object of VektorJobObject
         docType*: DocumentType
 
-    InfoJob = ref InfoJobObject
+    InfoJob* = ref InfoJobObject
     InfoJobObject = object of DocTypeJobObject
         docTypeName*: string
         docTypeVersion*: string
         lineId*: string
 
-    DocumentJob = ref DocumentJobObject
+    DocumentJob* = ref DocumentJobObject
     DocumentJobObject = object of DocTypeJobObject
         documentPath*: string
         debRecVersion*: DebtorRecordVersion
 
-    ValidateJob = ref object of DocumentJob
+    ValidateJob* = ref object of DocumentJob
 
     SelectiveJob = ref SelectiveJobObject
     SelectiveJobObject = object of DocumentJobObject
         selectionQualifier*: LineQualifier
         selectionQualifierString: string
 
-    ShowJob = ref ShowJobObject
+    ShowJob* = ref ShowJobObject
     ShowJobObject = object of SelectiveJobObject
         fieldsString*: string
         fieldsFile*: string
         fields*: seq[FieldSpec]
 
-    CopyJob = ref CopyJobObject
+    CopyJob* = ref CopyJobObject
     CopyJobObject = object of SelectiveJobObject
-        fieldValuesString: string
-        fieldValuesFile: string
+        fieldValuesString*: string
+        fieldValuesFile*: string
         fieldValues*: seq[FieldValueSpec]
-        replacementQualifierString: string
+        replacementQualifierString*: string
         replacementQualifier*: LineQualifier
         outputPath*: string
 
@@ -237,3 +237,42 @@ proc newCopyJob*(): CopyJob =
     result.applyIndexedImpl = applyDocJobIndexedParam
     result.applyNamedImpl = applyCopyJobNamedParam
 
+proc createJobForCommand(cmdString: string): VektorJob =
+    case cmdString
+    of "info":
+        result = newInfoJob()
+    of "help":
+        result = newHelpJob()
+    of "show":
+        result = newShowJob()
+    of "copy":
+        result = newCopyJob()
+    else:
+        raise newException(ValueError, "Invalid command: $#" % cmdString)
+
+proc createNamedParam(key: string, value: string): NamedJobParam =
+    if len(key) > 1:
+        raise newException(ValueError, "Invalid command option: $#" % key)
+    elif isNil(value) or len(value) == 0:
+        raise newException(ValueError, "Missing value for option: $#" % key)
+    else:
+        result = newNamedJobParam(toSeq(key.items)[0], value)
+
+
+proc readJob*(parser: var OptParser): VektorJob =
+    for kind, key, value in getopt(parser):
+        case kind
+        of cmdArgument:
+            if isNil(result):
+                result = createJobForCommand(key)
+            else:
+                let param = newJobParam(key)
+                apply(param, result)
+        of cmdShortOption:
+            if isNil(result):
+                raise newException(ValueError, "Missing vektor command.")
+            else:
+                let param = createNamedParam(key, value)
+                apply(param, result)
+        else:
+            raise newException(ValueError, "Invalid command option: $#" % key)
