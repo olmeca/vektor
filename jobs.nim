@@ -1,5 +1,5 @@
 import os, logging, sets, strutils, sequtils, parseopt2
-import "common", "qualifiers", "doctypes"
+import "common", "qualifiers", "doctypes", "accumulator", "context"
 
 const cCommandInfo = "info"
 const cCommandShow = "show"
@@ -40,6 +40,7 @@ type
         applyIndexedImpl: proc (job: VektorJob, param: JobParam)
         applyNamedImpl: proc (job: VektorJob, param: NamedJobParam)
         initializeImpl: proc (job: VektorJob)
+        runImpl*: proc(job: VektorJob)
         paramNames: set[char]
         paramIndex: int
         maxParamIndex: int
@@ -55,26 +56,32 @@ type
     InfoJob* = ref InfoJobObject
     InfoJobObject = object of DocTypeJobObject
         docTypeName*: string
-        docTypeVersion*: string
+        docTypeVersion*: int
+        docTypeSubversion*: int
         lineId*: string
+
 
     DocumentJob* = ref DocumentJobObject
     DocumentJobObject = object of DocTypeJobObject
         documentPath*: string
         debRecVersion*: DebtorRecordVersion
+        accumulator*: Accumulator
+        context*: Context
+        lineNr*: int
 
     ValidateJob* = ref object of DocumentJob
 
-    SelectiveJob = ref SelectiveJobObject
+    SelectiveJob* = ref SelectiveJobObject
     SelectiveJobObject = object of DocumentJobObject
         selectionQualifier*: LineQualifier
-        selectionQualifierString: string
+        selectionQualifierString*: string
 
     ShowJob* = ref ShowJobObject
     ShowJobObject = object of SelectiveJobObject
         fieldsString*: string
-        fieldsFile*: string
+        fieldsConfigKey*: string
         fields*: seq[FieldSpec]
+        maxLineTypeIndex*: int
 
     CopyJob* = ref CopyJobObject
     CopyJobObject = object of SelectiveJobObject
@@ -134,6 +141,19 @@ proc applyHelpJobIndexedParam(job: VektorJob, param: JobParam) =
         helpJob.subject = param.rawValue
         inc(helpJob.paramIndex)
 
+proc setDocTypeVersion(job: InfoJob, version: string) =
+    if not isNil(version):
+        if len(version) == 1 and isDigit(version):
+            job.docTypeVersion = parseInt(version)
+        else:
+            let items = version.split('.')
+            job.docTypeVersion = parseInt(items[0])
+            job.docTypeSubversion = parseInt(items[1])
+    else: discard
+
+proc isVersionSpecified*(job: InfoJob): bool =
+    job.docTypeVersion != -1
+
 
 proc applyInfoJobIndexedParam(job: VektorJob, param: JobParam) =
     let infoJob = InfoJob(job)
@@ -142,7 +162,7 @@ proc applyInfoJobIndexedParam(job: VektorJob, param: JobParam) =
         infoJob.docTypeName = param.rawValue
         inc(infoJob.paramIndex)
     of cInfoParamIndexDocTypeVersion:
-        infoJob.docTypeVersion = param.rawValue
+        infoJob.setDocTypeVersion(param.rawValue)
         inc(infoJob.paramIndex)
     else:
         raise newException(ValueError, "Too many parameters for command '$#'" % [job.name])
@@ -190,7 +210,7 @@ proc applyShowJobNamedParam(job: VektorJob, param: NamedJobParam) =
     of cParamNameFieldsString:
         showJob.fieldsString = param.rawValue
     of cParamNameFieldsFile:
-        showJob.fieldsFile = param.rawValue
+        showJob.fieldsConfigKey = param.rawValue
     else:
         applySelectiveJobNamedParam(job, param)
 
@@ -215,6 +235,8 @@ proc newInfoJob*(): InfoJob =
     result.maxParamIndex = 1
     result.applyIndexedImpl = applyInfoJobIndexedParam
     result.applyNamedImpl = applyInfoJobNamedParam
+    result.docTypeVersion = -1
+    result.docTypeSubversion = -1
 
 proc newHelpJob*(): HelpJob =
     new(result)
@@ -276,3 +298,15 @@ proc readJob*(parser: var OptParser): VektorJob =
                 apply(param, result)
         else:
             raise newException(ValueError, "Invalid command option: $#" % key)
+
+proc initializeContext*(job: DocumentJob, line: string) =
+    let topLineType = job.docType.getLineTypeForLineId(cTopLineId)
+    job.context = createContext(job.docType, topLineType, line)
+    job.lineNr = 1
+
+proc addLine*(job: DocumentJob, line: string) =
+    job.accumulator.addLine(line)
+    if not isNil(job.context):
+        job.context.addLine(line)
+    else: discard
+    inc(job.lineNr)

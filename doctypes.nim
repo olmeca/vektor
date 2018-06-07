@@ -246,3 +246,11 @@ proc getElementValueSigned*(docType: DocumentType, leType: LineElementType, line
       raise newException(LineTypeMisMatch, "Cannot get value of type $# on line of type $#" % [leType.lineElementId, getLineId(line)])
    # Precondition: leType must be of type "BED***"
    result = getElementValueInt(line, leType) * sign(docType, leType, line)
+
+proc summary*(doctype: DocumentType): string =
+   "$# v$#.$#   $#" %
+      [doctype.name,
+      intToStr(doctype.formatVersion),
+      intToStr(doctype.formatSubVersion),
+      doctype.description]
+

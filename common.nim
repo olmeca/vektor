@@ -6,6 +6,9 @@ type
    ChildLinkWithLineIdNotFoundError* = object of Exception
    NoMatchingItemFound* = object of Exception
    LineTypeMisMatch* = object of Exception
+   DocumentReadError* = object of Exception
+   DocumentWriteError* = object of Exception
+
    DebtorRecordVersion* = enum
       drvDefault, drvSB1, drvSB2
    
@@ -78,10 +81,10 @@ type
    # FieldSpecs
    FieldSpec* = ref FieldSpecObj
    FieldSpecObj = object of RootObj
-      leType: LineElementType
+      leType*: LineElementType
    FieldValueSpec* = ref FieldValueSpecObj
    FieldValueSpecObj = object of FieldSpecObj
-      value: Expression
+      value*: Expression
 
    FieldSpecError* = object of Exception
 
@@ -217,4 +220,8 @@ proc readConfiguration(input: Stream): TableRef[string, string] =
                 let key = items[0]
                 let value = items[1]
                 result[key] = value
+
+proc checkProcessableLineType*(leId: string) =
+   if leId[0..1] == cBottomLineId:
+      raise newException(FieldSpecError, "Unsupported line ID: '$#'" % [leId[0..1]])
 

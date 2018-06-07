@@ -1,8 +1,5 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
-import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting", "expressions", "expressionsreader", "vektorjson"
-
-type
-
+import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting", "expressions", "expressionsreader", "vektorjson", "jobs", "infojob", "utils"
 
 const
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
@@ -11,6 +8,7 @@ const
    gTableLinePrefix = "| "
    gTableLineInfix = " | "
    gTableLinePostfix = " |"
+   cMaxErrors: int = 20
 
 
 var 
@@ -25,21 +23,7 @@ var
    optVersion: int = -1
    optSubversion: int = -1
    commandWasRead: bool = false
-   argDocTypeName: string
-   optLineId: string
-   argSourceFilePath: string
-   argDestFilePath: string
-   argReplacementScriptPath: string
-   gReplacementQualifier: LineQualifier = nil
-   gReplacementQualifierString: string = nil
-   gSelectionQualifier: LineQualifier = nil
-   gSelectionQualifierString: string = nil
-   logLevel: string = nil
-   gNames: seq[string] = nil
-   subject: string
    gSequenceNumber: int = 0
-   cMaxErrors: int = 20
-   gDebRecVersion: DebtorRecordVersion = drvDefault
    argDebRevVersionSpecified = false
 
 proc setLoggingLevel(level: Level) =
@@ -49,14 +33,7 @@ proc setLoggingLevel(level: Level) =
    setLogFilter(level)
 
 
-proc description(doctype: DocumentType): string =
-   "$# v$#.$#   $#" % 
-      [doctype.name, 
-      intToStr(doctype.formatVersion), 
-      intToStr(doctype.formatSubVersion), 
-      doctype.description]
-
-proc toString(fs: FieldSpec): string = 
+proc toString(fs: FieldSpec): string =
    "FieldSpec leId: $#" % [fs.leType.lineElementId]
 
 proc hasOwnRandomizationContext(line: string): bool =
@@ -75,21 +52,6 @@ proc fetch_doctype(line: string): DocumentType =
 
 proc isDerivedValue(valueSpec: string): bool =
    valueSpec[0] == '@'
-
-proc padright(source: string, length: int, fillChar: char = ' '): string =
-   if source.len > length:
-      source.substr(0, length-1)
-   else:
-      source & repeat(fillChar, length - source.len)
-
-proc writeCharsToStream(buf: seq[char], stream: Stream) =
-   for c in buf:
-      stream.write(c)
-   stream.write('\r')
-   stream.write('\l')
-
-proc mytrim(value: string, length: int): string = 
-   result = if value.len > length: value[0..length-1] else: value
 
 proc getNextSequenceNumber(): int =
    gSequenceNumber = gSequenceNumber + 1
@@ -157,19 +119,20 @@ proc printLine(ctx: Context, fields: seq[FieldSpec], stream: Stream) =
    stream.write("\n")
 
 
-proc conditionallyPrintLine(rootContext: var Context, outStream: Stream, fields: seq[FieldSpec], maxLineIndex: int, accumulator: Accumulator) =
+proc conditionallyPrintLine(job: ShowJob, outStream: Stream) =
+   var rootContext = job.context
    let currentContext = rootContext.current()
    var tempStream = newStringStream()
-   # Do not print subtypes of the subbest record type in the field specs (index > maxLineIndex)
-   if currentContext.lineType.index <= maxLineIndex and rootContext.conditionIsMet(gSelectionQualifier):
+   # Do not print subtypes of the subbest record type in the field specs (index > maxLineTypeIndex)
+   if currentContext.lineType.index <= job.maxLineTypeIndex and rootContext.conditionIsMet(job.selectionQualifier):
       try:
-         printLine(rootContext, fields, tempStream)
+         printLine(rootContext, job.fields, tempStream)
          outStream.write(tempStream.data)
-         if not isNil(accumulator):
-            rootContext.accumulate(accumulator)
+         if not isNil(job.accumulator):
+            accumulate(rootContext, job.accumulator)
       except ContextWithLineIdNotFoundError:
          debug(">>>>>> Referring to line id '$#' out of context." % [currentContext.lineType.lineId])
-   
+
 
 proc printHorLine(fields: seq[FieldSpec], stream: Stream) =
    stream.write("+-")
@@ -208,9 +171,11 @@ proc updateDependentLineElements(rootContext: Context, linebuffer: var openArray
            copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
 
 
-proc mutateAndWrite(rootContext: var Context, acc: var Accumulator, outStream: Stream) =
+proc mutateAndWrite(job: var CopyJob, outStream: Stream) =
+   var rootContext = job.context
    let context = rootContext.currentSubContext
    var lineBuffer = toSeq(context.line.mitems)
+
    # Bottom line cumulative values get updated
    # We don't allow bottom line values to be modified
    if context.lineType.lineId == cBottomLineId:
@@ -218,109 +183,34 @@ proc mutateAndWrite(rootContext: var Context, acc: var Accumulator, outStream: S
       # Clean up context from residual content
       rootContext.dropContentSubContexts()
       # Bottom line needs to first be updated with accumulated values
-      acc.write(lineBuffer)
+      job.accumulator.write(lineBuffer)
       context.line = lineBuffer.toString()
       writeCharsToStream(lineBuffer, outStream)
    else:
-      if rootContext.conditionIsMet(gSelectionQualifier):
+      if rootContext.conditionIsMet(job.selectionQualifier):
          debug("maw: selection qualifier is met")
-         if rootContext.conditionIsMet(gReplacementQualifier):
+         if rootContext.conditionIsMet(job.replacementQualifier):
             debug("maw: replacement qualifier is met")
             # Only attempt replacement if there are target fields defined
-            if not isNil(copyFields):
-               for field in copyFields:
+            if not isNil(job.fieldValues):
+               for field in job.fieldValues:
                   let leType = field.leType
                   if leType.isElementOfLine(context.line):
                      # if debtor record then field.leType is the default debtor record type, so get the real leType
                      # let leType = if line.isDebtorLine(): lineType.getLineElementType(field.leType.lineElementId) else: field.leType
-                     let newValue = FieldValueSpec(field).value.serialize()
+                     let newValue = field.value.serialize()
                      debug("maw: setting new value for leId '$#': '$#'" % [leType.lineElementId, newValue])
                      copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
          else: discard
 
          updateDependentLineElements(rootContext, linebuffer)
          context.line = lineBuffer.toString()
-         acc.addLine(context.line)
+         job.accumulator.addLine(context.line)
          writeContextToStream(rootContext, outStream)
 
 
-proc isSelected(dt: DocumentType): bool =
-   (isNil(argDocTypeName) or dt.name.startsWith(argDocTypeName)) and 
-      (optVersion == -1 or optVersion == dt.formatVersion) and 
-      (optSubversion == -1 or optSubversion == dt.formatSubVersion)
 
-proc selectDocTypes(): seq[DocumentType] =
-   result = filter(allDocumentTypes(), isSelected)
-
-proc showDocumentTypes() =
-   for doctype in selectDocTypes():
-      echo description(doctype)
-
-#proc printDocumentTypesCode(out: Stream) =
-#   for doctype in get_all_doctypes():
-#      printCode( doctype,out)
-
-proc showLineTypeInfo(doctype: DocumentType, ltId: string) =
-   let lt = doctype.getLineTypeForLineId(ltId)
-   echo description(doctype), ": ", lt.name
-   echo "ID     V-code    Pos    Len   Type   Description"
-   for et in lt.lineElementTypes:
-      echo "$#   $#   $#   $#   $#   $#" % 
-         [et.lineElementId, 
-         et.code, 
-         intToStr(et.startPosition, 4), 
-         intToStr(et.length, 4), 
-         padright(et.fieldType, 4), 
-         et.description]
-
-proc showDocumentTypeInfo(doctype: DocumentType) =
-   echo description(doctype)
-   echo "ID   Len   Description"
-   for lineType in doctype.lineTypes:
-      echo "$#   $#   $#" % [
-         lineType.lineId, 
-         intToStr(lineType.length,3), 
-         lineType.name]
-
-proc isVersionMissing(): bool = optVersion == -1 and optSubversion == -1
-
-proc showInfo() =
-   if isNil(argDocTypeName) or isVersionMissing():
-      showDocumentTypes()
-   else:
-      let doctype = documentTypeMatching(argDocTypeName.toUpperAscii(), optVersion, optSubversion)
-      if isNil(optLineId):
-         showDocumentTypeInfo(doctype)
-      else:
-         showLineTypeInfo(doctype, optLineId)
-
-proc readVersion(versionString: string) =
-   if isNil(versionString) or versionString.len == 0:
-      quit("Invalid version format specified: '$#'" % [versionString])
-   else:
-      let items = versionString.split('.')
-      if not isDigit(items[0]):
-         quit("Invalid version format specified: '$#'" % [versionString])
-      else:
-         optVersion = parseInt(items[0])
-      if items.len > 1:
-         if not isDigit(items[1]):
-            quit("Invalid version format specified: '$#'" % [versionString])
-         else:
-            optSubversion = parseInt(items[1])
-
-proc readQualifier(source: string, qualifier: var LineQualifier) =
-   if not isNil(source):
-      debug("readQualifier: $#" % source)
-      qualifier = docType.parseQualifier(source)
-   else: discard
-
-proc checkAndPrepareQualifiers() =
-   readQualifier(gReplacementQualifierString, gReplacementQualifier)
-   readQualifier(gSelectionQualifierString, gSelectionQualifier)
-
-
-proc showHelp() =
+proc showHelp(subject: string) =
    try:
        echo helpSubjects[subject]
    except KeyError:
@@ -360,26 +250,22 @@ proc readCommand(cmdString: string) =
 proc readExpression (leType: LineElementType, valueSpec: string): Expression =
    readExpression(valueSpec, leType.lineElementId, leType.code, leType.length)
 
-proc checkSupportedLineType(leId: string) =
-   if parseInt(leId[0..1]) >= 98:
-      raise newException(FieldSpecError, "Unsupported line ID: '$#'" % [leId[0..1]])
-
-proc readFieldSpec(spec: string): FieldSpec =
+proc readFieldSpec(job: ShowJob, spec: string): FieldSpec =
    if spec =~ fieldSpecPattern:
       let leTypeId = matches[0]
-      checkSupportedLineType(leTypeId)
-      let leType = docType.getLineElementType(leTypeId)
+      checkProcessableLineType(leTypeId)
+      let leType = job.docType.getLineElementType(leTypeId)
       result = FieldSpec(leType: leType)
    else:
       raise newException(FieldSpecError, "Invalid line element specification: '$#'" % [spec])
 
-proc readFieldValueSpec(spec: string): FieldValueSpec =
+proc readFieldValueSpec(job: CopyJob, spec: string): FieldValueSpec =
    if spec =~ fieldValueSpecPattern:
       debug("readFieldValueSpec: matches: '$#', '$#'" % [matches[0], matches[1]])
       let leTypeId = matches[0]
-      checkSupportedLineType(leTypeId)
+      checkProcessableLineType(leTypeId)
       let value = matches[1]
-      let leType = docType.getLineElementType(leTypeId)
+      let leType = job.docType.getLineElementType(leTypeId)
       if leType.isDependent():
          raise newException(FieldSpecError, 
             "Setting the value of derived field '$#' is not allowed. \nSet value of field $# instead and Vektor will also update field $# accordingly." % [leType.lineElementId, leType.sourceId, leType.lineElementId])
@@ -388,22 +274,6 @@ proc readFieldValueSpec(spec: string): FieldValueSpec =
       debug("readFieldValueSpec: leType: '$#', value: $#" % [leType.asString, valueExpression.asString])
    else:
       raise newException(FieldSpecError, "Invalid line element specification: '$#'" % [spec])
-
-proc readFieldSpecs(value: string, fields: var seq[FieldSpec], argName: string) = 
-   if not isNil(value):
-      if value =~ fieldSpecsPattern:
-         fields =  concat(fields, lc[readFieldSpec(s)|(s <- matches, not isNil(s)), FieldSpec])
-      else:
-         quit("Invalid elements specification in argument ($#): '$#'." % [argName, value])
-   else: discard
-
-proc readFieldValueSpecs(value: string, fields: var seq[FieldValueSpec], argName: string) = 
-   if not isNil(value):
-      if value =~ fieldSpecsPattern:
-         fields = lc[readFieldValueSpec(s)|(s <- matches, not isNil(s)), FieldValueSpec]
-      else:
-         quit("Invalid element values specification in argument ($#)." % [argName])
-   else: discard
 
 proc readDebtorRecordVersion(value: string): DebtorRecordVersion =
    case value
@@ -429,7 +299,7 @@ proc showFieldsRequired(): bool =
 
 proc determineDebtorRecordVersion(): DebtorRecordVersion =
    result = drvDefault
-   let input = newFileStream(argSourceFilePath, fmRead)
+   let input = newFileStream(documentPath, fmRead)
    var line: string = ""
    var i = 0
    while input.readLine(line) and i < 50:
@@ -442,6 +312,160 @@ proc determineDebtorRecordVersion(): DebtorRecordVersion =
          else:
             result = drvDefault
    close(input)
+
+proc printHeaders(job: ShowJob, stream: Stream) =
+    printHorLine(job.fields, stream)
+    printColumnHeaders(job.context, job.fields, stream)
+    printHorLine(job.fields, stream)
+
+
+proc initializeFieldValueSpecs(job: CopyJob) =
+    if isNil(job.fieldValuesString) and not isNil(job.fieldValuesFile):
+        job.fieldValuesString = system.readFile(job.fieldValuesFile)
+    else: discard
+
+    if not isNil(job.fieldValuesString):
+        if job.fieldValuesString =~ fieldSpecsPattern:
+            job.fieldValues = lc[readFieldValueSpec(job, spec)|(spec <- matches, not isNil(spec)), FieldValueSpec]
+        else:
+            raise newException(ValueError, "Invalid replacement values specified: $#" % job.fieldValuesString)
+    else: discard
+
+
+proc initializeFieldSpecs(job: ShowJob) =
+    if not isNil(job.fieldsString):
+        if job.fieldsString =~ fieldSpecsPattern:
+            job.fields =  lc[readFieldSpec(job, spec)|(spec <- matches, not isNil(spec)), FieldSpec]
+            job.maxLineTypeIndex = maxLineTypeIndex(job.fields)
+        else:
+            raise newException(ValueError, "Invalid fields specification: $#." % job.fieldsString)
+    else:
+        raise newException(ValueError, "Missing fields specification.")
+
+
+proc initializeSelectionQualifier(job: SelectiveJob) =
+    if not isNil(job.selectionQualifierString):
+        job.selectionQualifier = job.docType.parseQualifier(job.selectionQualifierString)
+    else: discard
+
+
+proc initializeReplacementQualifier(job: CopyJob) =
+    if not isNil(job.replacementQualifierString):
+        job.replacementQualifier = job.docType.parseQualifier(job.replacementQualifierString)
+    else: discard
+
+
+
+proc determineDebRecVersion(input: Stream): DebtorRecordVersion =
+   var i: int = 0
+   var line = ""
+   result = drvDefault
+   while input.readLine(line) and i < 50:
+      i = i + 1
+      if isDebtorLine(line):
+         if line.matchesDebtorRecordVersion(drvSB1):
+            result = drvSB1
+            break
+         elif line.matchesDebtorRecordVersion(drvSB2):
+            result = drvSB2
+            break
+         else: discard
+
+proc loadDocumentType(job: DocumentJob) =
+   var debRecVsn = drvDefault
+   let input = newFileStream(job.documentPath, fmRead)
+   var line: string = ""
+   var i = 0
+   if input.readLine(line):
+       if line.startswith(cTopLineId):
+          job.docType = fetch_doctype(line)
+       job.debRecVersion = determineDebRecVersion(input)
+   close(input)
+   loadDebtorRecordType(job.docType, debRecVsn)
+   job.accumulator = newAccumulator(job.docType)
+
+proc checkLine(job: DocumentJob, line: string) =
+    if line.isDebtorLine and not line.matchesDebtorRecordVersion(job.debRecVersion):
+        raise newException(ValueError, "Encountered line with unexpected debtor record version on line $#." % intToStr(job.lineNr))
+    else: discard
+
+proc run(job: VektorJob) =
+    showHelp("none")
+
+proc run(job: ShowJob) =
+    job.loadDocumentType()
+    job.initializeFieldSpecs()
+    job.initializeSelectionQualifier()
+
+    let input = newFileStream(job.documentPath, fmRead)
+    var line: string = ""
+    if input.readLine(line):
+        job.initializeContext(line)
+        let outStream = newFileStream(stdout)
+        job.printHeaders(outStream)
+        conditionallyPrintLine(job, outStream)
+        while input.readLine(line):
+            job.checkLine(line)
+            job.addLine(line)
+            job.conditionallyPrintLine(outStream)
+        stderr.writeLine ( "Totals |$#" % [job.accumulator.asString()] )
+    else:
+        raise newException(DocumentReadError, "Could not read document: $#" % job.documentPath)
+    input.close()
+
+proc run(job: var CopyJob) =
+    job.loadDocumentType()
+    job.initializeFieldValueSpecs()
+    job.initializeSelectionQualifier()
+    job.initializeReplacementQualifier()
+
+    let input = newFileStream(job.documentPath, fmRead)
+    var line: string = ""
+    if input.readLine(line):
+        job.initializeContext(line)
+        stderr.writeline("Document type: $#, SB311v$#" % [summary(job.docType), repr(job.debRecVersion)])
+        var outStream: Stream = newFileStream(job.outputPath, fmWrite)
+        if not isNil(outStream):
+            job.mutateAndWrite(outStream)
+            while input.readLine(line):
+                job.checkLine(line)
+                job.addLine(line)
+                job.mutateAndWrite(outStream)
+            outStream.close()
+        else:
+            raise newException(DocumentWriteError, "Could not write to file: $#" % job.outputPath)
+    else:
+        raise newException(DocumentReadError, "Could not read document: $#" % job.documentPath)
+
+    input.close()
+
+proc run(job: ValidateJob) =
+    loadDocumentType(job)
+    var errors: seq[ValidationResult] = @[]
+
+    let input = newFileStream(job.documentPath, fmRead)
+    var line: string = ""
+    if input.readLine(line):
+        while input.readLine(line) and errors.len < cMaxErrors:
+            if line.lineHasId(cBottomLineId):
+                job.validateBottomLine(line, errors)
+            else:
+                job.validate(line, errors)
+    else:
+        raise newException(DocumentReadError, "Could not read document: $#" % job.documentPath)
+    input.close()
+
+    if errors.len == 0:
+        stderr.writeLine( "OK.")
+    else:
+        for error in errors:
+            echo error.asString()
+
+
+proc run(job: InfoJob) =
+    let outStream = newFileStream(stdout)
+    writeInfo(job, outStream)
+
 
 proc processCommandArgs() =
    if command == cmdInfo:
@@ -476,135 +500,16 @@ proc readConfigurationFile() =
         gAppConfig = AppConfig(dataDir: defaultDataDir(), logFile: defaultLogPath())
         #quit("Vektor configuration file not found at: $#\nMaybe you forgot to set the VEKTOR_CONFIG environment variable?" % path)
 
-randomize()
-readConfigurationFile()
-initializeExpressionReaders()
-readDocumentTypes()
+try:
+    randomize()
+    readConfigurationFile()
+    initializeExpressionReaders()
+    readDocumentTypes()
 
-for kind, key, value in getopt():
-   case kind
-   of cmdLongoption, cmdShortOption:
-      case key 
-      of "D", "debug-level":
-         logLevel = value
-      of "d", "debtor-record":
-         argDebRevVersionSpecified = true
-         gDebRecVersion = readDebtorRecordVersion(value)
-      of "r", "replacements":
-         copyFieldsArg = value
-      of "R", "replacement-script":
-         argReplacementScriptPath = value
-      of "e", "elements":
-         showFieldsArg = value
-      of "l", "lineid":
-         optLineId = value
-      of "v", "version":
-         readVersion(value)
-      of "c", "condition":
-         gReplacementQualifierString = value
-      of "s", "selection":
-         gSelectionQualifierString = value
-   of cmdArgument:
-      if commandWasRead:
-         readCommandArgument(key)
-      else:
-         readCommand(key)
-   of cmdEnd: assert(false) # cannot happen
-
-if not isNil(logLevel):
-   setLoggingLevel(readLogLevel(logLevel))
-else: discard
-# Initialize the random generator
-processCommandArgs()
-
-if not commandWasRead:
-   showHelp()
-elif command == cmdHelp:
-   showHelp()
-elif command == cmdInfo:
-   showInfo()
-elif command == cmdPrint:
-   echo "Print command not supported yet"
-else:
-   if not existsFile(argSourceFilePath):
-      quit("Specified source file not found: $#" % [argSourceFilePath])
-   elif showFieldsRequired() and (isNil(showFieldsArg) or showFieldsArg.len == 0):
-      quit("You need to specify line elements (-e:0203,0207 or --elements 0203,0207 )")
-   else:
-      if not argDebRevVersionSpecified:
-         gDebRecVersion = determineDebtorRecordVersion()
-      let input = newFileStream(argSourceFilePath, fmRead)
-      var line: string = ""
-      if input.readLine(line):
-         if line.startswith(cTopLineId):
-            try:
-               docType = fetch_doctype(line)
-               loadDebtorRecordType(docType, gDebRecVersion)
-               if command == cmdQuery:
-                  var lineNr = 1
-                  checkAndPrepareQualifiers()
-                  var accumulator = newAccumulator(docType)
-                  let topLineType = docType.getLineTypeForLineId(cTopLineId)
-                  var context = createContext(docType, topLineType, line)
-                  stderr.writeline("Document type: $#, SB311v$#" % [description(docType), repr(gDebRecVersion)])
-                  readFieldSpecs(showFieldsArg, showFields, fieldSpecArgName())
-                  let outStream = newFileStream(stdout)
-                  printHeaders(context, showFields, outStream)
-                  let maxShownLineIndex = maxLineTypeIndex(showFields)
-                  conditionallyPrintLine(context, outStream, showFields, maxShownLineIndex, accumulator)
-                  while input.readLine(line):
-                     if line.isDebtorLine and not line.matchesDebtorRecordVersion(gDebRecVersion):
-                        quit("Input file has unexpected value for debtor record version in 03 lines.")
-                     context.addLine(line)
-                     conditionallyPrintLine(context, outStream, showFields, maxShownLineIndex, accumulator)
-                  printHorLine(showFields, outStream)
-                  stderr.writeLine ( "Totals |$#" % [accumulator.asString()] )
-               elif command == cmdCopy:
-                  var lineNr = 1
-                  checkAndPrepareQualifiers()
-                  var accumulator = newAccumulator(docType)
-                  let topLineType = docType.getLineTypeForLineId(cTopLineId)
-                  var context = createContext(docType, topLineType, line)
-                  stderr.writeline("Document type: $#, SB311v$#" % [description(docType), repr(gDebRecVersion)])
-                  if not isNil(argReplacementScriptPath):
-                     try:
-                        let replacementScript = system.readFile(argReplacementScriptPath)
-                        readFieldValueSpecs(replacementScript, copyFields, "-R (--replacementscript)")
-                     except IOError:
-                        quit("Cannot open file $#" % argReplacementScriptPath)
-                  readFieldValueSpecs(copyFieldsArg, copyFields, fieldSpecArgName())
-                  var outStream: Stream = newFileStream(argDestFilePath, fmWrite)
-                  if not isNil(outStream):
-                     debug("process line $#" % intToStr(lineNr))
-                     mutateAndWrite(context, accumulator, outStream)
-                     while input.readLine(line):
-                        lineNr = lineNr + 1
-                        context.addLine(line)
-                        debug("process line $#" % intToStr(lineNr))
-                        mutateAndWrite(context, accumulator, outStream)
-                     outStream.close()
-                  else:
-                     quit("Could not create file '$#'" % [outputPath])
-               elif command == cmdValidate:
-                  var accumulator = newAccumulator(docType)
-                  var lineNr = 1
-                  var errors: seq[ValidationResult] = @[]
-                  docType.validate(line, lineNr, errors)
-                  while input.readLine(line) and errors.len < cMaxErrors:
-                     lineNr = lineNr + 1
-                     if not lineHasId(line, cBottomLineId):
-                        docType.validate(line, lineNr, errors)
-                        accumulator.addLine(line)
-                     else:
-                        docType.validateBottomLine(line, lineNr, errors, accumulator)
-                  if errors.len == 0:
-                     stderr.writeLine( "OK.")
-                  else:
-                     for error in errors:
-                        echo error.asString()
-            except Exception:
-               quit(getCurrentExceptionMsg())
-         else:
-            quit("File is not a Vektis format (first two characters should be 01)")
-      input.close
-   
+    var cmdLineOptions = initOptParser()
+    var job = readJob(cmdLineOptions)
+    case job.name
+    of "info":
+        InfoJob(job).run()
+except Exception:
+    quit(getCurrentExceptionMsg())

@@ -3,12 +3,13 @@ import "common", "doctypes", "formatting"
 
 type
    Total* = ref object
-      leType: LineElementType
-      value: int
+      leType*: LineElementType
+      value*: int
+
    Accumulator* = ref object
       docType: DocumentType
-      totals: seq[Total]
-      empty: bool
+      totals*: seq[Total]
+      empty*: bool
 
 let
    cAnyId = "00"
@@ -84,20 +85,3 @@ proc asString*(acc: Accumulator): string =
    let items = lc[t.asString() | (t <- acc.totals), string]
    result = items.join("| ")
 
-proc validateBottomLine*(docType: DocumentType, line: string, nr: int, errors: var seq[ValidationResult], acc: Accumulator) =
-    for total in acc.totals.items():
-        let leType = total.leType
-        let itemValue = getIntegerValue(acc.docType, leType, line)
-        if itemValue != total.value:
-            var errorString = ""
-            if total.leType.isAmountType():
-                errorString = "Value of field $# ($#) not equal to the sum ($#) of $# field values." %
-                              [ intToStr(itemValue), leType.description, intTostr(total.value), leType.countable ]
-            else:
-                errorString = "Value of field $# ($#) not equal to the number ($#) of $# records." %
-                              [ intToStr(itemValue), leType.description, intTostr(total.value), getLineId(leType.countable) ]
-            errors.add(ValidationResult(lineNr: nr,
-                                            leId: leType.lineElementId,
-                                            vrType: vrSummationError,
-                                            info: errorString))
-        else: discard
