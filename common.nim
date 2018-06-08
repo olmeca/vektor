@@ -1,4 +1,4 @@
-import tables, json, os, ospaths, logging, strutils, times, pegs, streams
+import tables, json, os, ospaths, logging, strutils, sequtils, future, times, pegs, streams
 
 type
    DocumentTypeError* = object of Exception
@@ -93,7 +93,6 @@ type
 
 const
    cDataDir* = "vektor-data"
-   cBlanksSet*: set[char] = { ' ' }
    cRecordIdSize* = 2
    cFieldIdSize* = 4
    cBottomLineId* = "99"
@@ -144,9 +143,6 @@ proc getJsonData*(fileName: string): JsonNode =
    let jsonString = system.readFile(fullPath)
    result = parseJson(jsonString)
    debug("getJsonData: done reading.")
-
-proc stripBlanks*(source: string): string =
-   strip(source, true, true, cBlanksSet)
 
 proc isDateType*(code: string): bool =
    return code.startsWith(cDateCodePrefix)

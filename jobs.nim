@@ -1,11 +1,11 @@
-import os, logging, sets, strutils, sequtils, parseopt2
+import os, logging, sets, strutils, sequtils, parseopt2, tables
 import "common", "qualifiers", "doctypes", "accumulator", "context"
 
-const cCommandInfo = "info"
-const cCommandShow = "show"
-const cCommandCopy = "copy"
-const cCommandValidate = "validate"
-const cCommandHelp = "help"
+const cCommandInfo* = "info"
+const cCommandShow* = "show"
+const cCommandCopy* = "copy"
+const cCommandValidate* = "validate"
+const cCommandHelp* = "help"
 
 const cParamNameFieldsString* = 'e'
 const cParamNameFieldsFile* = 'E'
@@ -175,6 +175,7 @@ proc applyInfoJobNamedParam(job: VektorJob, param: NamedJobParam) =
     else:
         applyVektorJobNamedParam(job, param)
 
+
 proc apply*(param: JobParam, job: VektorJob) =
     applyIndexedParam(job, param)
 
@@ -230,7 +231,7 @@ proc applyCopyJobNamedParam(job: VektorJob, param: NamedJobParam) =
 
 proc newInfoJob*(): InfoJob =
     new(result)
-    result.name = "info"
+    result.name = cCommandInfo
     result.paramNames = cInfoParamSet
     result.maxParamIndex = 1
     result.applyIndexedImpl = applyInfoJobIndexedParam
@@ -240,14 +241,14 @@ proc newInfoJob*(): InfoJob =
 
 proc newHelpJob*(): HelpJob =
     new(result)
-    result.name = "help"
+    result.name = cCommandHelp
     result.paramNames = { }
     result.applyIndexedImpl = applyHelpJobIndexedParam
     result.applyNamedImpl = applyVektorJobNamedParam
 
 proc newShowJob*(): ShowJob =
     new(result)
-    result.name = "show"
+    result.name = cCommandShow
     result.paramNames = cShowParamSet
     result.applyIndexedImpl = applyDocJobIndexedParam
     result.applyNamedImpl = applyShowJobNamedParam
@@ -255,20 +256,30 @@ proc newShowJob*(): ShowJob =
 proc newCopyJob*(): CopyJob =
     new(result)
     result.paramNames = cCopyParamSet
-    result.name = "copy"
+    result.name = cCommandCopy
     result.applyIndexedImpl = applyDocJobIndexedParam
     result.applyNamedImpl = applyCopyJobNamedParam
 
+proc newValidateJob*(): ValidateJob =
+    new(result)
+    result.paramNames = {}
+    result. name = cCommandValidate
+    result.applyIndexedImpl = applyDocJobIndexedParam
+    result.applyNamedImpl = applyVektorJobNamedParam
+
+
 proc createJobForCommand(cmdString: string): VektorJob =
     case cmdString
-    of "info":
+    of cCommandInfo:
         result = newInfoJob()
-    of "help":
+    of cCommandHelp:
         result = newHelpJob()
-    of "show":
+    of cCommandShow:
         result = newShowJob()
-    of "copy":
+    of cCommandCopy:
         result = newCopyJob()
+    of cCommandValidate:
+        result = newValidateJob()
     else:
         raise newException(ValueError, "Invalid command: $#" % cmdString)
 
@@ -299,10 +310,12 @@ proc readJob*(parser: var OptParser): VektorJob =
         else:
             raise newException(ValueError, "Invalid command option: $#" % key)
 
+
 proc initializeContext*(job: DocumentJob, line: string) =
     let topLineType = job.docType.getLineTypeForLineId(cTopLineId)
     job.context = createContext(job.docType, topLineType, line)
     job.lineNr = 1
+
 
 proc addLine*(job: DocumentJob, line: string) =
     job.accumulator.addLine(line)
@@ -310,3 +323,13 @@ proc addLine*(job: DocumentJob, line: string) =
         job.context.addLine(line)
     else: discard
     inc(job.lineNr)
+
+
+proc accumulate*(context: var Context, acc: Accumulator) =
+   if context.state != csExported:
+      if context.line.isContentLine():
+         acc.addLine(context.line)
+      context.state = csExported
+   for subcontext in context.subContexts.mvalues:
+      accumulate(subcontext, acc)
+

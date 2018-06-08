@@ -257,6 +257,16 @@ proc parseQualifier*(docType: DocumentType, qualString: string): LineQualifier =
       debug("parseQualifier: $#" % error)
       raise newException(ValueError, error)
 
+proc conditionIsMet*(context: Context, qualifier: LineQualifier): bool =
+   if isNil(qualifier):
+      result = true
+   else:
+      try:
+         result = qualifier.qualifies(context)
+      except ContextWithLineIdNotFoundError:
+         debug("condition Is Met: '$#'" % getCurrentExceptionMsg())
+         result = false
+
 
 
 

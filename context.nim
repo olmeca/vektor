@@ -1,5 +1,5 @@
 import strutils, sequtils, tables, logging
-import "common", "doctypes"
+import "common", "doctypes", "utils"
 
 type
    ContextState* = enum
