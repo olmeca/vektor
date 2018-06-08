@@ -50,6 +50,7 @@ proc writeInfo*(job: InfoJob, outStream: Stream) =
     of 0:
         quit("Specified document format or version not supported.")
     of 1:
+        job.docType = matchingDocTypes[0]
         if isNil(job.lineId):
             writeDocumentTypeInfo(job, outStream)
         else:
