@@ -107,19 +107,29 @@ const
    cDateCodePrefix* = "DAT"
    cAmountCredit* = "C"
    cVektorConfigFileKey* = "VEKTOR_CONFIG"
-   cVektorDataDirKey* = "VEKTOR_DATA_DIR"
-   cVektorLogFileKey* = "VEKTOR_LOG"
+   cVektorDataDirKey* = "vektor.datadir"
+   cVektorLogFileKey* = "vektor.logfile"
    cLogFileName* = "vektor.log"
-   cDefaultConfigFileName = "vektor.json"
+   cDefaultConfigFileName = "vektor.properties"
 
 let
-   vektisDatePattern* = peg"""#
+   vektisDatePattern* = peg"""
    Pattern <- ^ VektisDate !.
    VektisDate <- \d \d \d \d \d \d \d \d
    """
 
+   propertyEntryPattern = peg"""
+   Property <- ^ Left Equals Right !.
+   Left <- {Name} Sp
+   Equals <- '=' Sp
+   Right <- {Value}
+   Name <- \ident '.' Name / \ident
+   Value <- .*
+   Sp <- \s*
+   """
+
 var
-   gAppConfig*: AppConfig
+   gAppConfig*: TableRef[string, string]
 
 
 proc defaultDataDir*(): string =
@@ -129,10 +139,10 @@ proc defaultLogPath*(): string =
     joinPath(getAppDir(), cLogFileName)
 
 proc getVektorLogPath*(): string =
-    gAppConfig.logFile
+    gAppConfig[cVektorLogFileKey]
 
 proc getVektorDataDir*(): string =
-    gAppConfig.dataDir
+    gAppConfig[cVektorDataDirKey]
 
 proc getConfigPath*(): string =
     getEnv(cVektorConfigFileKey, joinPath(getAppDir(), cDefaultConfigFileName))
@@ -191,11 +201,13 @@ proc parseVektisDate*(dateString: string): DateTime =
    except Exception:
       raise newException(ValueError, "Invalid date format: '$#'" % [dateString])
 
+
 proc firstItemMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.}): T {.inline.} =
    for i in 0..<list.len:
       if pred(list[i]):
          return list[i]
    raise newException(NoMatchingItemFound, "No item in list matching given criteria")
+
 
 proc firstIndexMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.}): int {.inline.} =
    for i in 0..<list.len:
@@ -203,19 +215,19 @@ proc firstIndexMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.})
          return i
    raise newException(NoMatchingItemFound, "No item in list matching given criteria")
 
-# Deprecated
-proc readConfiguration(input: Stream): TableRef[string, string] =
+
+proc readProperties*(input: Stream): TableRef[string, string] =
     var line: string = ""
     var i = 0
     result = newTable[string, string]()
     while input.readLine(line):
         i = i + 1
         if len(line) > 0 and line[0] != '#':
-            let items = line.split('=')
-            if len(items) == 2:
-                let key = items[0]
-                let value = items[1]
+            if line =~ propertyEntryPattern:
+                let key = matches[0]
+                let value = matches[1]
                 result[key] = value
+
 
 proc checkProcessableLineType*(leId: string) =
    if leId[0..1] == cBottomLineId:

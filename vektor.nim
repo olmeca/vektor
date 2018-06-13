@@ -227,13 +227,15 @@ proc processCommandArgs() =
    else: discard
 
 proc readConfigurationFile() =
-    let path = getConfigPath()
-    if existsFile(path):
-        let jsonNode = system.readFile(path).parseJson()
-        gAppConfig = readAppConfig(jsonNode)
+    let configFilePath = getConfigPath()
+    if existsFile(configFilePath):
+        let inStream = newFileStream(configFilePath, fmRead)
+        gAppConfig = readProperties(inStream)
+        inStream.close()
     else:
-        gAppConfig = AppConfig(dataDir: defaultDataDir(), logFile: defaultLogPath())
-        #quit("Vektor configuration file not found at: $#\nMaybe you forgot to set the VEKTOR_CONFIG environment variable?" % path)
+        gAppConfig = newTable[string, string]()
+        gAppConfig[cVektorDataDirKey] = defaultDataDir()
+        gAppConfig[cVektorConfigFileKey] = defaultLogPath()
 
 try:
     randomize()

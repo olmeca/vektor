@@ -65,7 +65,7 @@ proc readElementSets(table: OrderedTable[string, JsonNode]): TableRef[string, se
 proc readAppConfig*(node: JsonNode): AppConfig =
     let dataDir = getStr(node{"dataDir"}, defaultDataDir())
     let logFile = getStr(node{"logFile"}, defaultLogPath())
-    let setNode = node{"showElementSets"}
+    let setsNode = node{"showElementSets"}
     result = AppConfig(dataDir: dataDir, logFile: logFile)
-    if not isNil(setNode):
-        result.showElementSets = readElementSets(setNode.fields)
+    if not isNil(setsNode):
+        result.showElementSets = readElementSets(setsNode.fields)

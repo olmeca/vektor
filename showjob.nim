@@ -24,6 +24,16 @@ proc readFieldSpec(job: ShowJob, spec: string): FieldSpec =
       raise newException(FieldSpecError, "Invalid line element specification: '$#'" % [spec])
 
 proc initializeFieldSpecs*(job: ShowJob) =
+    if isNil(job.fieldsString):
+        if isNil(job.fieldsConfigKey):
+            # Check for a default configuration that can be used
+            let configKey = "fieldset.$#" % job.docType.name
+            job.fieldsString = gAppConfig[configKey]
+        else:
+            let configKey = "fieldset.$#.$#" % [job.docType.name, job.fieldsConfigKey]
+            job.fieldsString = gAppConfig[configKey]
+    else: discard
+
     if not isNil(job.fieldsString):
         if job.fieldsString =~ fieldSpecsPattern:
             job.fields =  lc[readFieldSpec(job, spec)|(spec <- matches, not isNil(spec)), FieldSpec]

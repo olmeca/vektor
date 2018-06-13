@@ -8,7 +8,7 @@ const cCommandValidate* = "validate"
 const cCommandHelp* = "help"
 
 const cParamNameFieldsString* = 'e'
-const cParamNameFieldsFile* = 'E'
+const cParamNameFieldSet* = 'E'
 const cParamNameFieldValuesString* = 'r'
 const cParamNameFieldValuesFile* = 'R'
 const cParamNameSelection* = 's'
@@ -21,7 +21,7 @@ const cCommonParamSet = { cParamNameDebugLevel }
 const cInfoParamSet = cCommonParamSet + { cParamNameLineId }
 const cSelectiveParamSet = cCommonParamSet + { cParamNameSelection }
 const cCopyParamSet = cSelectiveParamSet + { cParamNameCondition, cParamNameFieldValuesString, cParamNameFieldValuesFile, cParamNameOutputPath }
-const cShowParamSet = cSelectiveParamSet + { cParamNameFieldsString, cParamNameFieldsFile }
+const cShowParamSet = cSelectiveParamSet + { cParamNameFieldsString, cParamNameFieldSet }
 
 const cHelpParamCount = 1
 const cHelpParamIndexSubject = 0
@@ -159,7 +159,7 @@ proc applyInfoJobIndexedParam(job: VektorJob, param: JobParam) =
     let infoJob = InfoJob(job)
     case job.paramIndex
     of cInfoParamIndexDocTypeName:
-        infoJob.docTypeName = param.rawValue
+        infoJob.docTypeName = param.rawValue.toUpper()
         inc(infoJob.paramIndex)
     of cInfoParamIndexDocTypeVersion:
         infoJob.setDocTypeVersion(param.rawValue)
@@ -210,7 +210,7 @@ proc applyShowJobNamedParam(job: VektorJob, param: NamedJobParam) =
     case param.name
     of cParamNameFieldsString:
         showJob.fieldsString = param.rawValue
-    of cParamNameFieldsFile:
+    of cParamNameFieldSet:
         showJob.fieldsConfigKey = param.rawValue
     else:
         applySelectiveJobNamedParam(job, param)
