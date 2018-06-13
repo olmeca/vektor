@@ -8,21 +8,6 @@ const
    cMaxErrors: int = 20
 
 
-var 
-   copyFieldsArg: string
-   copyFields: seq[FieldValueSpec] = @[]
-   showFieldsArg: string
-   showFields: seq[FieldSpec] = @[]
-   outputPath: string = nil
-   command: TCommand = cmdCopy
-   commandArgs: seq[string] = @[]
-   docType: DocumentType
-   optVersion: int = -1
-   optSubversion: int = -1
-   commandWasRead: bool = false
-   gSequenceNumber: int = 0
-   argDebRevVersionSpecified = false
-
 proc setLoggingLevel(level: Level) =
    let filePath = getVektorLogPath()
    var fileLogger = newFileLogger(filePath, fmtStr = verboseFmtStr)
@@ -49,10 +34,7 @@ proc showHelp(subject: string) =
       echo "There is no help on subject '$#'" % [subject]
 
 
-proc showFieldsRequired(): bool =
-   command == cmdQuery
-
-proc determineDebtorRecordVersion(): DebtorRecordVersion =
+proc determineDebtorRecordVersion(documentPath: string): DebtorRecordVersion =
    result = drvDefault
    let input = newFileStream(documentPath, fmRead)
    var line: string = ""
@@ -201,30 +183,6 @@ proc run(job: InfoJob) =
     let outStream = newFileStream(stdout)
     writeInfo(job, outStream)
 
-
-proc processCommandArgs() =
-   if command == cmdInfo:
-      if commandArgs.len > 0:
-         argDocTypeName = commandArgs[0].toUpperAscii()
-         if commandArgs.len > 1:
-            readVersion(commandArgs[1])
-         else: discard
-      else: discard
-   elif command == cmdCopy:
-      checkCommandArgs(2, msgSourceOrDestMissing)
-      argSourceFilePath = commandArgs[0]
-      argDestFilePath = commandArgs[1]
-   elif command == cmdQuery:
-      argSourceFilePath = commandArgs[0]
-   elif command == cmdValidate:
-      checkCommandArgs(1, "Missing argument filename.")
-      argSourceFilePath = commandArgs[0]
-   elif command == cmdHelp:
-      if commandArgs.len > 0:
-         subject = commandArgs[0]
-      else:
-         subject = "none"
-   else: discard
 
 proc readConfigurationFile() =
     let configFilePath = getConfigPath()
