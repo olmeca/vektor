@@ -34,24 +34,6 @@ proc showHelp(subject: string) =
       echo "There is no help on subject '$#'" % [subject]
 
 
-proc determineDebtorRecordVersion(documentPath: string): DebtorRecordVersion =
-   result = drvDefault
-   let input = newFileStream(documentPath, fmRead)
-   var line: string = ""
-   var i = 0
-   while input.readLine(line) and i < 50:
-      i = i + 1
-      if isDebtorLine(line):
-         if line.matchesDebtorRecordVersion(drvSB1):
-            result = drvSB1
-         elif line.matchesDebtorRecordVersion(drvSB2):
-            result = drvSB2
-         else:
-            result = drvDefault
-   close(input)
-
-
-
 proc initializeSelectionQualifier(job: SelectiveJob) =
     if not isNil(job.selectionQualifierString):
         job.selectionQualifier = job.docType.parseQualifier(job.selectionQualifierString)
@@ -104,6 +86,25 @@ proc checkLine(job: DocumentJob, line: string) =
 proc run(job: VektorJob) =
     showHelp("none")
 
+proc backupPath(filePath: string): string =
+    "$#.bak" % filePath
+
+proc createBackup(filePath: string) =
+    if existsFile(filePath):
+        copyFile(filePath, backupPath(filePath))
+    else:
+        raise newException(ValueError, "File does not exist: $#" % filePath)
+
+proc restoreBackup(filePath: string) =
+    let backup = backupPath(filePath)
+    if existsFile(backup):
+        removeFile(filePath)
+        moveFile(backup, filePath)
+    else:
+        raise newException(ValueError, "No backup file exists for: $#" % filePath)
+
+proc run(job: RevertJob) =
+    restoreBackup(job.documentPath)
 
 proc run(job: ShowJob) =
     job.loadDocumentType()
@@ -128,12 +129,18 @@ proc run(job: ShowJob) =
         raise newException(DocumentReadError, "Could not read document: $#" % job.documentPath)
     input.close()
 
+proc checkOutputPath(job: var CopyJob) =
+    if isNil(job.outputPath):
+        createBackup(job.documentPath)
+        job.outputPath = job.documentPath
+    else: discard
 
 proc run(job: var CopyJob) =
     job.loadDocumentType()
     job.initializeFieldValueSpecs()
     job.initializeSelectionQualifier()
     job.initializeReplacementQualifier()
+    job.checkOutputPath()
 
     let input = newFileStream(job.documentPath, fmRead)
     var line: string = ""
@@ -208,9 +215,11 @@ try:
         InfoJob(job).run()
     of cCommandShow:
         ShowJob(job).run()
+    of cCommandRevert:
+        RevertJob(job).run()
     of cCommandValidate:
         ValidateJob(job).run()
-    of cCommandCopy:
+    of cCommandCopy, cCommandEdit:
         var copyJob = CopyJob(job)
         copyJob.run()
 except Exception:

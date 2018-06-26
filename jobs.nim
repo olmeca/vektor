@@ -4,6 +4,8 @@ import "common", "qualifiers", "doctypes", "accumulator", "context"
 const cCommandInfo* = "info"
 const cCommandShow* = "show"
 const cCommandCopy* = "copy"
+const cCommandEdit* = "edit"
+const cCommandRevert* = "revert"
 const cCommandValidate* = "validate"
 const cCommandHelp* = "help"
 
@@ -48,6 +50,10 @@ type
     HelpJob* = ref HelpJobObject
     HelpJobObject = object of VektorJobObject
         subject*: string
+
+    RevertJob* = ref RevertJobObject
+    RevertJobObject = object of VektorJobObject
+        documentPath*: string
 
     DocTypeJob = ref DocTypeJobObject
     DocTypeJobObject = object of VektorJobObject
@@ -197,6 +203,15 @@ proc applyDocJobIndexedParam (job: VektorJob, param: JobParam) =
             docJob.documentPath = param.rawValue
             inc(docJob.paramIndex)
 
+proc applyRevertJobIndexedParam (job: VektorJob, param: JobParam) =
+    let revJob = RevertJob(job)
+    if job.paramIndex == cCommonParamIndexDocument:
+        if isNil(param.rawValue):
+            raise newException(ValueError, "No input file specified.")
+        else:
+            revJob.documentPath = param.rawValue
+            inc(revJob.paramIndex)
+
 proc applySelectiveJobNamedParam(job: VektorJob, param: NamedJobParam) =
     let selJob = SelectiveJob(job)
     case param.name
@@ -246,6 +261,14 @@ proc newHelpJob*(): HelpJob =
     result.applyIndexedImpl = applyHelpJobIndexedParam
     result.applyNamedImpl = applyVektorJobNamedParam
 
+proc newRevertJob*(): RevertJob =
+    new(result)
+    result.name = cCommandRevert
+    result.paramNames = cCommonParamSet
+    result.maxParamIndex = 0
+    result.applyIndexedImpl = applyRevertJobIndexedParam
+    result.applyNamedImpl = applyVektorJobNamedParam
+
 proc newShowJob*(): ShowJob =
     new(result)
     result.name = cCommandShow
@@ -278,6 +301,8 @@ proc createJobForCommand(cmdString: string): VektorJob =
         result = newShowJob()
     of cCommandCopy:
         result = newCopyJob()
+    of cCommandRevert:
+        result = newRevertJob()
     of cCommandValidate:
         result = newValidateJob()
     else:
