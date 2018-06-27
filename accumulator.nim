@@ -40,8 +40,8 @@ proc getIntegerValue*(docType: DocumentType, leType: LineElementType, line: stri
     else:
         line.getElementValueInt(leType)
 
-proc addLine*(acc: Accumulator, line: string) =
-   debug("addLine: " & line[0..13])
+proc accumulate*(acc: Accumulator, line: string) =
+   debug("accumulator.accumulate: " & line[0..13])
    for total in acc.totals.mitems():
       let leId = total.leType.countable
       # match any line type, except bottom line
@@ -64,8 +64,8 @@ proc addLine*(acc: Accumulator, line: string) =
 proc isEmpty*(acc: Accumulator): bool =
    acc.empty
 
-proc addLine*(acc: Accumulator, buf: seq[char]) =
-   addLine(acc, buf.toString())
+#proc addLine*(acc: Accumulator, buf: seq[char]) =
+#   addLine(acc, buf.toString())
 
 proc writeNumber(value: int, buf: var openArray[char], start: int, length: int) =
    assert(len(buf) >= start +  length)

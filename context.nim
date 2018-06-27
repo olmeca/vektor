@@ -81,7 +81,7 @@ proc findParentContextForLineType*(context: Context, lineId: string): Context =
         raise newException(ContextWithLineIdNotFoundError, "No context found supporting child record type $#" % lineId)
 
 proc toString*(ctx: Context): string = 
-   "Context[lt: $#]" % [ctx.lineType.lineId]
+   "Context[lt: $#, ln: $#]" % [ctx.lineType.lineId, ctx.line[0..13]]
 
 proc root*(context: Context): Context =
     if isNil(context.parent):
@@ -93,6 +93,7 @@ proc current*(context: Context): Context =
     context.currentSubContext
 
 proc addLine*(context: var Context, line: string) =
+    debug("context.addLine: ctx: $#, line: $#" % [context.toString(), line[0..13]])
     let lType = context.docType.getLineTypeForLine(line)
     let lineId = getLineId(line)
     var parentContext = findParentContextForLineType(context.currentSubContext, lineId)

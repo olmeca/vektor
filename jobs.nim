@@ -253,6 +253,7 @@ proc newInfoJob*(): InfoJob =
     result.applyNamedImpl = applyInfoJobNamedParam
     result.docTypeVersion = -1
     result.docTypeSubversion = -1
+    result.logLevel = lvlNone
 
 proc newHelpJob*(): HelpJob =
     new(result)
@@ -260,6 +261,7 @@ proc newHelpJob*(): HelpJob =
     result.paramNames = { }
     result.applyIndexedImpl = applyHelpJobIndexedParam
     result.applyNamedImpl = applyVektorJobNamedParam
+    result.logLevel = lvlNone
 
 proc newRevertJob*(): RevertJob =
     new(result)
@@ -268,6 +270,7 @@ proc newRevertJob*(): RevertJob =
     result.maxParamIndex = 0
     result.applyIndexedImpl = applyRevertJobIndexedParam
     result.applyNamedImpl = applyVektorJobNamedParam
+    result.logLevel = lvlNone
 
 proc newShowJob*(): ShowJob =
     new(result)
@@ -275,6 +278,7 @@ proc newShowJob*(): ShowJob =
     result.paramNames = cShowParamSet
     result.applyIndexedImpl = applyDocJobIndexedParam
     result.applyNamedImpl = applyShowJobNamedParam
+    result.logLevel = lvlNone
 
 proc newCopyJob*(): CopyJob =
     new(result)
@@ -282,6 +286,7 @@ proc newCopyJob*(): CopyJob =
     result.name = cCommandCopy
     result.applyIndexedImpl = applyDocJobIndexedParam
     result.applyNamedImpl = applyCopyJobNamedParam
+    result.logLevel = lvlNone
 
 proc newValidateJob*(): ValidateJob =
     new(result)
@@ -289,6 +294,7 @@ proc newValidateJob*(): ValidateJob =
     result. name = cCommandValidate
     result.applyIndexedImpl = applyDocJobIndexedParam
     result.applyNamedImpl = applyVektorJobNamedParam
+    result.logLevel = lvlNone
 
 
 proc createJobForCommand(cmdString: string): VektorJob =
@@ -299,7 +305,7 @@ proc createJobForCommand(cmdString: string): VektorJob =
         result = newHelpJob()
     of cCommandShow:
         result = newShowJob()
-    of cCommandCopy:
+    of cCommandCopy, cCommandEdit:
         result = newCopyJob()
     of cCommandRevert:
         result = newRevertJob()
@@ -343,18 +349,21 @@ proc initializeContext*(job: DocumentJob, line: string) =
 
 
 proc addLine*(job: DocumentJob, line: string) =
-    job.accumulator.addLine(line)
+    debug("job.addLine: $#" % line[0..13])
+    #job.accumulator.accumulate(line)
     if not isNil(job.context):
         job.context.addLine(line)
     else: discard
     inc(job.lineNr)
 
 
-proc accumulate*(context: var Context, acc: Accumulator) =
-   if context.state != csExported:
-      if context.line.isContentLine():
-         acc.addLine(context.line)
-      context.state = csExported
-   for subcontext in context.subContexts.mvalues:
-      accumulate(subcontext, acc)
+proc accumulate*(acc: Accumulator, context: var Context) =
+    debug("jobs.accumulate  ctx: $#" % (context.toString()))
+    if context.state != csExported:
+        if context.line.isContentLine():
+            acc.accumulate(context.line)
+        context.state = csExported
+    for subcontext in context.subContexts.mvalues:
+        # recurse into subcontext
+        accumulate(acc, subcontext)
 

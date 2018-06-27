@@ -107,6 +107,7 @@ proc run(job: RevertJob) =
     restoreBackup(job.documentPath)
 
 proc run(job: ShowJob) =
+    setLoggingLevel(job.logLevel)
     job.loadDocumentType()
     job.initializeFieldSpecs()
     job.initializeSelectionQualifier()
@@ -136,6 +137,7 @@ proc checkOutputPath(job: var CopyJob) =
     else: discard
 
 proc run(job: var CopyJob) =
+    setLoggingLevel(job.logLevel)
     job.loadDocumentType()
     job.initializeFieldValueSpecs()
     job.initializeSelectionQualifier()
@@ -164,6 +166,7 @@ proc run(job: var CopyJob) =
 
 
 proc run(job: ValidateJob) =
+    setLoggingLevel(job.logLevel)
     loadDocumentType(job)
     var errors: seq[ValidationResult] = @[]
 
@@ -187,6 +190,7 @@ proc run(job: ValidateJob) =
 
 
 proc run(job: InfoJob) =
+    setLoggingLevel(job.logLevel)
     let outStream = newFileStream(stdout)
     writeInfo(job, outStream)
 

@@ -97,7 +97,7 @@ proc conditionallyPrintLine*(job: ShowJob, outStream: Stream) =
          printLine(job, tempStream)
          outStream.write(tempStream.data)
          if not isNil(job.accumulator):
-            accumulate(rootContext, job.accumulator)
+            job.accumulator.accumulate(rootContext)
       except ContextWithLineIdNotFoundError:
          debug(">>>>>> Referring to line id '$#' out of context." % [currentContext.lineType.lineId])
 

@@ -93,7 +93,7 @@ proc mutateAndWrite*(job: var CopyJob, outStream: Stream) =
 
          updateDependentLineElements(rootContext, linebuffer)
          context.line = lineBuffer.toString()
-         job.accumulator.addLine(context.line)
+         job.accumulator.accumulate(context.line)
          writeContextToStream(rootContext, outStream)
 
 
