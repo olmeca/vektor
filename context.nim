@@ -42,17 +42,12 @@ proc contextWithLineId*(context: Context, lineId: string): Context =
             break
          else: discard
 
-proc getElementValueFullString*(rootContext: Context, lineElementId: string): string =
-   let lineId = lineElementId[0..1]
-   let context = rootContext.contextWithLineId(lineId)
-   #debug("getElementValueFullString: rootctx: $#, leId: $#, subctx: $#" % 
-   #      [rootContext.lineType.lineId, lineId, context.lineType.lineId])
-   assert(context.line.startsWith(lineId))
-   let leType = context.lineType.getLineElementType(lineElementId)
+proc getElementValueFullString*(rootContext: Context, leType: LineElementType): string =
+   let context = rootContext.contextWithLineId(leType.lineId)
    getElementValueFormatted(context.line, leType)
 
-proc getElementValueString*(context: Context, leId: string): string =
-   stripBlanks(getElementValueFullString(context, leId))
+proc getElementValueString*(context: Context, leType: LineElementType): string =
+   stripBlanks(getElementValueFullString(context, leType))
 
 proc isContentContext*(context: Context): bool =
    context.line.isContentLine()

@@ -54,7 +54,7 @@ proc updateDependentLineElements(rootContext: Context, linebuffer: var openArray
      for leType in context.lineType.lineElementTypes:
         if not isNil(leType.sourceId):
            debug("maw: getting source value for '$#'" % [leType.sourceId])
-           let newValue = rootContext.getElementValueFullString(leType.sourceId)
+           let newValue = rootContext.getElementValueFullString(leType)
            debug("maw: got new source value: '$#'" % [newValue])
            copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
 

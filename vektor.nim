@@ -1,17 +1,19 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
-import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting", "expressions", "expressionsreader", "vektorjson", "jobs", "copyjob", "infojob", "showjob", "utils"
+import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting", "expressions", "expressionsreader", "vektorjson", "jobs", "copyjob", "infojob", "showjob", "validatejob", "utils"
 
 const
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
    msgSourceOrDestMissing = "You need to specify a source file and a destination file (e.g: vektor copy source.asc dest.asc -e:...)."
    msgCommandMissing = "Please specify one of the following commands: info, show, copy or help."
-   cMaxErrors: int = 20
+   cDefaultLogLevel = lvlDebug
 
-
-proc setLoggingLevel(level: Level) =
+proc activateLogging() =
    let filePath = getVektorLogPath()
    var fileLogger = newFileLogger(filePath, fmtStr = verboseFmtStr)
    addHandler(fileLogger)
+   setLogFilter(cDefaultLogLevel)
+
+proc setLoggingLevel(level: Level) =
    setLogFilter(level)
 
 
@@ -171,15 +173,7 @@ proc run(job: ValidateJob) =
     var errors: seq[ValidationResult] = @[]
 
     let input = newFileStream(job.documentPath, fmRead)
-    var line: string = ""
-    if input.readLine(line):
-        while input.readLine(line) and errors.len < cMaxErrors:
-            if line.lineHasId(cBottomLineId):
-                job.validateBottomLine(line, errors)
-            else:
-                job.validate(line, errors)
-    else:
-        raise newException(DocumentReadError, "Could not read document: $#" % job.documentPath)
+    errors = job.validate(input)
     input.close()
 
     if errors.len == 0:
@@ -199,16 +193,17 @@ proc readConfigurationFile() =
     let configFilePath = getConfigPath()
     if existsFile(configFilePath):
         let inStream = newFileStream(configFilePath, fmRead)
-        gAppConfig = readProperties(inStream)
+        setAppConfig(readProperties(inStream))
         inStream.close()
     else:
-        gAppConfig = newTable[string, string]()
-        gAppConfig[cVektorDataDirKey] = defaultDataDir()
-        gAppConfig[cVektorConfigFileKey] = defaultLogPath()
+        initDefaultAppConfig()
+
+
 
 try:
     randomize()
     readConfigurationFile()
+    activateLogging()
     initializeExpressionReaders()
     readDocumentTypes()
 

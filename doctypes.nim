@@ -25,6 +25,9 @@ proc getLineId*(line: string): string =
    else:
       result = line[0 .. (cRecordIdSize - 1)]
 
+proc lineId*(leType: LineElementType): string =
+    leType.lineElementId[0..1]
+
 proc getLineElementSubId*(leId: string): string =
    if isNil(leId) or leId.len < cFieldIdSize:
       raise newException(ValueError, "Cannot get line element id from '$#'" % [leId])

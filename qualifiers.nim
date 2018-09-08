@@ -94,7 +94,7 @@ proc printCompositeQualifier(lq: LineQualifier): string =
 
 proc kvqQualifyString(lq: LineQualifier, context: Context): bool =
     let kvq = StringQualifier(lq)
-    let value = context.getElementValueString(kvq.leType.lineElementId)
+    let value = context.getElementValueString(kvq.leType)
     case kvq.operator
     of OpEquals:
         result = value == kvq.refValue
@@ -109,7 +109,7 @@ proc kvqQualifyString(lq: LineQualifier, context: Context): bool =
 
 proc kvqQualifyNumber(lq: LineQualifier, context: Context): bool =
     let kvq = NumberQualifier(lq)
-    let valueString = context.getElementValueString(kvq.leType.lineElementId)
+    let valueString = context.getElementValueString(kvq.leType)
     let value = parseInt(valueString)
     case kvq.operator
     of OpEquals:
@@ -125,7 +125,7 @@ proc kvqQualifyNumber(lq: LineQualifier, context: Context): bool =
 
 proc kvqQualifyDate(lq: LineQualifier, context: Context): bool =
     let kvq = DateQualifier(lq)
-    let valueString = context.getElementValueString(kvq.leType.lineElementId)
+    let valueString = context.getElementValueString(kvq.leType)
     let valueTime = parseVektisDate(valueString).toTime()
     let refTime = kvq.refValue.toTime()
     case kvq.operator

@@ -12,8 +12,10 @@ proc read*(exprReader: ExpressionReader, valueSpec: string, leId: string, typeCo
 
 let
    fieldSpecPatternSpec = """
-   Pattern <- ^ Spc {ElementId} Spc !.
+   Pattern <- ^ Spc ElementSpec Spc !.
+   ElementSpec <- {ElementId} (':' {ElementTitle})?
    ElementId <- \d \d \d \d
+   ElementTitle <- [A-Za-z-_0-9 ]+
    Spc <- ' '*
    """
    

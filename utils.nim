@@ -29,3 +29,8 @@ proc copyChars*(buf: var openArray[char], start: int, length: int, newValue: str
    for i in 0..(length-1):
       buf[start+i] = newValueSeq[i]
 
+proc id*(intValue: int): string =
+    intToStr(intValue, 2)
+
+proc leTypeId*(recTypeIndex: int, leTypeIndex: int): string =
+    result = "$#$#" % [id(recTypeIndex), id(leTypeIndex)]

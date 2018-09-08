@@ -325,6 +325,7 @@ proc createNamedParam(key: string, value: string): NamedJobParam =
 
 proc readJob*(parser: var OptParser): VektorJob =
     for kind, key, value in getopt(parser):
+        debug("Parsing option '$#'" % [key])
         case kind
         of cmdArgument:
             if isNil(result):
@@ -336,6 +337,7 @@ proc readJob*(parser: var OptParser): VektorJob =
             if isNil(result):
                 raise newException(ValueError, "Missing vektor command.")
             else:
+                debug("Option value: $#" % value)
                 let param = createNamedParam(key, value)
                 apply(param, result)
         else:

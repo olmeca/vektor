@@ -82,6 +82,7 @@ type
    FieldSpec* = ref FieldSpecObj
    FieldSpecObj = object of RootObj
       leType*: LineElementType
+      leTitle*: string
    FieldValueSpec* = ref FieldValueSpecObj
    FieldValueSpecObj = object of FieldSpecObj
       value*: Expression
@@ -129,8 +130,7 @@ let
    """
 
 var
-   gAppConfig*: TableRef[string, string]
-
+   gAppConfig: TableRef[string, string]
 
 proc defaultDataDir*(): string =
     joinPath(getAppDir(), cDataDir)
@@ -138,11 +138,25 @@ proc defaultDataDir*(): string =
 proc defaultLogPath*(): string =
     joinPath(getAppDir(), cLogFileName)
 
+proc getAppConfig*(key: string): string =
+    result = gAppConfig[key]
+    debug("getAppconfig $# -> $#" % [key, result])
+
+proc setAppConfig*(config: TableRef[string, string]) =
+    gAppConfig = config
+
+proc initDefaultAppConfig*() =
+    var config = newTable[string, string]()
+    config[cVektorDataDirKey] = defaultDataDir()
+    config[cVektorConfigFileKey] = defaultLogPath()
+    setAppConfig(config)
+
+
 proc getVektorLogPath*(): string =
-    gAppConfig[cVektorLogFileKey]
+    getAppConfig(cVektorLogFileKey)
 
 proc getVektorDataDir*(): string =
-    gAppConfig[cVektorDataDirKey]
+    getAppConfig(cVektorDataDirKey)
 
 proc getConfigPath*(): string =
     getEnv(cVektorConfigFileKey, joinPath(getAppDir(), cDefaultConfigFileName))

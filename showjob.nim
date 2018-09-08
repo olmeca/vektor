@@ -17,9 +17,10 @@ proc toString(fs: FieldSpec): string =
 proc readFieldSpec(job: ShowJob, spec: string): FieldSpec =
    if spec =~ fieldSpecPattern:
       let leTypeId = matches[0]
+      let leTypeTitle = matches[1]
       checkProcessableLineType(leTypeId)
       let leType = job.docType.getLineElementType(leTypeId)
-      result = FieldSpec(leType: leType)
+      result = FieldSpec(leType: leType, leTitle: leTypeTitle)
    else:
       raise newException(FieldSpecError, "Invalid line element specification: '$#'" % [spec])
 
@@ -28,10 +29,13 @@ proc initializeFieldSpecs*(job: ShowJob) =
         if isNil(job.fieldsConfigKey):
             # Check for a default configuration that can be used
             let configKey = "fieldset.$#" % job.docType.name
-            job.fieldsString = gAppConfig[configKey]
+            try:
+                job.fieldsString = getAppConfig(configKey)
+            except KeyError:
+                raise newException(ValueError, "Missing fields specification. Please specify the fields.")
         else:
             let configKey = "fieldset.$#.$#" % [job.docType.name, job.fieldsConfigKey]
-            job.fieldsString = gAppConfig[configKey]
+            job.fieldsString = getAppConfig(configKey)
     else: discard
 
     if not isNil(job.fieldsString):
@@ -41,18 +45,23 @@ proc initializeFieldSpecs*(job: ShowJob) =
         else:
             raise newException(ValueError, "Invalid fields specification: $#." % job.fieldsString)
     else:
-        raise newException(ValueError, "Missing fields specification.")
+        raise newException(ValueError, "Missing fields specification. Please specify the fields.")
+
+proc length(field: FieldSpec): int =
+    let titleLen = if isNil(field.leTitle): 0 else: field.leTitle.len
+    max(field.leType.length, titleLen)
 
 proc getHeaderForField(field: FieldSpec): string =
-   let length = field.leType.length
+   let colLength = field.length
    let leType = field.leType
-   if length >= 4:
+   let leTitle = if isNil(field.leTitle): leType.lineElementId else: field.leTitle
+   if colLength >= leTitle.len:
       if leType.isNumericType or leType.isAmountType:
-         leType.lineElementId|R(length)
+         leTitle|R(colLength)
       else:
-         leType.lineElementId|L(length)
+         leTitle|L(colLength)
    else:
-      spaces(length)
+      spaces(colLength)
 
 proc tabularLine(ctx: Context, fields: seq[FieldSpec], stringValue: proc(field: FieldSpec): string,
                   prefix: string, infix: string, postfix: string): string =
@@ -63,9 +72,15 @@ proc printColumnHeaders(job: ShowJob, stream: Stream) =
    stream.write(tabularLine(job.context, job.fields, getHeaderForField, gTableLinePrefix, gTableLineInfix, gTableLinePostfix))
    stream.write("\n")
 
+proc pad(value: string, field: FieldSpec): string =
+    if field.leType.isNumeric or field.leType.isAmountType:
+        value|R(field.length)
+    else:
+        value|L(field.length)
+
 proc printLine*(job: ShowJob, stream: Stream) =
    stream.write(tabularLine(job.context, job.fields,
-                            proc (fs: FieldSpec): string = getElementValueFullString(job.context, fs.leType.lineElementId),
+                            proc (fs: FieldSpec): string = pad(getElementValueFullString(job.context, fs.leType), fs),
                             gTableLinePrefix,
                             gTableLineInfix,
                             gTableLinePostfix))
@@ -75,7 +90,7 @@ proc printHorLine*(job: ShowJob, stream: Stream) =
    stream.write("+-")
    var index = 0
    for field in job.fields:
-      stream.write(repeat('-', Natural(field.leType.length)))
+      stream.write(repeat('-', Natural(field.length)))
       index = index + 1
       if index < job.fields.len:
          stream.write("-+-")
