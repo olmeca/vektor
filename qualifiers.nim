@@ -95,6 +95,7 @@ proc printCompositeQualifier(lq: LineQualifier): string =
 proc kvqQualifyString(lq: LineQualifier, context: Context): bool =
     let kvq = StringQualifier(lq)
     let value = context.getElementValueString(kvq.leType)
+    debug("kvq: comparing '$#' to ref '$#'" % [value, kvq.refValue])
     case kvq.operator
     of OpEquals:
         result = value == kvq.refValue

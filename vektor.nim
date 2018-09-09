@@ -36,17 +36,6 @@ proc showHelp(subject: string) =
       echo "There is no help on subject '$#'" % [subject]
 
 
-proc initializeSelectionQualifier(job: SelectiveJob) =
-    if not isNil(job.selectionQualifierString):
-        job.selectionQualifier = job.docType.parseQualifier(job.selectionQualifierString)
-    else: discard
-
-
-proc initializeReplacementQualifier(job: CopyJob) =
-    if not isNil(job.replacementQualifierString):
-        job.replacementQualifier = job.docType.parseQualifier(job.replacementQualifierString)
-    else: discard
-
 
 
 proc determineDebRecVersion(input: Stream): DebtorRecordVersion =
@@ -79,11 +68,6 @@ proc loadDocumentType(job: DocumentJob) =
    job.accumulator = newAccumulator(job.docType)
 
 
-proc checkLine(job: DocumentJob, line: string) =
-    if line.isDebtorLine and not line.matchesDebtorRecordVersion(job.debRecVersion):
-        raise newException(ValueError, "Encountered line with unexpected debtor record version on line $#." % intToStr(job.lineNr))
-    else: discard
-
 
 proc run(job: VektorJob) =
     showHelp("none")
@@ -115,21 +99,9 @@ proc run(job: ShowJob) =
     job.initializeSelectionQualifier()
 
     let input = newFileStream(job.documentPath, fmRead)
+    let output = newFileStream(stdout)
     var line: string = ""
-    if input.readLine(line):
-        job.initializeContext(line)
-        let outStream = newFileStream(stdout)
-        job.printHeaders(outStream)
-        conditionallyPrintLine(job, outStream)
-        while input.readLine(line):
-            job.checkLine(line)
-            job.addLine(line)
-            job.conditionallyPrintLine(outStream)
-
-        job.printHorLine(outStream)
-        stderr.writeLine ( "Totals |$#" % [job.accumulator.asString()] )
-    else:
-        raise newException(DocumentReadError, "Could not read document: $#" % job.documentPath)
+    job.process(input, output)
     input.close()
 
 proc checkOutputPath(job: var CopyJob) =
@@ -146,25 +118,18 @@ proc run(job: var CopyJob) =
     job.initializeReplacementQualifier()
     job.checkOutputPath()
 
-    let input = newFileStream(job.documentPath, fmRead)
-    var line: string = ""
-    if input.readLine(line):
-        job.initializeContext(line)
-        stderr.writeline("Document type: $#, SB311v$#" % [summary(job.docType), repr(job.debRecVersion)])
-        var outStream: Stream = newFileStream(job.outputPath, fmWrite)
-        if not isNil(outStream):
-            job.mutateAndWrite(outStream)
-            while input.readLine(line):
-                job.checkLine(line)
-                job.addLine(line)
-                job.mutateAndWrite(outStream)
-            outStream.close()
-        else:
-            raise newException(DocumentWriteError, "Could not write to file: $#" % job.outputPath)
+    let inStream = newFileStream(job.documentPath, fmRead)
+    var outStream: Stream = newFileStream(job.outputPath, fmWrite)
+    if isNil(outStream):
+        raise newException(DocumentWriteError, "Could not write to path: $#" % job.documentPath)
     else:
-        raise newException(DocumentReadError, "Could not read document: $#" % job.documentPath)
-
-    input.close()
+        try:
+            job.process(inStream, outStream)
+        except:
+            raise
+        finally:
+            if not isNil(inStream): inStream.close() else: discard
+            outStream.close()
 
 
 proc run(job: ValidateJob) =

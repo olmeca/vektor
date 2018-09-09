@@ -1,22 +1,22 @@
 import utils, common, doctypes, context, jobs
 
-proc newLeType*(recordNr: int, fieldNr: int, code: string, datatype: string, start: int, len: int): LineElementType =
+proc newLeType*(recordNr: int, fieldNr: int, code: string, title: string, datatype: string, start: int, len: int): LineElementType =
    result = LineElementType(
       lineElementId: leTypeId(recordNr, fieldNr),
       code: code,
       fieldType: datatype,
       startPosition: start,
       length: len,
-      description: "Test field",
+      description: title,
       countable: nil,
       sourceId: nil,
       slaveId: nil,
       required: true
    )
 
-proc newLineType*(index: int, len: int, children: seq[LineTypeLink], leTypes: seq[LineElementType], hasDeps: bool ): LineType =
+proc newLineType*(index: int, len: int, name: string, children: seq[LineTypeLink], leTypes: seq[LineElementType], hasDeps: bool ): LineType =
    result = LineType(
-      name: "Record",
+      name: name,
       length: len,
       lineId: id(index),
       index: index,

@@ -33,6 +33,11 @@ proc initializeFieldValueSpecs*(job: CopyJob) =
             raise newException(ValueError, "Invalid replacement values specified: $#" % job.fieldValuesString)
     else: discard
 
+proc initializeReplacementQualifier*(job: CopyJob) =
+    if not isNil(job.replacementQualifierString):
+        job.replacementQualifier = job.docType.parseQualifier(job.replacementQualifierString)
+    else: discard
+
 
 proc isDerivedValue(valueSpec: string): bool =
    valueSpec[0] == '@'
@@ -96,4 +101,16 @@ proc mutateAndWrite*(job: var CopyJob, outStream: Stream) =
          job.accumulator.accumulate(context.line)
          writeContextToStream(rootContext, outStream)
 
+proc process*(job: var CopyJob, inStream: Stream, outStream: Stream) =
+    var line: string = ""
+    if inStream.readLine(line):
+        job.initializeContext(line)
+        # stderr.writeline("Document type: $#, SB311v$#" % [summary(job.docType), repr(job.debRecVersion)])
+        job.mutateAndWrite(outStream)
+        while inStream.readLine(line):
+            job.checkLine(line)
+            job.addLine(line)
+            job.mutateAndWrite(outStream)
+    else:
+        raise newException(DocumentReadError, "Could not read from input.")
 

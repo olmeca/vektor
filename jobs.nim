@@ -369,3 +369,13 @@ proc accumulate*(acc: Accumulator, context: var Context) =
         # recurse into subcontext
         accumulate(acc, subcontext)
 
+proc initializeSelectionQualifier*(job: SelectiveJob) =
+    if not isNil(job.selectionQualifierString):
+        job.selectionQualifier = job.docType.parseQualifier(job.selectionQualifierString)
+    else: discard
+
+proc checkLine*(job: DocumentJob, line: string) =
+    if line.isDebtorLine and not line.matchesDebtorRecordVersion(job.debRecVersion):
+        raise newException(ValueError, "Encountered line with unexpected debtor record version on line $#." % intToStr(job.lineNr))
+    else: discard
+

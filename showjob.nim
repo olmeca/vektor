@@ -116,3 +116,17 @@ proc conditionallyPrintLine*(job: ShowJob, outStream: Stream) =
       except ContextWithLineIdNotFoundError:
          debug(">>>>>> Referring to line id '$#' out of context." % [currentContext.lineType.lineId])
 
+proc process*(job: ShowJob, input: Stream, output: Stream) =
+    var line: string = ""
+    if input.readLine(line):
+        job.initializeContext(line)
+        job.printHeaders(output)
+        conditionallyPrintLine(job, output)
+        while input.readLine(line):
+            job.addLine(line)
+            job.conditionallyPrintLine(output)
+
+        job.printHorLine(output)
+        #stderr.writeLine ( "Totals |$#" % [job.accumulator.asString()] )
+    else:
+        raise newException(DocumentReadError, "Could not read from stream.")
