@@ -1,12 +1,10 @@
-import json, os, ospaths, future, sequtils, strutils, logging, tables, times
-import "common", "vektorjson", "formatting", "utils"
+import os, ospaths, future, sequtils, strutils, logging, tables, times
+import "common", "codeddoctypes", "formatting", "utils"
 
 const 
    cDebtorRecordLineId* = "03"
    cDebtorRecordVersionStartIndex = 297
    cDebtorRecordVersionEndIndex = 298
-   cDocTypesJsonFileName = "doctypes.json"
-   cSB311TypesJsonFileName = "sb311-types.json"
    cSB311v0 = "  "
    cSB311v1 = "01"
    cSB311v2 = "02"
@@ -14,10 +12,10 @@ const
 
 var
    gDocTypes: seq[DocumentType]
-   debtorRecordTypes: seq[DocumentType]
+   gDebtorRecordTypes: seq[DocumentType]
    
 #let gDocTypes = lc[readDocumentType(node) | (node <- getJsonData(cDocTypesJsonFileName)), DocumentType]
-#let debtorRecordTypes = lc[readDocumentType(node) | (node <- getJsonData(cSB311TypesJsonFileName)), DocumentType]
+#let gDebtorRecordTypes = lc[readDocumentType(node) | (node <- getJsonData(cSB311TypesJsonFileName)), DocumentType]
 
 proc getLineId*(line: string): string =
    if isNil(line) or line.len < cRecordIdSize:
@@ -78,17 +76,14 @@ proc getLineTypeForLine*(docType: DocumentType, line: string): LineType =
 proc isDebtorLine*(line: string): bool =
    lineHasId(line, cDebtorLineId)
 
-proc readTypes(fileName: string, lineLength: int): seq[DocumentType] =
-   result = lc[readDocumentType(node, lineLength) | (node <- getJsonData(fileName)), DocumentType]
-
 proc enableSB311Types*(lineLength: int) =
-   if isNil(debtorRecordTypes):
-      debtorRecordTypes = readTypes(cSB311TypesJsonFileName, lineLength)
+   if isNil(gDebtorRecordTypes):
+      gDebtorRecordTypes = getDebtorRecordTypes(lineLength)
 
 proc loadDebtorRecordType*(docType: DocumentType, version: DebtorRecordVersion) =
    if version != drvDefault:
       enableSB311Types(docType.lineLength)
-      let chosenDebRecDocType = if version == drvSB1: debtorRecordTypes[0] else: debtorRecordTypes[1]
+      let chosenDebRecDocType = if version == drvSB1: gDebtorRecordTypes[0] else: gDebtorRecordTypes[1]
       # Remove default debtor record from the doc type
       docType.lineTypes.keepIf(proc (lt: LineType): bool = lt.lineId != cDebtorRecordLineId)
       # Now add the chosen debtor record line type
@@ -96,7 +91,7 @@ proc loadDebtorRecordType*(docType: DocumentType, version: DebtorRecordVersion) 
 
 
 proc readDocumentTypes*() =
-   gDocTypes = readTypes(cDocTypesJsonFileName, 0)
+   gDocTypes = getDocumentTypes(0)
 
 proc isOneCharRepeated(value: string, theChar: char): bool =
    result = true
@@ -149,9 +144,9 @@ proc getDocumentType*(typeId: int, version: int, subversion: int): DocumentType 
    else:
       result = matches[0]
 
-proc allDocumentTypes*(): seq[DocumentType] = 
+proc allDocumentTypes*(): seq[DocumentType] =
    enableSB311Types(cStandardLineLength)
-   concat(gDocTypes, debtorRecordTypes)
+   concat(gDocTypes, gDebtorRecordTypes)
 
 proc documentTypeMatching*(name: string, version: int, subversion: int): DocumentType = 
    let matches = filter(allDocumentTypes(), 

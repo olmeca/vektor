@@ -1,5 +1,5 @@
 import strutils
-import "common", "doctypes", "jobs", "accumulator"
+import common, doctype, job, accumulator
 
 proc validate(leType: LineElementType, line: string, nr: int, errors: var seq[ValidationResult]) =
    let stringValue = line.getElementValueString(leType)

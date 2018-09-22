@@ -1,5 +1,5 @@
 import pegs, strutils, sequtils, lists, future, logging, times
-import "common", "doctypes", "context"
+import "common", doctype, "context"
 
 type
    QualifierOperator* = enum

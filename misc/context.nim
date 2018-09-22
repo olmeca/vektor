@@ -1,5 +1,5 @@
 import strutils, sequtils, tables, logging
-import "common", "doctypes", "utils"
+import "common", doctype, "utils"
 
 type
    ContextState* = enum
@@ -88,7 +88,7 @@ proc current*(context: Context): Context =
     context.currentSubContext
 
 proc addLine*(context: var Context, line: string) =
-    debug("context.addLine: ctx: $#, line: $#" % [context.toString(), line[0..13]])
+    debug("context.addLine: ctx: $#, line: '$#'" % [context.toString(), line[0..13]])
     let lType = context.docType.getLineTypeForLine(line)
     let lineId = getLineId(line)
     var parentContext = findParentContextForLineType(context.currentSubContext, lineId)

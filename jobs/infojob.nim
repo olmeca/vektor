@@ -1,6 +1,6 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
 
-import "doctypes", "context", "qualifiers", "common", "accumulator", "jobs", "utils"
+import doctype, context, qualifiers, common, accumulator, job, utils
 
 proc matchesDoctypeName(job: InfoJob, docType: DocumentType): bool =
     isNil(job.docTypeName) or docType.name.startsWith(job.docTypeName)

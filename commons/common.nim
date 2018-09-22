@@ -75,6 +75,7 @@ type
 
    ExpressionReader* = ref ExpressionReaderObj
    ExpressionReaderObj* = object of RootObj
+      name*: string
       pattern*: Peg
       readImpl*: proc(valueSpec: string, leId: string, typeCode: string, length: int): Expression
 
@@ -93,6 +94,9 @@ type
       cmdCopy, cmdQuery, cmdInfo, cmdHelp, cmdPrint, cmdValidate
 
 const
+   cAlphaLower* = "abcdefghijklmnopqrstuvwxyz"
+   cAlphaUpper* = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+   cAlphaDigit* = "0123456789"
    cDataDir* = "vektor-data"
    cRecordIdSize* = 2
    cFieldIdSize* = 4
@@ -161,6 +165,30 @@ proc getVektorDataDir*(): string =
 proc getConfigPath*(): string =
     getEnv(cVektorConfigFileKey, joinPath(getAppDir(), cDefaultConfigFileName))
 
+proc readProperties*(input: Stream): TableRef[string, string] =
+    var line: string = ""
+    var i = 0
+    result = newTable[string, string]()
+    while input.readLine(line):
+        i = i + 1
+        if len(line) > 0 and line[0] != '#':
+            if line =~ propertyEntryPattern:
+                let key = matches[0]
+                let value = matches[1]
+                result[key] = value
+
+
+
+proc readConfigurationFile*() =
+    let configFilePath = getConfigPath()
+    if existsFile(configFilePath):
+        let inStream = newFileStream(configFilePath, fmRead)
+        setAppConfig(readProperties(inStream))
+        inStream.close()
+    else:
+        initDefaultAppConfig()
+
+
 proc getJsonData*(fileName: string): JsonNode =
    let fullPath = joinPath(getVektorDataDir(), fileName)
    debug("getJsonData reading from: " & fullPath)
@@ -179,6 +207,25 @@ proc isAmountType*(code: string): bool =
 
 proc isTextType*(code: string): bool =
    not isDateType(code) and not isNumericType(code)
+
+proc createLink*(subLineId: string, multiple: bool, required: bool): LineTypeLink =
+    LineTypeLink(subLineId: subLineId, multiple: multiple, required: required)
+
+
+proc newLeType*(leId: string, code: string, ftype: string, start: int, len: int, cntblref: string, srcId: string, slvId: string, req: bool, desc: string): LineElementType =
+   result = LineElementType(
+      lineElementId: leId,
+      code: code,
+      fieldType: ftype,
+      startPosition: start,
+      length: len,
+      description: desc,
+      countable: cntblref,
+      sourceId: srcId,
+      slaveId: slvId,
+      required: req
+   )
+
 
 proc asString*(doctype: DocumentType): string =
    "$# v$#.$#   $#" % 
@@ -205,9 +252,11 @@ proc asString*(leType: LineElementType): string =
       (if isNil(leType.countable): "nil" else: leType.countable)
    ]
 
+
 proc asString*(err: ValidationResult): string =
    let leId = if isNil(err.leId): "" else: ", field " & err.leId
-   "Line $#$#: $#" % [intToStr(err.lineNr), leId, err.info]
+   result = "Line $#$#: $#" % [intToStr(err.lineNr), leId, err.info]
+
 
 proc parseVektisDate*(dateString: string): DateTime =
    try:
@@ -228,19 +277,6 @@ proc firstIndexMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.})
       if pred(list[i]):
          return i
    raise newException(NoMatchingItemFound, "No item in list matching given criteria")
-
-
-proc readProperties*(input: Stream): TableRef[string, string] =
-    var line: string = ""
-    var i = 0
-    result = newTable[string, string]()
-    while input.readLine(line):
-        i = i + 1
-        if len(line) > 0 and line[0] != '#':
-            if line =~ propertyEntryPattern:
-                let key = matches[0]
-                let value = matches[1]
-                result[key] = value
 
 
 proc checkProcessableLineType*(leId: string) =

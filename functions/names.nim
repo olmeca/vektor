@@ -1,5 +1,5 @@
 import strutils, sequtils, random, pegs, os, ospaths
-import "common", "expressions", "formatting"
+import "common", "expressions", "formatting", "nameslist.nim"
 
 const
    cNamesListFile = "names.txt"
@@ -11,10 +11,9 @@ type
 
 let
    randomNamePattern* = peg"""
-   Pattern <-  ^ 'name' !.
+   Pattern <-  ^ 'randomname' !.
    """
 
-var namesList: seq[string] = nil
 
 proc asStringRNE(exp: Expression): string =
    let rne = RandomNameExpression(exp)
@@ -27,10 +26,7 @@ proc readNamesList(): seq[string] =
       result.add(line)
 
 proc getRandomName(): string =
-   if isNil(namesList):
-      namesList = readNamesList()
-   else: discard
-   namesList[random(namesList.len)]
+   rand(allNames)
 
 proc serializeRNE(expr: Expression): string =
    let rne = RandomNameExpression(expr)
@@ -51,4 +47,4 @@ proc readRNE(valueSpec: string, leId: string, typeCode: string, length: int): Ex
             "Cannot apply random name expression '$#' to field '$#' with Vektis type '$#'." % [valueSpec, leId, typeCode])
 
 proc newRandomNameExpressionReader*(): ExpressionReader =
-   ExpressionReader(pattern: randomNamePattern, readImpl: readRNE)
+   ExpressionReader(name: "random name exp. reader", pattern: randomNamePattern, readImpl: readRNE)

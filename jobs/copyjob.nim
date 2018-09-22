@@ -1,6 +1,6 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
 
-import "doctypes", "context", "qualifiers", "expressions", "common", "accumulator", "jobs", "utils", "formatting", "expressionsreader"
+import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting, expressionsreader
 
 proc readExpression (leType: LineElementType, valueSpec: string): Expression =
    readExpression(valueSpec, leType.lineElementId, leType.code, leType.length)

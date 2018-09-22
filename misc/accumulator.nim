@@ -1,5 +1,5 @@
 import tables, strutils, sequtils, future, logging
-import "common", "doctypes", "formatting"
+import "common", doctype, "formatting"
 
 type
    Total* = ref object

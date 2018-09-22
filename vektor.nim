@@ -1,5 +1,5 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
-import "doctypes", "context", "qualifiers", "common", "accumulator", "vektorhelp", "validation", "formatting", "expressions", "expressionsreader", "vektorjson", "jobs", "copyjob", "infojob", "showjob", "validatejob", "utils"
+import doctype, context, qualifiers, common, accumulator, vektorhelp, validation, formatting, expressions, expressionsreader, vektorjson, job, copyjob, infojob, showjob, validatejob, utils, codegen
 
 const
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
@@ -138,7 +138,7 @@ proc run(job: ValidateJob) =
     var errors: seq[ValidationResult] = @[]
 
     let input = newFileStream(job.documentPath, fmRead)
-    errors = job.validate(input)
+    job.process(input, errors)
     input.close()
 
     if errors.len == 0:
@@ -152,16 +152,6 @@ proc run(job: InfoJob) =
     setLoggingLevel(job.logLevel)
     let outStream = newFileStream(stdout)
     writeInfo(job, outStream)
-
-
-proc readConfigurationFile() =
-    let configFilePath = getConfigPath()
-    if existsFile(configFilePath):
-        let inStream = newFileStream(configFilePath, fmRead)
-        setAppConfig(readProperties(inStream))
-        inStream.close()
-    else:
-        initDefaultAppConfig()
 
 
 

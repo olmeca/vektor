@@ -1,5 +1,5 @@
 import os, logging, sets, strutils, sequtils, parseopt2, tables
-import "common", "qualifiers", "doctypes", "accumulator", "context"
+import "common", "qualifiers", doctype, "accumulator", "context"
 
 const cCommandInfo* = "info"
 const cCommandShow* = "show"
@@ -351,8 +351,7 @@ proc initializeContext*(job: DocumentJob, line: string) =
 
 
 proc addLine*(job: DocumentJob, line: string) =
-    debug("job.addLine: $#" % line[0..13])
-    #job.accumulator.accumulate(line)
+    debug("job.addLine: '$#'" % line[0..13])
     if not isNil(job.context):
         job.context.addLine(line)
     else: discard
@@ -379,3 +378,6 @@ proc checkLine*(job: DocumentJob, line: string) =
         raise newException(ValueError, "Encountered line with unexpected debtor record version on line $#." % intToStr(job.lineNr))
     else: discard
 
+proc accumulate*(job: DocumentJob) =
+    if not isNil(job.accumulator) and not isNil(job.context):
+        accumulate(job.accumulator, job.context)

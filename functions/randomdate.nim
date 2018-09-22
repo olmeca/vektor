@@ -42,4 +42,4 @@ proc readRDE(valueSpec: string, leId: string, vektisTypeCode: string, length: in
             "Cannot apply random date expression '$#' to field '$#' with Vektis type '$#'." % [valueSpec, leId, vektisTypeCode])
 
 proc newRandomDateExpressionReader*(): ExpressionReader =
-   ExpressionReader(pattern: randomDatePattern, readImpl: readRDE)
+   ExpressionReader(name: "random date exp. reader", pattern: randomDatePattern, readImpl: readRDE)

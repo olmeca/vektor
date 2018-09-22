@@ -1,5 +1,5 @@
 import pegs, strutils, sequtils, random, times, logging, ospaths, os
-import "common", "expressions", "randomstring", "randomdate", "literal", "names"
+import "common", "expressions", "randomstring", "randomdate", "literal", "names", "number", "postcode"
 
 var dateExpressionReaders: seq[ExpressionReader] = @[]
 var numericExpressionReaders: seq[ExpressionReader] = @[]
@@ -9,9 +9,12 @@ proc initializeExpressionReaders*() =
    dateExpressionReaders.add(newRandomDateExpressionReader())
    dateExpressionReaders.add(newLiteralDateReader())
    
+   numericExpressionReaders.add(newRandomNumberExpressionReader())
    numericExpressionReaders.add(newLiteralNumberReader())
    
    alphaNumExpressionReaders.add(newRandomNameExpressionReader())
+   alphaNumExpressionReaders.add(newRandomPostcodeExpressionReader())
+   alphaNumExpressionReaders.add(newRandomDigitsExpressionReader())
    alphaNumExpressionReaders.add(newRandomCapsExpressionReader())
    alphaNumExpressionReaders.add(newRandomStringExpressionReader())
    alphaNumExpressionReaders.add(newLiteralTextReader())
@@ -19,10 +22,12 @@ proc initializeExpressionReaders*() =
 proc readTypedExpression(readers: seq[ExpressionReader], valueSpec: string, leId: string, typeCode: string, length: int): Expression =
    assert(readers.len > 0)
    for reader in readers:
-      result = reader.read(valueSpec, leId, typeCode, length)
-      if not isNil(result):
-         debug("readExpression: leId: '$#', type: '$#', len: $#, spec: '$#' -> $#" % [leId, typeCode, intToStr(length), valueSpec, result.asString()])
-         break
+      debug("readTypedExpression checking '$#' with $#" % [valueSpec, reader.name])
+      if valueSpec =~ reader.pattern:
+          result = reader.read(valueSpec, leId, typeCode, length)
+          if not isNil(result):
+             debug("readExpression: leId: '$#', type: '$#', len: $#, spec: '$#' -> $#" % [leId, typeCode, intToStr(length), valueSpec, result.asString()])
+             break
    if isNil(result):
       raise newException(ExpressionError, 
          "Invalid value expression '$#' for field '$#' with Vektis type '$#'." % [valueSpec, leId, typeCode])

@@ -1,6 +1,6 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
 
-import "doctypes", "context", "qualifiers", "expressions", "common", "accumulator", "jobs", "utils", "formatting"
+import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting
 
 const
    gTableLinePrefix = "| "

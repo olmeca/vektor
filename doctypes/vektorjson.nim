@@ -1,5 +1,5 @@
 import json, sequtils, future, logging, strutils, tables
-import "common"
+import common
 
 proc readLineElementType*(node: JsonNode): LineElementType =
    result = LineElementType(

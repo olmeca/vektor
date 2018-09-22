@@ -71,10 +71,10 @@ proc readLiteralText(valueSpec: string, leId: string, typeCode: string, length: 
          "Invalid literal text expression '$#' for field '$#' with Vektis type '$#'." % [valueSpec, leId, typeCode])
 
 proc newLiteralDateReader*(): ExpressionReader = 
-   ExpressionReader(pattern: literalDatePattern, readImpl: readLiteralDate)
+   ExpressionReader(name: "literal date exp. reader", pattern: literalDatePattern, readImpl: readLiteralDate)
 
 proc newLiteralNumberReader*(): ExpressionReader = 
-   ExpressionReader(pattern: literalNumberPattern, readImpl: readLiteralNumber)
+   ExpressionReader(name: "literal number exp. reader", pattern: literalNumberPattern, readImpl: readLiteralNumber)
 
 proc newLiteralTextReader*(): ExpressionReader = 
-   ExpressionReader(pattern: literalValuePattern, readImpl: readLiteralText)
+   ExpressionReader(name: "literal text exp. reader", pattern: literalValuePattern, readImpl: readLiteralText)

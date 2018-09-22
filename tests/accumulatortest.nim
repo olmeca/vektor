@@ -1,5 +1,5 @@
 import streams, strutils, unittest, logging
-import utils, testutil, common, expressionsreader, doctypes, context, jobs, accumulator, showjob, copyjob
+import ../utils, ../testutil, ../common, ../expressionsreader, ../doctypes, ../context, ../job, ../accumulator, ../showjob, ../copyjob, ../validatejob
 
 const
     cLineLength: int = 14
@@ -39,6 +39,12 @@ proc createCopyJob(docType: DocumentType, fieldSpecs: string, selectionQualifier
     job.accumulator = newAccumulator(job.docType)
     job
 
+proc createValidateJob(docType: DocumentType): ValidateJob =
+    let job = newValidateJob()
+    job.docType = docType
+    job.debRecVersion = drvDefault
+    job.accumulator = newAccumulator(job.docType)
+    job
 
 suite "ShowJob Accumulator tests":
 
@@ -50,7 +56,7 @@ suite "ShowJob Accumulator tests":
             "0400010010DC2  ",
             "0400010010DC2  ",
             "0400020001DC3  ",
-            "9900010011D    "
+            "9900010121D0004"
         ]
 
         let emptyChildLinks: seq[LineTypeLink] = @[]
@@ -61,14 +67,14 @@ suite "ShowJob Accumulator tests":
         let leTypeOperRecordNr = newLeType(4, 2, "NUM123", "03 NR", cFieldTypeNumeric, 3, 4)
         let leTypeOperRecordAmount = newLeType(4, 3, "BED123", "03 BEDRAG", cFieldTypeNumeric, 7, 4)
         let leTypeOperRecordDC = newLeType(4, 4, "COD456", "03 DEBCRED", cFieldTypeAlphaNum, 11, 1)
-        let leTypeOperRecordCode = newLeType(4, 5, "COD123", "04 PAD", cFieldTypeAlphaNum, 12, 3)
+        let leTypeOperRecordCode = newLeType(4, 5, "COD123", "04 PAD", cFieldTypeAlphaNum, 12, 4)
         let leTypeOperElements = @[leTypeOperRecordId, leTypeOperRecordNr, leTypeOperRecordAmount, leTypeOperRecordDC, leTypeOperRecordCode]
         let lTypeOper = newLineType(4, cLineLength, "Verrichting", emptyChildLinks, leTypeOperElements, false)
 
         # Create a patient record (verzekerderecord) type definition
         let leTypePatientRecordId = newLeType(2, 1, "NUM123", "02 ID", cFieldTypeNumeric, 1, 2)
         let leTypePatientRecordNr = newLeType(2, 2, "NUM123", "02 NR", cFieldTypeNumeric, 3, 4)
-        let leTypePatientRecordName = newLeType(2, 3, "COD123", "02 NAME", cFieldTypeAlphaNum, 7, 8)
+        let leTypePatientRecordName = newLeType(2, 3, "COD123", "02 NAME", cFieldTypeAlphaNum, 7, 9)
         let operChildLink = LineTypeLink(subLineId: "04", multiple: true, required: true)
         let leTypePatientElements = @[leTypePatientRecordId, leTypePatientRecordNr, leTypePatientRecordName]
         let lTypePatient = newLineType(2, cLineLength, "Patient", @[operChildLink], leTypePatientElements, false)
@@ -76,9 +82,10 @@ suite "ShowJob Accumulator tests":
         # Create a cumulatives record (sluitrecord) type definition
         let leTypeTotalsRecordId = newLeType(99, 1, "NUM123", "99 ID", cFieldTypeNumeric, 1, 2)
         let leTypeTotalsRecordNr = newLeType(99, 2, "NUM123", "99 NR", cFieldTypeNumeric, 3, 4)
-        let leTypeTotalsAmount = newLeType(99, 3, "BED123", "99 TOTAL", cFieldTypeNumeric, 7, 5)
-        let leTypeTotalsOperCount = newLeType(1, 3, "NUM123", "99 Oper count", cFieldTypeNumeric, 12, 3)
-        let leTypeTotalsElements = @[leTypeTotalsRecordId, leTypeTotalsRecordNr, leTypeTotalsAmount, leTypeTotalsOperCount]
+        let leTypeTotalsAmount = newLeType(99, 3, "BED123", "99 TOTAL", cFieldTypeNumeric, 7, 4)
+        let leTypeTotalsAmountDC = newLeType(99, 4, "COD456", "99 DEBCRED", cFieldTypeAlphaNum, 11, 1)
+        let leTypeTotalsOperCount = newLeType(99, 5, "NUM456", "99 REC CNT", cFieldTypeNumeric, 12, 4)
+        let leTypeTotalsElements = @[leTypeTotalsRecordId, leTypeTotalsRecordNr, leTypeTotalsAmount, leTypeTotalsAmountDC, leTypeTotalsOperCount]
         let lTypeTotals = newLineType(99, cLineLength, "Totalen", emptyChildLinks, leTypeTotalsElements, false)
         # setup cumulative dependency on 0403 line element
         leTypeTotalsAmount.countable = "0403"
@@ -177,3 +184,11 @@ suite "ShowJob Accumulator tests":
             # nr of 04 lines check
             job.accumulator.totals[1].value == 2
 
+    test "ValidateJob 1":
+        activateLogging()
+        var input: StringStream = newStringStream(declaration1.asLines)
+        var errors: seq[ValidationResult] = @[]
+        var job = createValidateJob(docType)
+        job.process(input, errors)
+        check:
+            len(errors) == 0
