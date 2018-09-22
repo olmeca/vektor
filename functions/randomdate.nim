@@ -1,5 +1,5 @@
 import strutils, sequtils, random, pegs, times
-import "common", "expressions"
+import common, expressions
 
 type
    RandomDateExpression* = ref RandomDateExpressionObj

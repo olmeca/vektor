@@ -6,10 +6,10 @@ proc matchesDoctypeName(job: InfoJob, docType: DocumentType): bool =
     isNil(job.docTypeName) or docType.name.startsWith(job.docTypeName)
 
 proc matchesVersion(job: InfoJob, docType: DocumentType): bool =
-    job.docTypeVersion == -1 or job.docTypeVersion == docType.formatVersion
+    job.docTypeVersion == cParamIntValueNone or job.docTypeVersion == docType.formatVersion
 
 proc matchesSubversion(job: InfoJob, docType: DocumentType): bool =
-    job.docTypeSubversion == -1 or job.docTypeSubversion == docType.formatSubVersion
+    job.docTypeSubversion == cParamIntValueNone or job.docTypeSubversion == docType.formatSubVersion
 
 proc matchesDocType(job: InfoJob, dt: DocumentType): bool =
     job.matchesDocTypeName(dt) and job.matchesVersion(dt) and job.matchesSubversion(dt)

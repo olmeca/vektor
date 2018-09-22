@@ -1,5 +1,5 @@
 import os, logging, sets, strutils, sequtils, parseopt2, tables
-import "common", "qualifiers", doctype, "accumulator", "context"
+import common, qualifiers, doctype, accumulator, context
 
 const cCommandInfo* = "info"
 const cCommandShow* = "show"
@@ -18,6 +18,8 @@ const cParamNameCondition* = 'c'
 const cParamNameOutputPath* = 'o'
 const cParamNameDebugLevel* = 'D'
 const cParamNameLineId* = 'l'
+
+const cParamIntValueNone* = -1
 
 const cCommonParamSet = { cParamNameDebugLevel }
 const cInfoParamSet = cCommonParamSet + { cParamNameLineId }
@@ -158,7 +160,7 @@ proc setDocTypeVersion(job: InfoJob, version: string) =
     else: discard
 
 proc isVersionSpecified*(job: InfoJob): bool =
-    job.docTypeVersion != -1
+    job.docTypeVersion != cParamIntValueNone
 
 
 proc applyInfoJobIndexedParam(job: VektorJob, param: JobParam) =
@@ -251,8 +253,8 @@ proc newInfoJob*(): InfoJob =
     result.maxParamIndex = 1
     result.applyIndexedImpl = applyInfoJobIndexedParam
     result.applyNamedImpl = applyInfoJobNamedParam
-    result.docTypeVersion = -1
-    result.docTypeSubversion = -1
+    result.docTypeVersion = cParamIntValueNone
+    result.docTypeSubversion = cParamIntValueNone
     result.logLevel = lvlNone
 
 proc newHelpJob*(): HelpJob =

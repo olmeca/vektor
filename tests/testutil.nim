@@ -1,4 +1,4 @@
-import utils, common, doctypes, context, jobs
+import utils, common, doctype, context, job
 
 proc newLeType*(recordNr: int, fieldNr: int, code: string, title: string, datatype: string, start: int, len: int): LineElementType =
    result = LineElementType(

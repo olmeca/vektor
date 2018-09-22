@@ -1,5 +1,5 @@
 import streams, strutils, unittest, logging
-import ../utils, ../testutil, ../common, ../expressionsreader, ../doctypes, ../context, ../job, ../accumulator, ../showjob, ../copyjob, ../validatejob
+import utils, testutil, common, expressionsreader, doctype, context, job, accumulator, showjob, copyjob, validatejob
 
 const
     cLineLength: int = 14
@@ -9,11 +9,11 @@ const
 proc asLines(lines: seq[string]): string =
     lines.join("\n")
 
-proc activateLogging() =
-   let filePath = "/Users/rudi/Scratch/vektor.log"
-   var fileLogger = newFileLogger(filePath, fmtStr = verboseFmtStr)
-   addHandler(fileLogger)
-   setLogFilter(lvlDebug)
+#proc activateLogging() =
+#   let filePath = "/Users/rudi/Scratch/vektor.log"
+#   var fileLogger = newFileLogger(filePath, fmtStr = verboseFmtStr)
+#   addHandler(fileLogger)
+#   setLogFilter(lvlDebug)
 
 proc createShowJob(docType: DocumentType, fields: string, qualifier: string): ShowJob =
     let job = newShowJob()
@@ -185,7 +185,6 @@ suite "ShowJob Accumulator tests":
             job.accumulator.totals[1].value == 2
 
     test "ValidateJob 1":
-        activateLogging()
         var input: StringStream = newStringStream(declaration1.asLines)
         var errors: seq[ValidationResult] = @[]
         var job = createValidateJob(docType)

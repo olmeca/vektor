@@ -1,5 +1,5 @@
 import unittest, times
-import "qualifiers", "common", "context"
+import qualifiers, common, context
 
 suite "qualifiers":
 
