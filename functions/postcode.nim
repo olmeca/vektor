@@ -1,5 +1,5 @@
 import strutils, sequtils, random, pegs
-import "common", "expressions", "formatting"
+import common, expressions, formatting
 
 
 type
@@ -9,7 +9,7 @@ type
         length: int
 
 let
-   randomPostcodePattern* = peg"Pattern <-  ^ 'randompostcode' !."
+   randomPostcodePattern* = peg"Pattern <-  ^ 'postcode()' !."
 
 
 proc getRandomPostcode(): string =
@@ -18,23 +18,21 @@ proc getRandomPostcode(): string =
     result.add(rand(cAlphaUpper))
     result.add(rand(cAlphaUpper))
 
-proc serializePCE(exp: Expression): string =
-    getRandomPostcode()
+proc evaluatePCE(exp: Expression, context: Context): VektisValue =
+    VektisValue(kind: StringValueType, stringValue: getRandomPostcode())
 
 proc asStringPCE(exp: Expression): string =
     "RandomPostcodeExpression()"
 
 proc newRandomPostcodeExpression(): RandomPostcodeExpression =
-    result = RandomPostcodeExpression()
-    result.serializeImpl = serializePCE
-    result.asStringImpl = asStringPCE
+    RandomPostcodeExpression(evaluateImpl: evaluatePCE, asStringImpl: asStringPCE)
 
-proc readPCE(valueSpec: string, leId: string, vektisTypeCode: string, length: int): Expression =
+proc readPCE(valueSpec: string): Expression =
     if valueSpec =~ randomPostcodePattern:
         result = newRandomPostcodeExpression()
     else:
-        raise newException(ValueError, "Invalid postcode expression: '$#'" % valueSpec)
+        result = nil
 
 
 proc newRandomPostcodeExpressionReader*(): ExpressionReader =
-   ExpressionReader(name: "random postcode exp. reader", pattern: randomPostcodePattern, readImpl: readPCE)
+   ExpressionReader(name: "random postcode exp. reader", valueType: StringValueType, pattern: randomPostcodePattern, readImpl: readPCE)

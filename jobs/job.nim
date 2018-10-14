@@ -99,6 +99,7 @@ type
         replacementQualifierString*: string
         replacementQualifier*: LineQualifier
         outputPath*: string
+        expressionReaders*: seq[ExpressionReader]
 
     JobParam = ref JobParamObject
     JobParamObject = object of RootObj

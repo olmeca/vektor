@@ -1,5 +1,5 @@
 import streams, strutils, unittest, logging
-import utils, testutil, common, expressionsreader, doctype, context, job, accumulator, showjob, copyjob, validatejob
+import utils, testutil, common, doctype, context, job, accumulator, showjob, copyjob, validatejob
 
 const
     cLineLength: int = 14

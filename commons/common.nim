@@ -1,4 +1,4 @@
-import tables, json, os, ospaths, logging, strutils, sequtils, future, times, pegs, streams
+import tables, json, os, ospaths, logging, strutils, sequtils, future, times, pegs, streams, formatting
 
 type
    DocumentTypeError* = object of Exception
@@ -9,11 +9,29 @@ type
    DocumentReadError* = object of Exception
    DocumentWriteError* = object of Exception
 
+   # Vektis value types
+   VektisValueType* = enum
+       StringValueType, NaturalValueType, DateValueType, AmountValueType, EmptyValueType
+
+   VektisValue* = ref object
+       case kind*: VektisValueType
+       of StringValueType:
+            stringValue*: string
+       of NaturalValueType:
+            naturalValue*: uint
+       of AmountValueType:
+            amountValue*: int
+       of DateValueType:
+            dateValue*: DateTime
+       of EmptyValueType:
+            nil
+
    DebtorRecordVersion* = enum
       drvDefault, drvSB1, drvSB2
    
    LineElementType* = ref object
       lineElementId*: string
+      valueType*: VektisValueType
       code*: string
       fieldType*: string
       startPosition*: int
@@ -49,7 +67,19 @@ type
    
    VektisFormatError* = object of Exception
    
-   
+   ContextState* = enum
+      csInitial, csRegistered, csExported
+   Context* = ref object
+      parent*: Context
+      state*: ContextState
+      docType*: DocumentType
+      lineType*: LineType
+      leType*: LineElementType
+      line*: string
+      subContexts*: OrderedTableRef[string, Context]
+      currentSubContext*: Context
+
+
    # Validation
    ValidationResultType* = enum
       vrMissingFieldValue, vrInvalidFieldValue, vrInvalidLineLength, vrSummationError
@@ -65,19 +95,22 @@ type
         logFile*: string
         showElementSets*: TableRef[string, seq[string]]
 
-   #Expressions
+
    ExpressionError* = object of Exception
+
    Expression* = ref ExpressionObj
    ExpressionObj* = object of RootObj
-      serializeImpl*: proc(expr: Expression): string
+      valueType*: VektisValueType
       asStringImpl*: proc(expr: Expression): string
+      evaluateImpl*: proc(expr: Expression, context: Context): VektisValue
       isDerived*: bool
 
    ExpressionReader* = ref ExpressionReaderObj
    ExpressionReaderObj* = object of RootObj
       name*: string
+      valueType*: VektisValueType
       pattern*: Peg
-      readImpl*: proc(valueSpec: string, leId: string, typeCode: string, length: int): Expression
+      readImpl*: proc(valueSpec: string): Expression
 
    # FieldSpecs
    FieldSpec* = ref FieldSpecObj
@@ -107,15 +140,21 @@ const
    cFieldTypeNumeric* = "N"
    cFieldTypeAlphaNum* = "AN"
    cVektisDateFormat* = "yyyyMMdd"
+   cReadableDateFormat* = "yyyy-MM-dd"
+   cVektisEmptyDate* = "00000000"
    cAmountCodePrefix* = "BED"
    cNumberCodePrefix* = "NUM"
    cDateCodePrefix* = "DAT"
+   cAlphaNumCodePrefix* = "COD"
+   cReserveCodePrefix* = "TEC"
+   cFamedCodePrefix* = "FAM"
    cAmountCredit* = "C"
    cVektorConfigFileKey* = "VEKTOR_CONFIG"
    cVektorDataDirKey* = "vektor.datadir"
    cVektorLogFileKey* = "vektor.logfile"
    cLogFileName* = "vektor.log"
    cDefaultConfigFileName = "vektor.properties"
+   cEmptyVektisValueLiteral* = "null"
 
 let
    vektisDatePattern* = peg"""
@@ -136,6 +175,50 @@ let
 var
    gAppConfig: TableRef[string, string]
 
+proc serialize*(value: VektisValue, length: uint): string =
+   case value.kind:
+   of StringValueType:
+       let normalized = if isNil(value.stringValue): "" else: value.stringValue
+       if normalized.len < int(length):
+        result = normalized|L(length)
+       else:
+        result = normalized[0..length-1]
+   of NaturalValueType:
+        result = intToStr(int(value.naturalValue - 0), length)
+   of AmountValueType:
+        result = intToStr(abs(value.amountValue), length)
+   of DateValueType:
+        result = format(value.dateValue, cVektisDateFormat)
+   of EmptyValueType:
+        result = nil
+
+proc asString*(value: VektisValue): string =
+   case value.kind:
+   of StringValueType:
+       let normalized = if isNil(value.stringValue): "nil" else: value.stringValue
+       result = "\"$#\"" % normalized
+   of NaturalValueType:
+        result = intToStr(int(value.naturalValue))
+   of AmountValueType:
+        result = (value.amountValue.float / 100).formatFloat(ffDecimal, 2)
+   of DateValueType:
+        result = format(value.dateValue, cReadableDateFormat)
+   of EmptyValueType:
+        result = "nil"
+
+proc `$`*(valueType: VektisValueType): string =
+   case valueType
+   of StringValueType:
+       "StringValueType"
+   of NaturalValueType:
+        "NaturalValueType"
+   of AmountValueType:
+        "AmountValueType"
+   of DateValueType:
+        "DateValueType"
+   of EmptyValueType:
+        "EmptyValueType"
+
 proc defaultDataDir*(): string =
     joinPath(getAppDir(), cDataDir)
 
@@ -152,7 +235,7 @@ proc setAppConfig*(config: TableRef[string, string]) =
 proc initDefaultAppConfig*() =
     var config = newTable[string, string]()
     config[cVektorDataDirKey] = defaultDataDir()
-    config[cVektorConfigFileKey] = defaultLogPath()
+    config[cVektorLogFileKey] = defaultLogPath()
     setAppConfig(config)
 
 
@@ -212,9 +295,21 @@ proc createLink*(subLineId: string, multiple: bool, required: bool): LineTypeLin
     LineTypeLink(subLineId: subLineId, multiple: multiple, required: required)
 
 
+proc getVektisValueType(code: string, fieldType: string): VektisValueType =
+    if fieldType == cFieldTypeNumeric:
+        if code == cDateCodePrefix:
+            DateValueType
+        elif code == cAmountCodePrefix:
+            AmountValueType
+        else:
+            NaturalValueType
+    else:
+        StringValueType
+
 proc newLeType*(leId: string, code: string, ftype: string, start: int, len: int, cntblref: string, srcId: string, slvId: string, req: bool, desc: string): LineElementType =
    result = LineElementType(
       lineElementId: leId,
+      valueType: getVektisValueType(code[0..2], ftype),
       code: code,
       fieldType: ftype,
       startPosition: start,
@@ -261,6 +356,12 @@ proc asString*(err: ValidationResult): string =
 proc parseVektisDate*(dateString: string): DateTime =
    try:
       result = parse(dateString, cVektisDateFormat)
+   except Exception:
+      raise newException(ValueError, "Invalid date format: '$#'" % [dateString])
+
+proc parseLiteralDateExpression*(dateString: string): DateTime =
+   try:
+      result = parse(dateString, cReadableDateFormat)
    except Exception:
       raise newException(ValueError, "Invalid date format: '$#'" % [dateString])
 

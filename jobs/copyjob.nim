@@ -1,9 +1,28 @@
-import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
+import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging, valueset, literal, randomdate, randomstring, number, postcode
 
-import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting, expressionsreader
+import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting
 
-proc readExpression (leType: LineElementType, valueSpec: string): Expression =
-   readExpression(valueSpec, leType.lineElementId, leType.code, leType.length)
+
+
+proc getAllExpressionReaders*(): seq[ExpressionReader] =
+    @[
+        newRandomNominalTextExpressionReader(),
+        newRandomNominalNaturalExpressionReader(),
+        newRandomDateExpressionReader(),
+        newRandomCapsExpressionReader(),
+        newRandomStringExpressionReader(),
+        newRandomNaturalExpressionReader(),
+        newRandomPostcodeExpressionReader(),
+        newLiteralDateReader(),
+        newLiteralAmountReader(),
+        newLiteralNaturalReader(),
+        newLiteralTextReader()
+    ]
+
+
+proc initializeExpressionReaders*(job: CopyJob) =
+    job.expressionReaders = getAllExpressionReaders()
+
 
 proc readFieldValueSpec(job: CopyJob, spec: string): FieldValueSpec =
    if spec =~ fieldValueSpecPattern:
@@ -14,12 +33,20 @@ proc readFieldValueSpec(job: CopyJob, spec: string): FieldValueSpec =
       let leType = job.docType.getLineElementType(leTypeId)
       if leType.isDependent():
          raise newException(FieldSpecError,
-            "Setting the value of derived field '$#' is not allowed. \nSet value of field $# instead and Vektor will also update field $# accordingly." % [leType.lineElementId, leType.sourceId, leType.lineElementId])
-      let valueExpression = readExpression(leType, value)
-      result = FieldValueSpec(leType: leType, value: valueExpression)
-      debug("readFieldValueSpec: leType: '$#', value: $#" % [leType.asString, valueExpression.asString])
+            "Setting the value of derived field '$#' is not allowed. \nSet value of field $# instead and Vektor will also update field $# accordingly." %
+                [leType.lineElementId, leType.sourceId, leType.lineElementId])
+      let expression = job.expressionReaders.readExpression(value, leType.valueType)
+      # Short circuit the following check by preemptively setting the value type correctly
+      expression.valuetype = leType.valueType
+      # Sanity check on interpreted expression value type
+      if expression.valueType != leType.valueType and expression.valueType != EmptyValueType:
+          raise newException(ExpressionError, "readFieldValueSpec: Wrong value type for field '$#'. Expected $#, but got $#" % [leType.lineElementId, $(leType.valueType), $(expression.valueType)])
+      else: discard
+      result = FieldValueSpec(leType: leType, value: expression)
+      debug("readFieldValueSpec: leType: '$#', value: $#" % [leType.asString, expression.asString])
    else:
       raise newException(FieldSpecError, "Invalid line element specification: '$#'" % [spec])
+
 
 proc initializeFieldValueSpecs*(job: CopyJob) =
     if isNil(job.fieldValuesString) and not isNil(job.fieldValuesFile):
@@ -91,7 +118,7 @@ proc mutateAndWrite*(job: var CopyJob, outStream: Stream) =
                   if leType.isElementOfLine(context.line):
                      # if debtor record then field.leType is the default debtor record type, so get the real leType
                      # let leType = if line.isDebtorLine(): lineType.getLineElementType(field.leType.lineElementId) else: field.leType
-                     let newValue = field.value.serialize()
+                     let newValue = field.value.evaluate(context).serialize(uint(leType.length))
                      debug("maw: setting new value for leId '$#': '$#'" % [leType.lineElementId, newValue])
                      copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
          else: discard

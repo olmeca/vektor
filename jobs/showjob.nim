@@ -47,21 +47,34 @@ proc initializeFieldSpecs*(job: ShowJob) =
     else:
         raise newException(ValueError, "Missing fields specification. Please specify the fields.")
 
+proc colwidth(leType: LineElementType): int =
+    case leType.valueType
+    of DateValueType:
+        leType.length # + 2
+    of AmountValueType:
+        leType.length # + 2
+    else:
+        leType.length
+
+
+proc columnTitle(field: FieldSpec): string =
+    if isNil(field.leTitle): field.leType.lineElementId else: field.leTitle
+
+
 proc length(field: FieldSpec): int =
-    let titleLen = if isNil(field.leTitle): 0 else: field.leTitle.len
-    max(field.leType.length, titleLen)
+    max(colwidth(field.leType), field.columnTitle.len)
 
 proc getHeaderForField(field: FieldSpec): string =
-   let colLength = field.length
+   let colWidth = field.length
    let leType = field.leType
    let leTitle = if isNil(field.leTitle): leType.lineElementId else: field.leTitle
-   if colLength >= leTitle.len:
+   if colWidth >= leTitle.len:
       if leType.isNumericType or leType.isAmountType:
-         leTitle|R(colLength)
+         leTitle|R(colWidth)
       else:
-         leTitle|L(colLength)
+         leTitle|L(colWidth)
    else:
-      spaces(colLength)
+      spaces(colWidth)
 
 proc tabularLine(ctx: Context, fields: seq[FieldSpec], stringValue: proc(field: FieldSpec): string,
                   prefix: string, infix: string, postfix: string): string =

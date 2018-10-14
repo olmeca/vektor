@@ -1,17 +1,5 @@
 import strutils, sequtils, tables, logging
-import "common", doctype, "utils"
-
-type
-   ContextState* = enum
-      csInitial, csRegistered, csExported
-   Context* = ref object
-      parent*: Context
-      state*: ContextState
-      docType*: DocumentType
-      lineType*: LineType
-      line*: string
-      subContexts*: OrderedTableRef[string, Context]
-      currentSubContext*: Context
+import common, doctype, utils
 
 proc createSubContext*(parentContext: var Context, lineType: LineType, line: string): Context =
    result = Context(docType: parentContext.docType, parent: parentContext, state: csInitial, lineType: linetype, line: line, subContexts: newOrderedTable[string, Context](4), currentSubContext: nil)

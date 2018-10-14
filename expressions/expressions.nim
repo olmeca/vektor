@@ -1,14 +1,15 @@
-import pegs, strutils, sequtils
-import "common"
+import pegs, strutils, sequtils, common, logging
 
-proc serialize*(expr: Expression): string =
-   expr.serializeImpl(expr)
 
 proc asString*(expr: Expression): string =
    expr.asStringImpl(expr)
 
-proc read*(exprReader: ExpressionReader, valueSpec: string, leId: string, typeCode: string, length: int): Expression =
-   exprReader.readImpl(valueSpec, leId, typeCode, length)
+
+proc evaluate*(expr: Expression, context: Context): VektisValue =
+    if isNil(expr): nil else: expr.evaluateImpl(expr, context)
+
+proc read*(exprReader: ExpressionReader, valueSpec: string): Expression =
+   exprReader.readImpl(valueSpec)
 
 let
    fieldSpecPatternSpec = """
@@ -47,3 +48,24 @@ let
    fieldSpecPattern* = peg(fieldSpecPatternSpec)
    fieldValueSpecPattern* = peg(fieldValueSpecPatternSpec)
    fieldSpecsPattern* = peg(fieldSpecsPatternSpec)
+
+
+proc readExpression* (readers: seq[ExpressionReader], valueSpec: string): Expression =
+    result = nil
+    debug("readExpression: readers: $#" % intToStr(readers.len))
+    for reader in readers:
+        debug("readExpression checking '$#' with $#" % [valueSpec, reader.name])
+        result = reader.read(valueSpec)
+        # Stop as soon as one has matched
+        if not isNil(result):
+            break
+   # If no matching expression type found
+    if isNil(result):
+        raise newException(ExpressionError, "Invalid value expression '$#'." % [valueSpec])
+
+proc readExpression* (readers: seq[ExpressionReader], valueSpec: string, valueType: VektisValueType): Expression =
+    let typeReaders = readers.filter(proc (r: ExpressionReader): bool = r.valueType == valueType)
+    result = typeReaders.readExpression(valueSpec)
+    debug("readExpression -> $#" % [if isNil(result): "nil" else: result.asString()])
+
+

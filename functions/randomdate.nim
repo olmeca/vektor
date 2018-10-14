@@ -1,45 +1,78 @@
 import strutils, sequtils, random, pegs, times
 import common, expressions
 
+
 type
    RandomDateExpression* = ref RandomDateExpressionObj
    RandomDateExpressionObj* = object of ExpressionObj
-      fromSeconds: float
-      toSeconds: float
+      fromInSeconds: int64
+      toInSeconds: int64
+      generateImpl: proc(min: int64, max: int64): int64
+
 
 let
    randomDatePattern* = peg"""#
    Pattern <- ^ Spc RandomDateSpec Spc !.
    RandomDateSpec <- Symbol Spc '(' Spc Date Spc ',' Spc Date Spc ')'
-   Symbol <- 'randomdate'
-   Date <- {\d \d \d \d \d \d \d \d}
+   Symbol <- 'date'
+   Date <- {Year '-' Month '-' Day}
+   Year <- ('19' / '20') \d \d
+   Month <- Positive / '1' [0-2]
+   Day <- Positive / [1-2] \d / '3' [0-1]
+   Positive <- '0' [1-9]
    Spc <- \s*
    """
 
 proc asStringRDE(expression: Expression): string = 
    let rde = RandomDateExpression(expression)
-   "RandomDateExpression(from: $#, to: $#)" % [$(fromSeconds(rde.fromSeconds)), $(fromSeconds(rde.toSeconds))]
+   let fromDate = rde.fromInSeconds.fromUnix.getLocalTime.format(cReadableDateFormat)
+   let toDate = rde.toInSeconds.fromUnix.getLocalTime.format(cReadableDateFormat)
+   "RandomDateExpression(from: $#, to: $#)" % [fromDate, toDate]
 
-proc serializeRDE(expr: Expression): string =
+
+proc generateRD(min: int64, max: int64): int64 =
+    random(int(max - min)) + min
+
+
+proc generateValue(expr: RandomDateExpression, min: int64, max: int64): DateTime =
+    let randomSeconds = expr.generateImpl(min, max)
+    fromUnix(randomSeconds).getLocalTime()
+
+
+proc evaluateRDE(expr: Expression, context: Context): VektisValue =
    let rde = RandomDateExpression(expr)
-   let randomSeconds = random(rde.toSeconds-rde.fromSeconds) + rde.fromSeconds
-   let randomDate = fromSeconds(randomSeconds).getLocalTime()
-   format(randomDate, cVektisDateFormat)
+   let generatedValue = rde.generateValue(rde.fromInSeconds, rde.toInSeconds)
+   VektisValue(kind: DateValueType, dateValue: generatedValue)
 
-proc newRandomDateExpression*(min: float, max: float): RandomDateExpression =
-   result = RandomDateExpression(fromSeconds: min, toSeconds: max, isDerived: true)
-   result.serializeImpl = serializeRDE
-   result.asStringImpl = asStringRDE
 
-proc readRDE(valueSpec: string, leId: string, vektisTypeCode: string, length: int): Expression =
-   if valueSpec =~ randomDatePattern:
-      if isDateType(vektisTypeCode):
-         let fromSeconds = parseVektisDate(matches[0]).toTime().toSeconds()
-         let toSeconds = parseVektisDate(matches[1]).toTime().toSeconds()
-         result = newRandomDateExpression(fromSeconds, toSeconds)
-      else:
-         raise newException(ExpressionError, 
-            "Cannot apply random date expression '$#' to field '$#' with Vektis type '$#'." % [valueSpec, leId, vektisTypeCode])
+proc newRandomDateExpression*(min: int64, max: int64, generator: proc (min: int64, max: int64): int64 = generateRD): RandomDateExpression =
+   RandomDateExpression(
+        valueType: DateValueType,
+        fromInSeconds: min,
+        toInSeconds: max,
+        asStringImpl: asStringRDE,
+        evaluateImpl: evaluateRDE,
+        generateImpl: generator,
+        isDerived: true
+   )
+
+
+proc newRandomDateExpression*(min: DateTime, max: DateTime): RandomDateExpression =
+    newRandomDateExpression(min.toTime.toUnix, max.toTime.toUnix)
+
+
+proc newRandomDateExpression*(min: string, max: string): RandomDateExpression =
+    newRandomDateExpression(min.parseVektisDate, max.parseVektisDate)
+
+
+proc readRDE(valueSpec: string): Expression =
+    if valueSpec =~ randomDatePattern:
+        let fromSeconds = parseLiteralDateExpression(matches[0]).toTime().toUnix()
+        let toSeconds = parseLiteralDateExpression(matches[1]).toTime().toUnix()
+        result = newRandomDateExpression(fromSeconds, toSeconds)
+    else:
+        result = nil
+
 
 proc newRandomDateExpressionReader*(): ExpressionReader =
-   ExpressionReader(name: "random date exp. reader", pattern: randomDatePattern, readImpl: readRDE)
+   ExpressionReader(name: "random date exp. reader", valueType: DateValueType, pattern: randomDatePattern, readImpl: readRDE)

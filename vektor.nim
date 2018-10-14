@@ -1,5 +1,5 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
-import doctype, context, qualifiers, common, accumulator, vektorhelp, validation, formatting, expressions, expressionsreader, vektorjson, job, copyjob, infojob, showjob, validatejob, utils, codegen
+import doctype, context, qualifiers, common, accumulator, vektorhelp, validation, formatting, expressions, vektorjson, job, copyjob, infojob, showjob, validatejob, utils, codegen
 
 const
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
@@ -113,6 +113,7 @@ proc checkOutputPath(job: var CopyJob) =
 proc run(job: var CopyJob) =
     setLoggingLevel(job.logLevel)
     job.loadDocumentType()
+    job.initializeExpressionReaders()
     job.initializeFieldValueSpecs()
     job.initializeSelectionQualifier()
     job.initializeReplacementQualifier()
@@ -159,7 +160,6 @@ try:
     randomize()
     readConfigurationFile()
     activateLogging()
-    initializeExpressionReaders()
     readDocumentTypes()
 
     var cmdLineOptions = initOptParser()
