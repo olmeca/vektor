@@ -1,5 +1,5 @@
 import os, logging, sets, strutils, sequtils, parseopt2, tables
-import common, qualifiers, doctype, accumulator, context
+import common, qualifiers, doctype, accumulator, context, expressionsreader
 
 const cCommandInfo* = "info"
 const cCommandShow* = "show"
@@ -99,7 +99,7 @@ type
         replacementQualifierString*: string
         replacementQualifier*: LineQualifier
         outputPath*: string
-        expressionReaders*: seq[ExpressionReader]
+        expressionReader*: GeneralExpressionReader
 
     JobParam = ref JobParamObject
     JobParamObject = object of RootObj

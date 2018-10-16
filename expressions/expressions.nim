@@ -63,6 +63,7 @@ proc readExpression* (readers: seq[ExpressionReader], valueSpec: string): Expres
     if isNil(result):
         raise newException(ExpressionError, "Invalid value expression '$#'." % [valueSpec])
 
+
 proc readExpression* (readers: seq[ExpressionReader], valueSpec: string, valueType: VektisValueType): Expression =
     let typeReaders = readers.filter(proc (r: ExpressionReader): bool = r.valueType == valueType)
     result = typeReaders.readExpression(valueSpec)

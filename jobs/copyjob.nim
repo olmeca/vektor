@@ -1,6 +1,6 @@
 import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging, valueset, literal, randomdate, randomstring, number, postcode
 
-import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting
+import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting, expressionsreader
 
 
 
@@ -21,7 +21,7 @@ proc getAllExpressionReaders*(): seq[ExpressionReader] =
 
 
 proc initializeExpressionReaders*(job: CopyJob) =
-    job.expressionReaders = getAllExpressionReaders()
+    job.expressionReader = newGeneralExpressionReader(getAllExpressionReaders())
 
 
 proc readFieldValueSpec(job: CopyJob, spec: string): FieldValueSpec =
@@ -35,7 +35,7 @@ proc readFieldValueSpec(job: CopyJob, spec: string): FieldValueSpec =
          raise newException(FieldSpecError,
             "Setting the value of derived field '$#' is not allowed. \nSet value of field $# instead and Vektor will also update field $# accordingly." %
                 [leType.lineElementId, leType.sourceId, leType.lineElementId])
-      let expression = job.expressionReaders.readExpression(value, leType.valueType)
+      let expression = job.expressionReader.readExpression(value, leType.valueType)
       # Short circuit the following check by preemptively setting the value type correctly
       expression.valuetype = leType.valueType
       # Sanity check on interpreted expression value type

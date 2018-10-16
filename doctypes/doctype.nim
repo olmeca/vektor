@@ -1,5 +1,5 @@
 import os, ospaths, future, sequtils, strutils, logging, tables, times
-import "common", "codeddoctypes", "formatting", "utils"
+import common, codeddoctypes, formatting, utils
 
 const 
    cDebtorRecordLineId* = "03"
