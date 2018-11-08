@@ -163,7 +163,11 @@ proc documentTypeMatching*(name: string, version: int, subversion: int): Documen
 
 
 proc subLineLinkWithId*(lineType: LineType, lineId: string): LineTypeLink =
-   lineType.childLinks.firstItemMatching(proc(link: LineTypeLink): bool = link.subLineId = lineId)
+   result = nil
+   try:
+        result = lineType.childLinks.firstItemMatching(proc(link: LineTypeLink): bool = link.subLineId = lineId)
+   except(NoMatchingItemFound):
+        raise newException(ChildLinkWithLineIdNotFoundError, "line type $# supports no sublines of type $#" % [lineType.lineId, lineId])
 
 proc hasSubLineTypeWithId*(docType: DocumentType, lineType: LineType, lineId: string): bool =
    if lineType.childLinks.anyIt(it.subLineId == lineId):
@@ -234,7 +238,7 @@ proc sign(docType: DocumentType, leType: LineElementType, line: string): int =
    result = 1
    let sucLeType = docType.getLineElementType(nextLeId(leType.lineElementId))
    if sucLeType.code.startsWith("COD") and sucLeType.length == 1:
-      if line.getElementValueFullString(sucLeType) == cAmountCredit:
+      if line.getElementValueFullString(sucLeType) == cSignumCredit:
          result = -result
       else: discard
    else: discard
@@ -251,4 +255,6 @@ proc summary*(doctype: DocumentType): string =
       intToStr(doctype.formatVersion),
       intToStr(doctype.formatSubVersion),
       doctype.description]
+
+
 

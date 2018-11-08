@@ -45,11 +45,11 @@ suite "Expression reader tests":
 
 
     test "Reading amount is accurate":
-        let reader = newLiteralAmountReader()
+        let reader = newLiteralUnsigAmountReader()
         let exp = reader.read("1234.56")
         check:
             not isNil(exp)
-            exp.valueType == AmountValueType
+            exp.valueType == UnsignedAmountValueType
         let value = exp.evaluate(context)
         check:
             not isNil(value)

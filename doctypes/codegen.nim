@@ -21,16 +21,17 @@ $#
 
 
 proc genCreateLineElementType( leType: LineElementType): string =
-    "        newLeType($#, $#, $#, $#, $#, $#, $#, $#, $#, $#)" % [
+    "        newLeType($#, $#, $#, $#, $#, $#, $#, $#, $#, $#, $#)" % [
         quoteStr(leType.lineElementId),
         quoteStr(leType.code),
-        quoteStr(leType.fieldType),
-        intToStr(leType.startPosition),
-        intToStr(leType.length),
-        quoteStr(leType.countable),
-        quoteStr(leType.sourceId),
-        quoteStr(leType.slaveId),
-        boolToStr(leType.required),
+        quoteStr(leType.fieldType)|L(4),
+        intToStr(leType.startPosition)|R(3),
+        intToStr(leType.length)|R(3),
+        quoteStr(leType.countable)|L(6),
+        quoteStr(leType.sourceId)|L(6),
+        quoteStr(leType.slaveId)|L(6),
+        boolToStr(leType.required)|L(6),
+        $(leType.valueType)|L(24),
         quoteStr(leType.description)
     ]
 
@@ -38,7 +39,8 @@ proc genCreateLineElementTypes(lType: LineType): string =
     join(lc[genCreateLineElementType(item) | (item <- lType.lineElementTypes), string], ",\n")
 
 proc genCreateLink(link: LineTypeLink): string =
-    "createLink($#, $#, $#)" % [quoteStr(link.subLineId), boolToStr(link.multiple), boolToStr(link.required)]
+    let multiple: bool = (link.cardinality == ToMany)
+    "createLink($#, $#, $#)" % [quoteStr(link.subLineId), boolToStr(multiple), boolToStr(link.required)]
 
 proc genCreateLinks(links: seq[LineTypeLink]): string =
     "@[$#]" % join(lc[genCreateLink(item) | (item <- links), string], ", ")
@@ -113,14 +115,18 @@ proc createDocType$#*(): DocumentType =
     ]
 
 let fullDocTypeCodeTemplate = """
-import strutils, sequtils, common
+import strutils, sequtils, common, factory
+
+# $#.nim
+# Generated: $#
 
 $#
 $#
 """
 
 proc genCreateDocTypeCode*(docType: DocumentType): string =
-    fullDocTypeCodeTemplate % [genCreateLineTypesFunction(docType), genCreateDocTypeFunction(docType)]
+    let date = format(now(), "d MMMM yyyy HH:mm:ss")
+    fullDocTypeCodeTemplate % [docType.ext, date, genCreateLineTypesFunction(docType), genCreateDocTypeFunction(docType)]
 
 
 proc createDocTypeSource*(docType: DocumentType) =
@@ -138,4 +144,4 @@ proc genDocTypesSources*() =
     for docType in getAllDocumentTypes():
         createDocTypeSource(docType)
 
-# genDocTypesSources()
+genDocTypesSources()

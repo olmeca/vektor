@@ -20,7 +20,7 @@ suite "Vektis value tests":
 
 
     test "Amount value serialized is padded to length":
-        let value = VektisValue(kind: AmountValueType, amountValue: 12345)
+        let value = VektisValue(kind: SignedAmountValueType, signedAmountValue: 12345)
         check:
             value.serialize(9) == "000012345"
 

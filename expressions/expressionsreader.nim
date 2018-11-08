@@ -1,9 +1,26 @@
-import sequtils, common, tables, expressions
+import sequtils, common, tables, expressions, valueset, literal, randomdate, randomstring, number, postcode
 
 
 type
     GeneralExpressionReader* = ref object of RootObj
         readers*: TableRef[VektisValueType, seq[ExpressionReader]]
+
+
+proc getUserExpressionReaders*(): seq[ExpressionReader] =
+    @[
+        newRandomNominalTextExpressionReader(),
+        newRandomNominalNaturalExpressionReader(),
+        newRandomDateExpressionReader(),
+        newRandomCapsExpressionReader(),
+        newRandomStringExpressionReader(),
+        newRandomNaturalExpressionReader(),
+        newRandomPostcodeExpressionReader(),
+        newLiteralDateReader(),
+        newLiteralSignedAmountReader(),
+        newLiteralUnsignedAmountReader(),
+        newLiteralNaturalReader(),
+        newLiteralTextReader()
+    ]
 
 
 proc newGeneralExpressionReader*(readers: seq[ExpressionReader]): GeneralExpressionReader =

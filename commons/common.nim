@@ -5,13 +5,17 @@ type
    ContextWithLineIdNotFoundError* = object of Exception
    ChildLinkWithLineIdNotFoundError* = object of Exception
    NoMatchingItemFound* = object of Exception
+   UnsupportedSublineError* = object of Exception
    LineTypeMisMatch* = object of Exception
    DocumentReadError* = object of Exception
    DocumentWriteError* = object of Exception
 
+
+   DateTimeRef* = ref DateTime
+
    # Vektis value types
    VektisValueType* = enum
-       StringValueType, NaturalValueType, DateValueType, AmountValueType, EmptyValueType
+       StringValueType, NaturalValueType, DateValueType, SignedAmountValueType, UnsignedAmountValueType, EmptyValueType
 
    VektisValue* = ref object
        case kind*: VektisValueType
@@ -19,12 +23,17 @@ type
             stringValue*: string
        of NaturalValueType:
             naturalValue*: uint
-       of AmountValueType:
+       of SignedAmountValueType:
+            signedAmountValue*: int
+       of UnsignedAmountValueType:
             amountValue*: int
        of DateValueType:
-            dateValue*: DateTime
+            dateValue*: DateTimeRef
        of EmptyValueType:
             nil
+
+   Cardinality* = enum
+       ToOne, ToMany
 
    DebtorRecordVersion* = enum
       drvDefault, drvSB1, drvSB2
@@ -41,12 +50,14 @@ type
       sourceId*: string
       slaveId*: string
       required*: bool
-   
+
+
    LineTypeLink* = ref object
       subLineId*: string
-      multiple*: bool
+      cardinality*: Cardinality
       required*: bool
-   
+
+
    LineType* = ref object
       name*: string
       length*: int
@@ -55,7 +66,16 @@ type
       lineElementTypes*: seq[LineElementType]
       childLinks*: seq[LineTypeLink]
       hasDependentElements*: bool
-   
+
+
+   SublineLink* = ref object
+       case kind*: Cardinality
+       of ToOne:
+            subLine*: Line
+       of ToMany:
+            subLines*: seq[Line]
+
+
    DocumentType* = ref object
       name*: string
       description*: string
@@ -64,7 +84,19 @@ type
       vektisEICode*: int
       lineLength*: int
       lineTypes*: seq[LineType]
-   
+
+
+   Line* = ref object
+      lineType*: LineType
+      parent*: Line
+      values*: OrderedTable[string, VektisValue]
+      sublines*: OrderedTableRef[string, SublineLink]
+
+
+   Document* = ref object
+      docType*: DocumentType
+      lines*: seq[Line]
+
    VektisFormatError* = object of Exception
    
    ContextState* = enum
@@ -137,6 +169,7 @@ const
    cTopLineId* = "01"
    cPatientLineId* = "02"
    cDebtorLineId* = "03"
+   cOperationLineId* = "04"
    cFieldTypeNumeric* = "N"
    cFieldTypeAlphaNum* = "AN"
    cVektisDateFormat* = "yyyyMMdd"
@@ -147,8 +180,8 @@ const
    cDateCodePrefix* = "DAT"
    cAlphaNumCodePrefix* = "COD"
    cReserveCodePrefix* = "TEC"
-   cFamedCodePrefix* = "FAM"
-   cAmountCredit* = "C"
+   cSignumCredit* = "C"
+   cSignumDebit* = "D"
    cVektorConfigFileKey* = "VEKTOR_CONFIG"
    cVektorDataDirKey* = "vektor.datadir"
    cVektorLogFileKey* = "vektor.logfile"
@@ -175,22 +208,20 @@ let
 var
    gAppConfig: TableRef[string, string]
 
-proc serialize*(value: VektisValue, length: uint): string =
-   case value.kind:
-   of StringValueType:
-       let normalized = if isNil(value.stringValue): "" else: value.stringValue
-       if normalized.len < int(length):
-        result = normalized|L(length)
-       else:
-        result = normalized[0..length-1]
-   of NaturalValueType:
-        result = intToStr(int(value.naturalValue - 0), length)
-   of AmountValueType:
-        result = intToStr(abs(value.amountValue), length)
-   of DateValueType:
-        result = format(value.dateValue, cVektisDateFormat)
-   of EmptyValueType:
-        result = nil
+
+proc firstItemMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.}): T {.inline.} =
+   for i in 0..<list.len:
+      if pred(list[i]):
+         return list[i]
+   raise newException(NoMatchingItemFound, "No item in list matching given criteria")
+
+
+proc firstIndexMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.}): int {.inline.} =
+   for i in 0..<list.len:
+      if pred(list[i]):
+         return i
+   raise newException(NoMatchingItemFound, "No item in list matching given criteria")
+
 
 proc asString*(value: VektisValue): string =
    case value.kind:
@@ -199,10 +230,12 @@ proc asString*(value: VektisValue): string =
        result = "\"$#\"" % normalized
    of NaturalValueType:
         result = intToStr(int(value.naturalValue))
-   of AmountValueType:
+   of UnsignedAmountValueType:
         result = (value.amountValue.float / 100).formatFloat(ffDecimal, 2)
+   of SignedAmountValueType:
+        result = (value.signedAmountValue.float / 100).formatFloat(ffDecimal, 2)
    of DateValueType:
-        result = format(value.dateValue, cReadableDateFormat)
+        result = format(value.dateValue[], cReadableDateFormat)
    of EmptyValueType:
         result = "nil"
 
@@ -212,8 +245,10 @@ proc `$`*(valueType: VektisValueType): string =
        "StringValueType"
    of NaturalValueType:
         "NaturalValueType"
-   of AmountValueType:
-        "AmountValueType"
+   of UnsignedAmountValueType:
+        "UnsignedAmountValueType"
+   of SignedAmountValueType:
+        "SignedAmountValueType"
    of DateValueType:
         "DateValueType"
    of EmptyValueType:
@@ -291,36 +326,6 @@ proc isAmountType*(code: string): bool =
 proc isTextType*(code: string): bool =
    not isDateType(code) and not isNumericType(code)
 
-proc createLink*(subLineId: string, multiple: bool, required: bool): LineTypeLink =
-    LineTypeLink(subLineId: subLineId, multiple: multiple, required: required)
-
-
-proc getVektisValueType(code: string, fieldType: string): VektisValueType =
-    if fieldType == cFieldTypeNumeric:
-        if code == cDateCodePrefix:
-            DateValueType
-        elif code == cAmountCodePrefix:
-            AmountValueType
-        else:
-            NaturalValueType
-    else:
-        StringValueType
-
-proc newLeType*(leId: string, code: string, ftype: string, start: int, len: int, cntblref: string, srcId: string, slvId: string, req: bool, desc: string): LineElementType =
-   result = LineElementType(
-      lineElementId: leId,
-      valueType: getVektisValueType(code[0..2], ftype),
-      code: code,
-      fieldType: ftype,
-      startPosition: start,
-      length: len,
-      description: desc,
-      countable: cntblref,
-      sourceId: srcId,
-      slaveId: slvId,
-      required: req
-   )
-
 
 proc asString*(doctype: DocumentType): string =
    "$# v$#.$#   $#" % 
@@ -364,20 +369,6 @@ proc parseLiteralDateExpression*(dateString: string): DateTime =
       result = parse(dateString, cReadableDateFormat)
    except Exception:
       raise newException(ValueError, "Invalid date format: '$#'" % [dateString])
-
-
-proc firstItemMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.}): T {.inline.} =
-   for i in 0..<list.len:
-      if pred(list[i]):
-         return list[i]
-   raise newException(NoMatchingItemFound, "No item in list matching given criteria")
-
-
-proc firstIndexMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.}): int {.inline.} =
-   for i in 0..<list.len:
-      if pred(list[i]):
-         return i
-   raise newException(NoMatchingItemFound, "No item in list matching given criteria")
 
 
 proc checkProcessableLineType*(leId: string) =

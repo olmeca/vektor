@@ -1,26 +1,32 @@
 import json, sequtils, future, logging, strutils, tables
-import common
+import common, factory
+
 
 proc readLineElementType*(node: JsonNode): LineElementType =
-   result = LineElementType(
-      lineElementId: node["lineElementId"].getStr(),
-      code: node["code"].getStr(),
-      fieldType: node["fieldType"].getStr(),
-      startPosition: int(node["startPosition"].getNum()),
-      length: int(node["length"].getNum()),
-      description: node["description"].getStr(),
-      countable: getStr(node{"countable"}, nil),
-      sourceId: getStr(node{"sourceId"}, nil),
-      slaveId: getStr(node{"slaveId"}, nil),
-      required: node["required"].getBVal()
-   )
+    let code = node["code"].getStr()
+    let ftype = node["fieldType"].getStr()
+    let valueType = if node.hasKey("signed"): SignedAmountValueType else: getVektisValueType(code, ftype)
+    result = newLeType(
+         node["lineElementId"].getStr(),
+         node["code"].getStr(),
+         node["fieldType"].getStr(),
+         int(node["startPosition"].getNum()),
+         int(node["length"].getNum()),
+         getStr(node{"countable"}, nil),
+         getStr(node{"sourceId"}, nil),
+         getStr(node{"slaveId"}, nil),
+         node["required"].getBool(),
+         valueType,
+         node["description"].getStr()
+    )
    # debug(result.asString())
 
+
 proc readLineTypeLink*(node: JsonNode): LineTypeLink =
-   result = LineTypeLink(
-      subLineId: node["subLineId"].getStr(),
-      multiple: node["multiple"].getBVal(),
-      required: node["required"].getBVal()
+   createLink(
+      node["subLineId"].getStr(),
+      node["multiple"].getBVal(),
+      node["required"].getBVal()
    )
 
 proc readLineType*(node: JsonNode, lineLength: int): LineType =

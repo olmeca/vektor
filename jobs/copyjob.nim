@@ -1,27 +1,12 @@
-import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging, valueset, literal, randomdate, randomstring, number, postcode
+import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
 
 import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting, expressionsreader
 
 
 
-proc getAllExpressionReaders*(): seq[ExpressionReader] =
-    @[
-        newRandomNominalTextExpressionReader(),
-        newRandomNominalNaturalExpressionReader(),
-        newRandomDateExpressionReader(),
-        newRandomCapsExpressionReader(),
-        newRandomStringExpressionReader(),
-        newRandomNaturalExpressionReader(),
-        newRandomPostcodeExpressionReader(),
-        newLiteralDateReader(),
-        newLiteralAmountReader(),
-        newLiteralNaturalReader(),
-        newLiteralTextReader()
-    ]
-
 
 proc initializeExpressionReaders*(job: CopyJob) =
-    job.expressionReader = newGeneralExpressionReader(getAllExpressionReaders())
+    job.expressionReader = newGeneralExpressionReader(getUserExpressionReaders())
 
 
 proc readFieldValueSpec(job: CopyJob, spec: string): FieldValueSpec =

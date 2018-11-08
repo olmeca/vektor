@@ -1,18 +1,20 @@
-import utils, common, doctype, context, job
+import utils, common, doctype, factory, context, job
+
 
 proc newLeType*(recordNr: int, fieldNr: int, code: string, title: string, datatype: string, start: int, len: int): LineElementType =
-   result = LineElementType(
-      lineElementId: leTypeId(recordNr, fieldNr),
-      code: code,
-      fieldType: datatype,
-      startPosition: start,
-      length: len,
-      description: title,
-      countable: nil,
-      sourceId: nil,
-      slaveId: nil,
-      required: true
-   )
+    newLeType(
+        leTypeId(recordNr, fieldNr),
+        code,
+        datatype,
+        start,
+        len,
+        nil,
+        nil,
+        nil,
+        true,
+        title
+    )
+
 
 proc newLineType*(index: int, len: int, name: string, children: seq[LineTypeLink], leTypes: seq[LineElementType], hasDeps: bool ): LineType =
    result = LineType(

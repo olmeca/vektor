@@ -1,5 +1,5 @@
 import streams, strutils, unittest, logging
-import utils, testutil, common, doctype, context, job, accumulator, showjob, copyjob, validatejob
+import utils, testutil, common, doctype, factory, context, job, accumulator, showjob, copyjob, validatejob
 
 const
     cLineLength: int = 14
@@ -75,7 +75,7 @@ suite "ShowJob Accumulator tests":
         let leTypePatientRecordId = newLeType(2, 1, "NUM123", "02 ID", cFieldTypeNumeric, 1, 2)
         let leTypePatientRecordNr = newLeType(2, 2, "NUM123", "02 NR", cFieldTypeNumeric, 3, 4)
         let leTypePatientRecordName = newLeType(2, 3, "COD123", "02 NAME", cFieldTypeAlphaNum, 7, 9)
-        let operChildLink = LineTypeLink(subLineId: "04", multiple: true, required: true)
+        let operChildLink = createLink("04", true, true)
         let leTypePatientElements = @[leTypePatientRecordId, leTypePatientRecordNr, leTypePatientRecordName]
         let lTypePatient = newLineType(2, cLineLength, "Patient", @[operChildLink], leTypePatientElements, false)
 
@@ -97,8 +97,8 @@ suite "ShowJob Accumulator tests":
         let leTypeVoorloopRecordId = newLeType(1, 1, "NUM123", "01 ID", cFieldTypeNumeric, 1, 2)
         let leTypeVoorloopRecordNr = newLeType(1, 2, "NUM123", "01 NR", cFieldTypeNumeric, 3, 4)
         let leTypeVoorloopRecordPad = newLeType(1, 3, "COD123", "01 PAD", cFieldTypeAlphaNum, 7, 8)
-        let patientChildLink = LineTypeLink(subLineId: "02", multiple: true, required: true)
-        let totalsChildLink = LineTypeLink(subLineId: "99", multiple: false, required: true)
+        let patientChildLink = createLink("02", true, true)
+        let totalsChildLink = createLink("99", false, true)
         let leTypeVoorloopRecordElements = @[leTypeVoorloopRecordId, leTypeVoorloopRecordNr, leTypeVoorloopRecordPad]
         let lTypeVoorloopRecord = newLineType(1, cLineLength, "Voorloop", @[patientChildLink, totalsChildLink], leTypeVoorloopRecordElements, false)
 

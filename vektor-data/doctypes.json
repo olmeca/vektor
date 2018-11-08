@@ -989,19 +989,11 @@
             "code": "BED153",
             "description": "BEREKEND BEDRAG (INCL. BTW)",
             "fieldType": "N",
-            "length": 8,
+            "length": 9,
             "lineElementId": "0433",
             "required": false,
+            "signed": true,
             "startPosition": 204
-          },
-          {
-            "code": "COD668",
-            "description": "INDICATIE DEBET/CREDIT (01)",
-            "fieldType": "AN",
-            "length": 1,
-            "lineElementId": "0434",
-            "required": false,
-            "startPosition": 212
           },
           {
             "code": "NUM352",
@@ -1025,19 +1017,11 @@
             "code": "BED161",
             "description": "DECLARATIEBEDRAG (INCL. BTW)",
             "fieldType": "N",
-            "length": 8,
+            "length": 9,
             "lineElementId": "0437",
             "required": false,
+            "signed": true,
             "startPosition": 225
-          },
-          {
-            "code": "COD665",
-            "description": "INDICATIE DEBET/CREDIT (02)",
-            "fieldType": "AN",
-            "length": 1,
-            "lineElementId": "0438",
-            "required": false,
-            "startPosition": 233
           },
           {
             "code": "NUM362",
@@ -1190,20 +1174,12 @@
             "code": "BED025",
             "description": "TOTAAL DECLARATIEBEDRAG",
             "fieldType": "N",
-            "length": 11,
+            "length": 12,
             "lineElementId": "9907",
             "required": false,
             "startPosition": 34,
+            "signed": true,
             "countable": "0437"
-          },
-          {
-            "code": "COD043",
-            "description": "INDICATIE DEBET/CREDIT",
-            "fieldType": "AN",
-            "length": 1,
-            "lineElementId": "9908",
-            "required": true,
-            "startPosition": 45
           },
           {
             "code": "TEC007",
@@ -2308,19 +2284,11 @@
             "code": "BED153",
             "description": "BEREKEND BEDRAG (INCL. BTW)",
             "fieldType": "N",
-            "length": 8,
+            "length": 9,
             "lineElementId": "0439",
             "required": false,
+            "signed": true,
             "startPosition": 278
-          },
-          {
-            "code": "COD668",
-            "description": "INDICATIE DEBET/CREDIT (01)",
-            "fieldType": "AN",
-            "length": 1,
-            "lineElementId": "0440",
-            "required": true,
-            "startPosition": 286
           },
           {
             "code": "NUM352",
@@ -2344,19 +2312,11 @@
             "code": "BED161",
             "description": "DECLARATIEBEDRAG (INCL. BTW)",
             "fieldType": "N",
-            "length": 8,
+            "length": 9,
             "lineElementId": "0443",
             "required": false,
+            "signed": true,
             "startPosition": 299
-          },
-          {
-            "code": "COD665",
-            "description": "INDICATIE DEBET/CREDIT (02)",
-            "fieldType": "AN",
-            "length": 1,
-            "lineElementId": "0444",
-            "required": true,
-            "startPosition": 307
           },
           {
             "code": "NUM362",
@@ -2504,19 +2464,11 @@
             "code": "BED025",
             "description": "TOTAAL DECLARATIEBEDRAG",
             "fieldType": "N",
-            "length": 11,
+            "length": 12,
             "lineElementId": "9907",
             "required": false,
+            "signed": true,
             "startPosition": 34
-          },
-          {
-            "code": "COD043",
-            "description": "INDICATIE DEBET/CREDIT",
-            "fieldType": "AN",
-            "length": 1,
-            "lineElementId": "9908",
-            "required": true,
-            "startPosition": 45
           },
           {
             "code": "TEC007",

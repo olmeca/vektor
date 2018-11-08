@@ -51,8 +51,10 @@ proc colwidth(leType: LineElementType): int =
     case leType.valueType
     of DateValueType:
         leType.length # + 2
-    of AmountValueType:
+    of SignedAmountValueType:
         leType.length # + 2
+    of UnsignedAmountValueType:
+        leType.length # + 1
     else:
         leType.length
 

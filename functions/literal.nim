@@ -1,5 +1,5 @@
 import strutils, sequtils, parseutils, pegs, logging
-import common, expressions, formatting, times
+import common, factory, expressions, formatting, times
 
 type
    LiteralValueExpression* = ref LiteralValueExpressionObj
@@ -27,13 +27,25 @@ let
    Spc <- \s*
    """
 
-   literalAmountPattern = peg"""
+
+   literalUnsignedAmountPattern* = peg"""
    Pattern <- ^ Spc Number Spc !.
    Number <- {IntegerPart} '.' {DecimalPart}
-   IntegerPart <- '-'? \d+
+   IntegerPart <- \d+
    DecimalPart <- \d \d
    Spc <- \s*
    """
+
+
+   literalSignedAmountPattern* = peg"""
+   Pattern <- ^ Spc Number Spc !.
+   Number <- {Sign} {IntegerPart} '.' {DecimalPart}
+   Sign <- '+' / '-'
+   IntegerPart <- \d+
+   DecimalPart <- \d \d
+   Spc <- \s*
+   """
+
 
    literalDatePattern = peg"""
    Pattern <- ^ Spc {Date} Spc !.
@@ -63,10 +75,10 @@ proc newLiteralNaturalExpression(value: VektisValue): LiteralNaturalExpression =
         asStringImpl: asStringLVE
     )
 
-proc newLiteralAmountExpression(value: VektisValue): LiteralAmountExpression =
+proc newLiteralAmountExpression(value: VektisValue, valueType: VektisValueType): LiteralAmountExpression =
     result = LiteralAmountExpression(
         value: value,
-        valueType: AmountValueType,
+        valueType: valueType,
         evaluateImpl: evaluateLVE,
         asStringImpl: asStringLVE
     )
@@ -90,16 +102,17 @@ proc newLiteralStringExpression(value: VektisValue): LiteralStringExpression =
     )
 
 
+
 proc readLiteralDate(valueSpec: string): Expression =
    debug("readLiteralDate: '$#'" % valueSpec)
    if valueSpec =~ literalDatePattern:
       var dateVektisValue: VektisValue
       # Interpret zeros as nil date
       if valueSpec == cEmptyVektisValueLiteral:
-         dateVektisValue = VektisValue(kind: EmptyValueType)
+         dateVektisValue = VektisValue(kind: DateValueType, dateValue: nil)
       else:
          let date = parseLiteralDateExpression(matches[0])
-         dateVektisValue = VektisValue(kind: DateValueType, dateValue: date)
+         dateVektisValue = VektisValue(kind: DateValueType, dateValue: newDateTimeRef(date))
       result = newLiteralDateExpression(dateVektisValue)
    else:
       result = nil
@@ -117,10 +130,15 @@ proc readLiteralNatural(valueSpec: string): Expression =
 
 
 proc readLiteralAmount(valueSpec: string): Expression =
-   if valueSpec =~ literalAmountPattern:
-      let integerValue = parseInt(if isNil(matches[1]): matches[0] else: matches[0] & matches[1])
-      let amtVektisValue = VektisValue(kind: AmountValueType, amountValue: integerValue)
-      result = newLiteralAmountExpression(amtVektisValue)
+   if valueSpec =~ literalSignedAmountPattern:
+      let sign = if matches[0] == "-": -1 else: 1
+      let integerValue = parseInt(matches[1] & matches[2]) * sign
+      let amtVektisValue = VektisValue(kind: SignedAmountValueType, signedAmountValue: integerValue)
+      result = newLiteralAmountExpression(amtVektisValue, SignedAmountValueType)
+   elif valueSpec =~ literalUnsignedAmountPattern:
+      let integerValue = parseInt(matches[0] & matches[1])
+      let amtVektisValue = VektisValue(kind: UnsignedAmountValueType, amountValue: integerValue)
+      result = newLiteralAmountExpression(amtVektisValue, UnsignedAmountValueType)
    else:
       result = nil
 
@@ -139,8 +157,11 @@ proc newLiteralDateReader*(): ExpressionReader =
 proc newLiteralNaturalReader*(): ExpressionReader =
    ExpressionReader(name: "literal natural exp. reader", valueType: NaturalValueType, pattern: literalNaturalPattern, readImpl: readLiteralNatural)
 
-proc newLiteralAmountReader*(): ExpressionReader =
-   ExpressionReader(name: "literal number exp. reader", valueType: AmountValueType, pattern: literalAmountPattern, readImpl: readLiteralAmount)
+proc newLiteralSignedAmountReader*(): ExpressionReader =
+   ExpressionReader(name: "literal signed amount exp. reader", valueType: SignedAmountValueType, pattern: literalSignedAmountPattern, readImpl: readLiteralAmount)
+
+proc newLiteralUnsignedAmountReader*(): ExpressionReader =
+   ExpressionReader(name: "literal unsigned amout exp. reader", valueType: UnsignedAmountValueType, pattern: literalUnsignedAmountPattern, readImpl: readLiteralAmount)
 
 proc newLiteralTextReader*(): ExpressionReader =
    ExpressionReader(name: "literal text exp. reader", valueType: StringValueType, pattern: literalValuePattern, readImpl: readLiteralText)

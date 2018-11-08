@@ -1,5 +1,5 @@
 import strutils, sequtils, random, pegs, times
-import common, expressions
+import common, factory, expressions
 
 
 type
@@ -42,7 +42,7 @@ proc generateValue(expr: RandomDateExpression, min: int64, max: int64): DateTime
 proc evaluateRDE(expr: Expression, context: Context): VektisValue =
    let rde = RandomDateExpression(expr)
    let generatedValue = rde.generateValue(rde.fromInSeconds, rde.toInSeconds)
-   VektisValue(kind: DateValueType, dateValue: generatedValue)
+   VektisValue(kind: DateValueType, dateValue: newDateTimeRef(generatedValue))
 
 
 proc newRandomDateExpression*(min: int64, max: int64, generator: proc (min: int64, max: int64): int64 = generateRD): RandomDateExpression =
