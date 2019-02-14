@@ -421,6 +421,7 @@ proc readDocumentTypeSpec(job: DocumentJob): DocTypeSpec =
             debRecVsn = determineDebRecVersion(input)
             close(input)
             result = (typeId, version, subversion, debRecVsn)
+            debug("Doc type: id: $#, ver: $#, sub: $#, drv: $#" % [intToStr(typeId), intToStr(version), intToStr(subversion), toString(debRecVsn)])
         else:
             close(input)
             raise newException(ValueError, "Document is not a Vektis declaration.")
@@ -430,6 +431,7 @@ proc readDocumentTypeSpec(job: DocumentJob): DocTypeSpec =
 proc loadDocumentType*(job: DocumentJob) =
    let docTypeSpec = readDocumentTypeSpec(job)
    job.docType = getDocumentType(docTypeSpec)
+   job.debRecVersion = docTypeSpec[3]
    job.accumulator = newAccumulator(job.docType)
 
 
