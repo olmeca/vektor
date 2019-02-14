@@ -144,4 +144,5 @@ proc genDocTypesSources*() =
     for docType in getAllDocumentTypes():
         createDocTypeSource(docType)
 
-genDocTypesSources()
+when isMainModule:
+    genDocTypesSources()
