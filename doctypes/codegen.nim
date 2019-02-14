@@ -1,8 +1,8 @@
-import future, sequtils, strutils, logging, tables, times, streams, os, ospaths,
+import sugar, sequtils, strutils, logging, tables, times, streams, os, ospaths,
     common, vektorjson, formatting, utils, jsondoctypes
 
 proc quoteStr(value: string): string =
-    if isNil(value): "nil" else: "\"$#\"" % value
+    "\"$#\"" % value
 
 proc boolToStr(value: bool): string =
     if value: "true" else: "false"

@@ -1,4 +1,4 @@
-import tables, json, os, ospaths, logging, strutils, sequtils, future, times, pegs, streams
+import tables, json, os, ospaths, logging, strutils, sequtils, sugar, times, pegs, streams
 import formatting, common
 
 
@@ -10,7 +10,7 @@ proc serializeSignedAmount(amount: int, length: int): string =
 proc serialize*(value: VektisValue, length: int): string =
    case value.kind:
    of StringValueType:
-       let normalized = if isNil(value.stringValue): "" else: value.stringValue
+       let normalized = value.stringValue
        if normalized.len < int(length):
         result = normalized|L(length)
        else:
@@ -27,7 +27,7 @@ proc serialize*(value: VektisValue, length: int): string =
         else:
             result = format(value.dateValue[], cVektisDateFormat)
    of EmptyValueType:
-        result = nil
+        result = ""
 
 
 proc serialize*(line: Line, stream: Stream) =

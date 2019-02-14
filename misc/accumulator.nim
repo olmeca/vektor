@@ -1,4 +1,4 @@
-import tables, strutils, sequtils, future, logging
+import tables, strutils, sequtils, sugar, logging
 import "common", doctype, "formatting"
 
 type
@@ -25,7 +25,7 @@ proc asString(total: Total): string =
 
 proc newAccumulator*(dType:DocumentType): Accumulator =
    let bottomline = dType.getLineTypeForLineId(cBottomLineId)
-   let totals = lc[Total(leType: t, value: 0) | (t <- bottomLine.lineElementTypes, not isNil(t.countable)), Total]
+   let totals = lc[Total(leType: t, value: 0) | (t <- bottomLine.lineElementTypes, t.countable != ""), Total]
    result = Accumulator(docType: dType, totals: totals, empty: true)
 
 proc increment(total: var Total, extra: int) =

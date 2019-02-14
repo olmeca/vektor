@@ -1,4 +1,4 @@
-import json, sequtils, future, logging, strutils, tables
+import json, sequtils, sugar, logging, strutils, tables
 import common, factory
 
 
@@ -10,11 +10,11 @@ proc readLineElementType*(node: JsonNode): LineElementType =
          node["lineElementId"].getStr(),
          node["code"].getStr(),
          node["fieldType"].getStr(),
-         int(node["startPosition"].getNum()),
-         int(node["length"].getNum()),
-         getStr(node{"countable"}, nil),
-         getStr(node{"sourceId"}, nil),
-         getStr(node{"slaveId"}, nil),
+         node["startPosition"].getInt(),
+         node["length"].getInt(),
+         getStr(node{"countable"}, ""),
+         getStr(node{"sourceId"}, ""),
+         getStr(node{"slaveId"}, ""),
          node["required"].getBool(),
          valueType,
          node["description"].getStr()
@@ -25,8 +25,8 @@ proc readLineElementType*(node: JsonNode): LineElementType =
 proc readLineTypeLink*(node: JsonNode): LineTypeLink =
    createLink(
       node["subLineId"].getStr(),
-      node["multiple"].getBVal(),
-      node["required"].getBVal()
+      node["multiple"].getBool(),
+      node["required"].getBool()
    )
 
 proc readLineType*(node: JsonNode, lineLength: int): LineType =
@@ -36,10 +36,10 @@ proc readLineType*(node: JsonNode, lineLength: int): LineType =
       leTypes[leTypes.len-1].length = lineLength - leTypes[leTypes.len-1].startPosition
    else: discard
    let children = lc[readLineTypeLink(item) | (item <- node["childLinks"].items()), LineTypeLink]
-   let hasDependentEls = leTypes.anyIt(not isNil(it.sourceId))
+   let hasDependentEls = leTypes.anyIt(it.sourceId != "")
    result = LineType(
       name: node["name"].getStr(),
-      length: int(node["length"].getNum()),
+      length: node["length"].getInt(),
       lineId: lineId,
       index: parseInt(lineId),
       childLinks: children,
@@ -48,14 +48,14 @@ proc readLineType*(node: JsonNode, lineLength: int): LineType =
    )
 
 proc readDocumentType*(node: JsonNode, lineLength: int): DocumentType =
-   let docLineLength = if lineLength == 0: int(getNum(node{"lineLength"}, 310)) else: lineLength
+   let docLineLength = if lineLength == 0: getInt(node{"lineLength"}, 310) else: lineLength
    let lineTypes = lc[readLineType(item, docLineLength) | (item <- node["lineTypes"].items()), LineType]
    result = DocumentType(
       name: node["name"].getStr(),
       description: node["description"].getStr(),
-      formatVersion: int(node["formatVersion"].getNum()),
-      formatSubVersion: int(node["formatSubVersion"].getNum()),
-      vektisEICode: int(node["vektisEICode"].getNum()),
+      formatVersion: node["formatVersion"].getInt(),
+      formatSubVersion: node["formatSubVersion"].getInt(),
+      vektisEICode: node["vektisEICode"].getInt(),
       lineLength: docLineLength,
       lineTypes: lineTypes
    )

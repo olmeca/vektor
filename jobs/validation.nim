@@ -32,7 +32,7 @@ proc validate(leType: LineElementType, line: string, nr: int, errors: var seq[Va
 proc validate*(docType: DocumentType, line: string, nr: int, errors: var seq[ValidationResult]) = 
    if line.len != docType.lineLength:
       errors.add(ValidationResult(lineNr: nr, 
-                                    leId: nil, 
+                                    leId: "",
                                     vrType: vrInvalidLineLength, 
                                     info: "Line length is $# but should be $#" % [intToStr(line.len), intToStr(docType.lineLength)]))
 

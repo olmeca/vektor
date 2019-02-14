@@ -1,4 +1,4 @@
-import json, os, ospaths, future, sequtils, strutils, logging, tables, times
+import json, os, ospaths, sugar, sequtils, strutils, logging, tables, times
 import common, vektorjson
 
 const

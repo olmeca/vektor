@@ -1,4 +1,4 @@
-import strutils, times, future, tables
+import strutils, times, sugar, tables
 import common, factory, doctype, expressions, expressionsreader
 
 

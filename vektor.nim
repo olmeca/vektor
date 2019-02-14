@@ -1,4 +1,4 @@
-import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
+import os, parseopt2, strutils, sequtils, json, sugar, streams, random, pegs, times, tables, logging
 import doctype, context, qualifiers, common, accumulator, vektorhelp, validation, formatting, expressions, vektorjson, job, copyjob, infojob, showjob, validatejob, utils, codegen
 
 const
@@ -38,37 +38,6 @@ proc showHelp(subject: string) =
 
 
 
-proc determineDebRecVersion(input: Stream): DebtorRecordVersion =
-   var i: int = 0
-   var line = ""
-   result = drvDefault
-   while input.readLine(line) and i < 50:
-      i = i + 1
-      if isDebtorLine(line):
-         if line.matchesDebtorRecordVersion(drvSB1):
-            result = drvSB1
-            break
-         elif line.matchesDebtorRecordVersion(drvSB2):
-            result = drvSB2
-            break
-         else: discard
-
-
-proc loadDocumentType(job: DocumentJob) =
-   var debRecVsn = drvDefault
-   let input = newFileStream(job.documentPath, fmRead)
-   var line: string = ""
-   var i = 0
-   if input.readLine(line):
-       if line.startswith(cTopLineId):
-          job.docType = fetch_doctype(line)
-       job.debRecVersion = determineDebRecVersion(input)
-   close(input)
-   loadDebtorRecordType(job.docType, debRecVsn)
-   job.accumulator = newAccumulator(job.docType)
-
-
-
 proc run(job: VektorJob) =
     showHelp("none")
 
@@ -105,7 +74,7 @@ proc run(job: ShowJob) =
     input.close()
 
 proc checkOutputPath(job: var CopyJob) =
-    if isNil(job.outputPath):
+    if job.outputPath == "":
         createBackup(job.documentPath)
         job.outputPath = job.documentPath
     else: discard
@@ -135,7 +104,7 @@ proc run(job: var CopyJob) =
 
 proc run(job: ValidateJob) =
     setLoggingLevel(job.logLevel)
-    loadDocumentType(job)
+    job.loadDocumentType()
     var errors: seq[ValidationResult] = @[]
 
     let input = newFileStream(job.documentPath, fmRead)

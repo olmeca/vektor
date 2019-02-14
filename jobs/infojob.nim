@@ -1,9 +1,9 @@
-import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
+import os, parseopt2, strutils, sequtils, json, sugar, streams, random, pegs, times, tables, logging
 
 import doctype, context, qualifiers, common, accumulator, job, utils
 
 proc matchesDoctypeName(job: InfoJob, docType: DocumentType): bool =
-    isNil(job.docTypeName) or docType.name.startsWith(job.docTypeName)
+    job.docTypeName == "" or docType.name.startsWith(job.docTypeName)
 
 proc matchesVersion(job: InfoJob, docType: DocumentType): bool =
     job.docTypeVersion == cParamIntValueNone or job.docTypeVersion == docType.formatVersion
@@ -51,7 +51,7 @@ proc writeInfo*(job: InfoJob, outStream: Stream) =
         quit("Specified document format or version not supported.")
     of 1:
         job.docType = matchingDocTypes[0]
-        if isNil(job.lineId):
+        if job.lineId == "":
             writeDocumentTypeInfo(job, outStream)
         else:
             writeLineTypeInfo(job, outStream)

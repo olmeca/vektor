@@ -1,4 +1,4 @@
-import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
+import os, parseopt2, strutils, sequtils, json, sugar, streams, random, pegs, times, tables, logging
 
 import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting
 
@@ -25,8 +25,8 @@ proc readFieldSpec(job: ShowJob, spec: string): FieldSpec =
       raise newException(FieldSpecError, "Invalid line element specification: '$#'" % [spec])
 
 proc initializeFieldSpecs*(job: ShowJob) =
-    if isNil(job.fieldsString):
-        if isNil(job.fieldsConfigKey):
+    if job.fieldsString == "":
+        if job.fieldsConfigKey == "":
             # Check for a default configuration that can be used
             let configKey = "fieldset.$#" % job.docType.name
             try:
@@ -38,9 +38,9 @@ proc initializeFieldSpecs*(job: ShowJob) =
             job.fieldsString = getAppConfig(configKey)
     else: discard
 
-    if not isNil(job.fieldsString):
+    if job.fieldsString != "":
         if job.fieldsString =~ fieldSpecsPattern:
-            job.fields =  lc[readFieldSpec(job, spec)|(spec <- matches, not isNil(spec)), FieldSpec]
+            job.fields =  lc[readFieldSpec(job, spec)|(spec <- matches, spec != ""), FieldSpec]
             job.maxLineTypeIndex = maxLineTypeIndex(job.fields)
         else:
             raise newException(ValueError, "Invalid fields specification: $#." % job.fieldsString)
@@ -60,7 +60,7 @@ proc colwidth(leType: LineElementType): int =
 
 
 proc columnTitle(field: FieldSpec): string =
-    if isNil(field.leTitle): field.leType.lineElementId else: field.leTitle
+    if field.leTitle == "": field.leType.lineElementId else: field.leTitle
 
 
 proc length(field: FieldSpec): int =
@@ -69,7 +69,7 @@ proc length(field: FieldSpec): int =
 proc getHeaderForField(field: FieldSpec): string =
    let colWidth = field.length
    let leType = field.leType
-   let leTitle = if isNil(field.leTitle): leType.lineElementId else: field.leTitle
+   let leTitle = if field.leTitle == "": leType.lineElementId else: field.leTitle
    if colWidth >= leTitle.len:
       if leType.isNumericType or leType.isAmountType:
          leTitle|R(colWidth)

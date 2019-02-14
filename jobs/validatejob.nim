@@ -1,4 +1,4 @@
-import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging, streams
+import os, parseopt2, strutils, sequtils, json, sugar, streams, random, pegs, times, tables, logging, streams
 
 import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting, validation
 

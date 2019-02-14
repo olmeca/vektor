@@ -1,4 +1,4 @@
-import os, logging, sets, strutils, sequtils, parseopt2, tables
+import os, streams, logging, sets, strutils, sequtils, parseopt2, tables
 import common, qualifiers, doctype, accumulator, context, expressionsreader
 
 const cCommandInfo* = "info"
@@ -151,7 +151,7 @@ proc applyHelpJobIndexedParam(job: VektorJob, param: JobParam) =
         inc(helpJob.paramIndex)
 
 proc setDocTypeVersion(job: InfoJob, version: string) =
-    if not isNil(version):
+    if version != "":
         if len(version) == 1 and isDigit(version):
             job.docTypeVersion = parseInt(version)
         else:
@@ -200,7 +200,7 @@ proc newNamedJobParam*(name: char, value: string): NamedJobParam =
 proc applyDocJobIndexedParam (job: VektorJob, param: JobParam) =
     let docJob = DocumentJob(job)
     if job.paramIndex == cCommonParamIndexDocument:
-        if isNil(param.rawValue):
+        if param.rawValue == "":
             raise newException(ValueError, "No input file specified.")
         else:
             docJob.documentPath = param.rawValue
@@ -209,7 +209,7 @@ proc applyDocJobIndexedParam (job: VektorJob, param: JobParam) =
 proc applyRevertJobIndexedParam (job: VektorJob, param: JobParam) =
     let revJob = RevertJob(job)
     if job.paramIndex == cCommonParamIndexDocument:
-        if isNil(param.rawValue):
+        if param.rawValue == "":
             raise newException(ValueError, "No input file specified.")
         else:
             revJob.documentPath = param.rawValue
@@ -320,7 +320,7 @@ proc createJobForCommand(cmdString: string): VektorJob =
 proc createNamedParam(key: string, value: string): NamedJobParam =
     if len(key) > 1:
         raise newException(ValueError, "Invalid command option: $#" % key)
-    elif isNil(value) or len(value) == 0:
+    elif value == "":
         raise newException(ValueError, "Missing value for option: $#" % key)
     else:
         result = newNamedJobParam(toSeq(key.items)[0], value)
@@ -372,7 +372,7 @@ proc accumulate*(acc: Accumulator, context: var Context) =
         accumulate(acc, subcontext)
 
 proc initializeSelectionQualifier*(job: SelectiveJob) =
-    if not isNil(job.selectionQualifierString):
+    if job.selectionQualifierString != "":
         job.selectionQualifier = job.docType.parseQualifier(job.selectionQualifierString)
     else: discard
 
@@ -381,6 +381,55 @@ proc checkLine*(job: DocumentJob, line: string) =
         raise newException(ValueError, "Encountered line with unexpected debtor record version on line $#." % intToStr(job.lineNr))
     else: discard
 
+
 proc accumulate*(job: DocumentJob) =
     if not isNil(job.accumulator) and not isNil(job.context):
         accumulate(job.accumulator, job.context)
+
+
+proc initAccumulator*(job: DocumentJob) =
+   job.accumulator = newAccumulator(job.docType)
+
+
+proc determineDebRecVersion(input: Stream): DebtorRecordVersion =
+   var i: int = 0
+   var line = ""
+   result = drvDefault
+   while input.readLine(line) and i < 50:
+      i = i + 1
+      if isDebtorLine(line):
+         if line.matchesDebtorRecordVersion(drvSB1):
+            result = drvSB1
+            break
+         elif line.matchesDebtorRecordVersion(drvSB2):
+            result = drvSB2
+            break
+         else: discard
+
+
+proc readDocumentTypeSpec(job: DocumentJob): DocTypeSpec =
+    var debRecVsn = drvDefault
+    var typeId, version, subversion: int
+    let input = newFileStream(job.documentPath, fmRead)
+    var line: string = ""
+    var i = 0
+    if input.readLine(line):
+        if line.startswith(cTopLineId):
+            typeId = parseInt(line[2 .. 4])
+            version = parseInt(line[5 .. 6])
+            subversion = parseInt(line[7 .. 8])
+            debRecVsn = determineDebRecVersion(input)
+            close(input)
+            result = (typeId, version, subversion, debRecVsn)
+        else:
+            close(input)
+            raise newException(ValueError, "Document is not a Vektis declaration.")
+
+
+
+proc loadDocumentType*(job: DocumentJob) =
+   let docTypeSpec = readDocumentTypeSpec(job)
+   job.docType = getDocumentType(docTypeSpec)
+   job.accumulator = newAccumulator(job.docType)
+
+

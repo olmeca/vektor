@@ -1,6 +1,6 @@
-import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
+import os, parseopt, strutils, sequtils, json, sugar, streams, random, pegs, times, tables, logging
 
-import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting, expressionsreader
+import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting, expressionsreader, serialization
 
 
 
@@ -34,19 +34,19 @@ proc readFieldValueSpec(job: CopyJob, spec: string): FieldValueSpec =
 
 
 proc initializeFieldValueSpecs*(job: CopyJob) =
-    if isNil(job.fieldValuesString) and not isNil(job.fieldValuesFile):
+    if job.fieldValuesString == "" and job.fieldValuesFile != "":
         job.fieldValuesString = system.readFile(job.fieldValuesFile)
     else: discard
 
-    if not isNil(job.fieldValuesString):
+    if job.fieldValuesString != "":
         if job.fieldValuesString =~ fieldSpecsPattern:
-            job.fieldValues = lc[readFieldValueSpec(job, spec)|(spec <- matches, not isNil(spec)), FieldValueSpec]
+            job.fieldValues = lc[readFieldValueSpec(job, spec)|(spec <- matches, spec != ""), FieldValueSpec]
         else:
             raise newException(ValueError, "Invalid replacement values specified: $#" % job.fieldValuesString)
     else: discard
 
 proc initializeReplacementQualifier*(job: CopyJob) =
-    if not isNil(job.replacementQualifierString):
+    if job.replacementQualifierString != "":
         job.replacementQualifier = job.docType.parseQualifier(job.replacementQualifierString)
     else: discard
 
@@ -69,7 +69,7 @@ proc updateDependentLineElements(rootContext: Context, linebuffer: var openArray
   let context = rootContext.currentSubContext
   if context.lineType.hasDependentElements:
      for leType in context.lineType.lineElementTypes:
-        if not isNil(leType.sourceId):
+        if leType.sourceId != "":
            debug("maw: getting source value for '$#'" % [leType.sourceId])
            let newValue = rootContext.getElementValueFullString(leType)
            debug("maw: got new source value: '$#'" % [newValue])
@@ -97,13 +97,13 @@ proc mutateAndWrite*(job: var CopyJob, outStream: Stream) =
          if rootContext.conditionIsMet(job.replacementQualifier):
             debug("maw: replacement qualifier is met")
             # Only attempt replacement if there are target fields defined
-            if not isNil(job.fieldValues):
+            if job.fieldValues != @[]:
                for field in job.fieldValues:
                   let leType = field.leType
                   if leType.isElementOfLine(context.line):
                      # if debtor record then field.leType is the default debtor record type, so get the real leType
                      # let leType = if line.isDebtorLine(): lineType.getLineElementType(field.leType.lineElementId) else: field.leType
-                     let newValue = field.value.evaluate(context).serialize(uint(leType.length))
+                     let newValue = field.value.evaluate(context).serialize(leType.length)
                      debug("maw: setting new value for leId '$#': '$#'" % [leType.lineElementId, newValue])
                      copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
          else: discard

@@ -1,4 +1,4 @@
-import tables, json, os, ospaths, logging, strutils, sequtils, future, times, pegs, streams, formatting
+import tables, json, os, ospaths, logging, strutils, sequtils, sugar, times, pegs, streams, formatting
 
 type
    DocumentTypeError* = object of Exception
@@ -226,7 +226,7 @@ proc firstIndexMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.})
 proc asString*(value: VektisValue): string =
    case value.kind:
    of StringValueType:
-       let normalized = if isNil(value.stringValue): "nil" else: value.stringValue
+       let normalized = if value.stringValue == "": "nil" else: value.stringValue
        result = "\"$#\"" % normalized
    of NaturalValueType:
         result = intToStr(int(value.naturalValue))
@@ -349,12 +349,12 @@ proc asString*(leType: LineElementType): string =
       intToStr(leType.startPosition),
       intToStr(leType.length),
       leType.description,
-      (if isNil(leType.countable): "nil" else: leType.countable)
+      (if leType.countable == "": "nil" else: leType.countable)
    ]
 
 
 proc asString*(err: ValidationResult): string =
-   let leId = if isNil(err.leId): "" else: ", field " & err.leId
+   let leId = if err.leId == "": "" else: ", field " & err.leId
    result = "Line $#$#: $#" % [intToStr(err.lineNr), leId, err.info]
 
 

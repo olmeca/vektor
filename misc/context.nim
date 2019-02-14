@@ -14,7 +14,7 @@ proc createContext*(dType: DocumentType, lineType: LineType, line: string): Cont
 
 
 proc contextWithLineId*(context: Context, lineId: string): Context =
-   assert(not isNil(lineId))
+   assert(lineId != "")
    debug( "contextWithLineId: ctx:$#, lid: $#" % [context.lineType.lineId, lineId])
    if context.lineType.lineId == lineId:
       result = context

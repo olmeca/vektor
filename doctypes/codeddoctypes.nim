@@ -1,4 +1,4 @@
-import json, os, ospaths, future, sequtils, strutils, logging, tables, times
+import json, os, ospaths, sugar, sequtils, strutils, logging, tables, times
 
 import common, vektorjson
 import MZ30113, AP30472, AP30480, SB31110, SB31120
@@ -8,13 +8,13 @@ var sbDocTypes: seq[DocumentType]
 
 
 proc getDocumentTypes*(lineLength: int): seq[DocumentType] =
-    if isNil(genDocTypes):
+    if genDocTypes == @[]:
         genDocTypes = @[createDocTypeAP30472(), createDocTypeAP30480(), createDocTypeMZ30113()]
     genDocTypes
 
 
 proc getDebtorRecordTypes*(lineLength: int): seq[DocumentType] =
-    if isNil(sbDocTypes):
+    if sbDocTypes == @[]:
         sbDocTypes = @[createDocTypeSB31110(), createDocTypeSB31120()]
     sbDocTypes
 

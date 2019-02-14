@@ -1,4 +1,4 @@
-import os, parseopt2, strutils, sequtils, json, future, streams, random, pegs, times, tables, logging
+import os, parseopt, strutils, sequtils, json, sugar, streams, random, pegs, times, tables, logging
 
 const
    cBlanksSet*: set[char] = { ' ' }

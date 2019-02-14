@@ -1,4 +1,4 @@
-import os, ospaths, future, sequtils, strutils, logging, tables, times
+import os, ospaths, sugar, sequtils, strutils, logging, tables, times
 import common, formatting, utils
 
 

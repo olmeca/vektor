@@ -145,7 +145,7 @@ proc readLiteralAmount(valueSpec: string): Expression =
 proc readLiteralText(valueSpec: string): Expression =
    if valueSpec =~ literalTextPattern:
       # Interpret empty string as nil
-      let stringValue = if matches[0] == "": nil else: matches[0]
+      let stringValue = matches[0]
       let stringVektisValue = VektisValue(kind: StringValueType, stringValue: stringValue)
       result = newLiteralStringExpression(stringVektisValue)
    else:

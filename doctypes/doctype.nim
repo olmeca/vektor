@@ -1,5 +1,8 @@
-import os, ospaths, future, sequtils, strutils, logging, tables, times
+import os, ospaths, sugar, sequtils, strutils, logging, tables, times
 import common, codeddoctypes, formatting, utils
+
+type
+   DocTypeSpec* = tuple[typeId: int, version: int, subversion: int, debtorType: DebtorRecordVersion]
 
 const 
    cDebtorRecordLineId* = "03"
@@ -18,7 +21,8 @@ var
 #let gDebtorRecordTypes = lc[readDocumentType(node) | (node <- getJsonData(cSB311TypesJsonFileName)), DocumentType]
 
 proc getLineId*(line: string): string =
-   if isNil(line) or line.len < cRecordIdSize:
+   # TODO: first condition below should be superfluous if strings always initialized to empty
+   if line == "" or line.len < cRecordIdSize:
       raise newException(ValueError, "Cannot get line id from '$#'" % [line])
    else:
       result = line[0 .. (cRecordIdSize - 1)]
@@ -27,7 +31,8 @@ proc lineId*(leType: LineElementType): string =
     leType.lineElementId[0..1]
 
 proc getLineElementSubId*(leId: string): string =
-   if isNil(leId) or leId.len < cFieldIdSize:
+   # TODO: first condition below should be superfluous if strings always initialized to empty
+   if leId == "" or leId.len < cFieldIdSize:
       raise newException(ValueError, "Cannot get line element id from '$#'" % [leId])
    else:
       result = leId[cRecordIdSize .. (cFieldIdSize - 1)]
@@ -41,7 +46,7 @@ proc indexes(leId: string): array[0..1, int] =
    result = [parseInt(leId[0 .. cRecordIdSize - 1]), parseInt(leId[cRecordIdSize .. cFieldIdSize - 1])]
 
 proc isDependent*(leType: LineElementType): bool =
-   not isNil(leType.sourceId)
+   leType.sourceId != ""
 
 proc toString*(version: DebtorRecordVersion): string =
    case version
@@ -77,7 +82,7 @@ proc isDebtorLine*(line: string): bool =
    lineHasId(line, cDebtorLineId)
 
 proc enableSB311Types*(lineLength: int) =
-   if isNil(gDebtorRecordTypes):
+   if gDebtorRecordTypes == @[]:
       gDebtorRecordTypes = getDebtorRecordTypes(lineLength)
 
 proc loadDebtorRecordType*(docType: DocumentType, version: DebtorRecordVersion) =
@@ -143,6 +148,12 @@ proc getDocumentType*(typeId: int, version: int, subversion: int): DocumentType 
             [intToStr(typeId), intToStr(version), intToStr(subversion)])
    else:
       result = matches[0]
+
+proc getDocumentType*(spec: DocTypeSpec): DocumentType =
+    let (typeId, version, subversion, debRecType) = spec
+    result = getDocumentType(typeId, version, subversion)
+    result.loadDebtorRecordType(debRecType)
+
 
 proc allDocumentTypes*(): seq[DocumentType] =
    enableSB311Types(cStandardLineLength)

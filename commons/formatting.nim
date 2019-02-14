@@ -29,7 +29,7 @@ proc format*(f: LeftAlign, x: string): string =
 proc format*(f: LeftAlign, x: SomeInteger): string =
   padRight($x, f.width)
 
-proc format*(f: LeftAlign, x: SomeReal): string =
+proc format*(f: LeftAlign, x: SomeFloat): string =
   padRight(formatFloat(x, ffDecimal, 2), f.width)
 
 proc format*(f: RightAlign, x: string): string =
@@ -38,16 +38,16 @@ proc format*(f: RightAlign, x: string): string =
 proc format*(f: RightAlign, x: SomeInteger): string =
   padLeft($x, f.width)
 
-proc format*(f: RightAlign, x: SomeReal): string =
+proc format*(f: RightAlign, x: SomeFloat): string =
   padLeft(formatFloat(x, ffDecimal, 2), f.width)
 
-proc format*(f: ExtendedRightAlign, x: SomeReal): string =
+proc format*(f: ExtendedRightAlign, x: SomeFloat): string =
   padLeft(formatFloat(x, ffDecimal, f.precision), f.width)
 
-proc format*(f: ExtendedLeftAlign, x: SomeReal): string =
+proc format*(f: ExtendedLeftAlign, x: SomeFloat): string =
   padRight(formatFloat(x, ffDecimal, f.precision), f.width)
 
-template `|`*(x: string|SomeInteger|SomeReal, f: Formatter): string =
+template `|`*(x: string|SomeInteger|SomeFloat, f: Formatter): string =
   f.format(x)
 
 proc L*(w: Natural): LeftAlign =
