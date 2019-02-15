@@ -3,15 +3,17 @@ import doctype, context, qualifiers, common, accumulator, vektorhelp, validation
 
 const
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
-   msgSourceOrDestMissing = "You need to specify a source file and a destination file (e.g: vektor copy source.asc dest.asc -e:...)."
+   msgSourceOrDestMissing = "You need to specify a source file and a destination file (e.g: vektor copy source.asc -o dest.asc -e:...)."
    msgCommandMissing = "Please specify one of the following commands: info, show, copy or help."
    cDefaultLogLevel = lvlDebug
+
 
 proc activateLogging() =
    let filePath = getVektorLogPath()
    var fileLogger = newFileLogger(filePath, fmtStr = verboseFmtStr)
    addHandler(fileLogger)
    setLogFilter(cDefaultLogLevel)
+
 
 proc setLoggingLevel(level: Level) =
    setLogFilter(level)
@@ -40,6 +42,7 @@ proc showHelp(subject: string) =
 
 proc run(job: VektorJob) =
     showHelp("none")
+
 
 proc backupPath(filePath: string): string =
     "$#.bak" % filePath
@@ -123,6 +126,9 @@ proc run(job: InfoJob) =
     let outStream = newFileStream(stdout)
     writeInfo(job, outStream)
 
+proc run(job: HelpJob) =
+    let subject = if job.subject == "": "none" else: job.subject
+    showHelp(subject)
 
 
 try:
@@ -145,5 +151,7 @@ try:
     of cCommandCopy, cCommandEdit:
         var copyJob = CopyJob(job)
         copyJob.run()
+    of cCommandHelp:
+        HelpJob(job).run()
 except Exception:
     quit(getCurrentExceptionMsg())
