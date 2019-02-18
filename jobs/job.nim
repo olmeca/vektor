@@ -1,4 +1,4 @@
-import os, streams, logging, sets, strutils, sequtils, parseopt2, tables
+import os, streams, logging, sets, strutils, sequtils, parseopt, tables
 import common, qualifiers, doctype, accumulator, context, expressionsreader
 
 const cCommandInfo* = "info"

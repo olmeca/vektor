@@ -161,7 +161,7 @@ proc newLiteralSignedAmountReader*(): ExpressionReader =
    ExpressionReader(name: "literal signed amount exp. reader", valueType: SignedAmountValueType, pattern: literalSignedAmountPattern, readImpl: readLiteralAmount)
 
 proc newLiteralUnsignedAmountReader*(): ExpressionReader =
-   ExpressionReader(name: "literal unsigned amout exp. reader", valueType: UnsignedAmountValueType, pattern: literalUnsignedAmountPattern, readImpl: readLiteralAmount)
+   ExpressionReader(name: "literal unsigned amount exp. reader", valueType: UnsignedAmountValueType, pattern: literalUnsignedAmountPattern, readImpl: readLiteralAmount)
 
 proc newLiteralTextReader*(): ExpressionReader =
    ExpressionReader(name: "literal text exp. reader", valueType: StringValueType, pattern: literalValuePattern, readImpl: readLiteralText)

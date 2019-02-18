@@ -1,4 +1,4 @@
-import unittest, logging, parseopt2
+import unittest, logging, parseopt
 import common, qualifiers, doctype, job
 
 suite "info command":

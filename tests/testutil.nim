@@ -1,4 +1,4 @@
-import utils, common, doctype, factory, context, job
+import utils, common, doctype, factory, context, job, logging
 
 
 proc newLeType*(recordNr: int, fieldNr: int, code: string, title: string, datatype: string, start: int, len: int): LineElementType =
@@ -8,10 +8,26 @@ proc newLeType*(recordNr: int, fieldNr: int, code: string, title: string, dataty
         datatype,
         start,
         len,
-        nil,
-        nil,
-        nil,
+        NIL,
+        NIL,
+        NIL,
         true,
+        title
+    )
+
+
+proc newLeTypeOfValueType*(recordNr: int, fieldNr: int, code: string, title: string, datatype: string, start: int, len: int, valueType: VektisValueType): LineElementType =
+    factory.newLeType(
+        leTypeId(recordNr, fieldNr),
+        code,
+        datatype,
+        start,
+        len,
+        NIL,
+        NIL,
+        NIL,
+        true,
+        valueType,
         title
     )
 
@@ -37,3 +53,11 @@ proc newDocType*(docTypeId: int, docTypeVersion: int, docTypeSubversion: int, li
       lineLength: lineLength,
       lineTypes: lineTypes
    )
+
+
+proc activateLogging*() =
+   let filePath = "/Users/rudi/Scratch/vektor.log"
+   var fileLogger = newFileLogger(filePath, fmtStr = verboseFmtStr)
+   addHandler(fileLogger)
+   setLogFilter(lvlDebug)
+

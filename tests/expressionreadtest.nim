@@ -1,5 +1,5 @@
-import logging, unittest, times, valueset, tables, pegs,
-import common, context, expressions, literal, randomdate, copyjob
+import logging, unittest, times, valueset, tables, pegs
+import common, context, expressions, literal, randomdate, copyjob, factory
 
 
 proc enableLogging() =
@@ -16,7 +16,7 @@ suite "Expressions reader tests":
 
     setup:
         gValueSets = newTable[string, seq[VektisValue]]()
-        let context = createContext(nil, nil, nil)
+        let context = createContext(nil, nil, NIL)
 
     test "Read literal string without padding works.":
         let readers = @[newLiteralTextReader()]

@@ -20,26 +20,28 @@ proc parseDateValue*(source: string): VektisValue =
     VektisValue(kind: DateValueType, dateValue: date)
 
 
-proc parse*(valueType: VektisValueType, source: string): VektisValue =
+proc parse*(leType: LineElementType, valueType: VektisValueType, source: string): LineElement =
+    var value: VektisValue
     case valueType
     of StringValueType:
-        VektisValue(kind: StringValueType, stringValue: source)
+        value = VektisValue(kind: StringValueType, stringValue: source)
     of NaturalValueType:
-        VektisValue(kind: NaturalValueType, naturalValue: uint(parseInt(source)))
+        value = VektisValue(kind: NaturalValueType, naturalValue: uint(parseInt(source)))
     of SignedAmountValueType:
-        parseAmountValue(source)
+        value = parseAmountValue(source)
     of DateValueType:
-        parseDateValue(source)
+        value = parseDateValue(source)
     else:
-        VektisValue(kind: EmptyValueType)
+        value = VektisValue(kind: EmptyValueType)
+    LineElement(leType: leType, value: value)
 
 
-proc parse*(leType: LineElementType, line: string): VektisValue =
-    parse(leType.valueType, getElementValueString(line, leType))
+proc parse*(leType: LineElementType, line: string): LineElement =
+    parse(leType, leType.valueType, getElementValueString(line, leType))
 
 proc parse*(lType: LineType, line: string): Line =
-    let values = lc[ (leType.lineElementId, parse(leType, line)) | (leType <- lType.lineElementTypes), (string, VektisValue)]
-    createLine(lType, values.toOrderedTable)
+    let elements = lc[ (leType.lineElementId, parse(leType, line)) | (leType <- lType.lineElementTypes), (string, LineElement)]
+    createLine(lType, elements.toOrderedTable)
 
 
 proc parse*(docType: DocumentType, line: string): Line =
@@ -71,7 +73,9 @@ proc linkSublines*(line: var Line, lines: var openArray[Line], index: var int) =
 
 proc parse*(docType: DocumentType, lines: seq[string]): Document =
     var lines = lc[ parse(docType, line) | (line <- lines), Line ]
-    let topLine = lines[0]
+    var topLine = lines[0]
     var firstSublineIndex = 1
     topLine.linkSublines(lines, firstSublineIndex)
     Document(docType: docType, lines: lines)
+
+

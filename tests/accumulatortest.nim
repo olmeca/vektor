@@ -2,18 +2,12 @@ import streams, strutils, unittest, logging
 import utils, testutil, common, doctype, factory, context, job, accumulator, showjob, copyjob, validatejob
 
 const
-    cLineLength: int = 14
+    cLineLength: int = 15
 
 
 
 proc asLines(lines: seq[string]): string =
     lines.join("\n")
-
-#proc activateLogging() =
-#   let filePath = "/Users/rudi/Scratch/vektor.log"
-#   var fileLogger = newFileLogger(filePath, fmtStr = verboseFmtStr)
-#   addHandler(fileLogger)
-#   setLogFilter(lvlDebug)
 
 proc createShowJob(docType: DocumentType, fields: string, qualifier: string): ShowJob =
     let job = newShowJob()
@@ -33,6 +27,7 @@ proc createCopyJob(docType: DocumentType, fieldSpecs: string, selectionQualifier
     job.fieldValuesString = fieldSpecs
     job.selectionQualifierString = selectionQualifier
     job.replacementQualifierString = replacementQualifier
+    job.initializeExpressionReaders()
     job.initializeFieldValueSpecs()
     job.initializeSelectionQualifier()
     job.initializeReplacementQualifier()
@@ -46,7 +41,7 @@ proc createValidateJob(docType: DocumentType): ValidateJob =
     job.accumulator = newAccumulator(job.docType)
     job
 
-suite "ShowJob Accumulator tests":
+suite "Accumulator tests":
 
     setup:
         var declaration1: seq[string] = @[
@@ -105,12 +100,12 @@ suite "ShowJob Accumulator tests":
         # Create the document type
         let lineTypes = @[lTypeVoorloopRecord, lTypePatient, lTypeOper, lTypeTotals]
         let docType = newDocType(1, 1, 0, cLineLength, lineTypes)
-        initializeExpressionReaders()
+
 
 
     test "ShowJob: accumulator counts positive totals":
         var input: StringStream = newStringStream(declaration1.asLines)
-        let job = createShowJob(docType, "0403;0404", nil)
+        let job = createShowJob(docType, "0403;0404", NIL)
         job.process(input, output)
         # echo output.data
         check:
@@ -122,7 +117,7 @@ suite "ShowJob Accumulator tests":
     test "ShowJob: accumulator counts positive and negative totals":
         declaration1.insert("0400010010CC2  ", 3)
         var input: StringStream = newStringStream(declaration1.asLines)
-        let job = createShowJob(docType, "0403;0404", nil)
+        let job = createShowJob(docType, "0403;0404", NIL)
         job.process(input, output)
         # echo output.data
         check:
@@ -142,7 +137,7 @@ suite "ShowJob Accumulator tests":
 
     test "CopyJob: accumulator counts positive totals":
         var input: StringStream = newStringStream(declaration1.asLines)
-        var job = createCopyJob(docType, nil, nil, nil)
+        var job = createCopyJob(docType, NIL, NIL, NIL)
         job.process(input, output)
         # echo output.data
         check:
@@ -153,7 +148,7 @@ suite "ShowJob Accumulator tests":
 
     test "CopyJob: accumulator counts only selected lines":
         var input: StringStream = newStringStream(declaration1.asLines)
-        var job = createCopyJob(docType, nil, "0405=\"C2\"", nil)
+        var job = createCopyJob(docType, NIL, "0405=\"C2\"", NIL)
         job.process(input, output)
         # echo output.data
         check:
@@ -164,7 +159,7 @@ suite "ShowJob Accumulator tests":
 
     test "CopyJob: accumulator counts modified lines":
         var input: StringStream = newStringStream(declaration1.asLines)
-        var job = createCopyJob(docType, "0403=1000", nil, "0405=\"C2\"")
+        var job = createCopyJob(docType, "0403=10.00", NIL, "0405=\"C2\"")
         job.process(input, output)
         # echo output.data
         check:
@@ -175,7 +170,7 @@ suite "ShowJob Accumulator tests":
 
     test "CopyJob: accumulator counts modified selected lines":
         var input: StringStream = newStringStream(declaration1.asLines)
-        var job = createCopyJob(docType, "0403=1000", "0405=\"C2\"", "0405=\"C2\"")
+        var job = createCopyJob(docType, "0403=10.00", "0405=\"C2\"", "0405=\"C2\"")
         job.process(input, output)
         # echo output.data
         check:
@@ -189,5 +184,7 @@ suite "ShowJob Accumulator tests":
         var errors: seq[ValidationResult] = @[]
         var job = createValidateJob(docType)
         job.process(input, errors)
+        for err in errors:
+            echo err.asString()
         check:
             len(errors) == 0

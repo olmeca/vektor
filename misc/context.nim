@@ -30,15 +30,24 @@ proc contextWithLineId*(context: Context, lineId: string): Context =
             break
          else: discard
 
+
 proc getElementValueFullString*(rootContext: Context, leType: LineElementType): string =
    let context = rootContext.contextWithLineId(leType.lineId)
    getElementValueFormatted(context.line, leType)
 
+
+proc getSourceElementValueFullString*(rootContext: Context, leType: LineElementType): string =
+   let sourceLeType = rootContext.doctype.getLineElementType(leType.sourceId)
+   getElementValueFullString(rootContext, sourceLeType)
+
+
 proc getElementValueString*(context: Context, leType: LineElementType): string =
    stripBlanks(getElementValueFullString(context, leType))
 
+
 proc isContentContext*(context: Context): bool =
    context.line.isContentLine()
+
 
 proc dropContentSubContexts*(context: Context) =
    # Assuming for now that we do not need to recurse
@@ -52,6 +61,7 @@ proc dropContentSubContexts*(context: Context) =
       var subcontext = context.subContexts[lineId]
       subcontext.parent = nil
       context.subContexts.del(lineId)
+
 
 proc findParentContextForLineType*(context: Context, lineId: string): Context =
    result = nil

@@ -26,7 +26,7 @@ suite "Line parsing tests":
         # Create a operation record type (verrichtingenrecord) definition
         let leTypeOperRecordId = newLeType(4, 1, "NUM123", "03 ID", cFieldTypeNumeric, 1, 2)
         let leTypeOperRecordNr = newLeType(4, 2, "NUM123", "03 NR", cFieldTypeNumeric, 3, 4)
-        let leTypeOperRecordAmount = newLeType(4, 3, "BED123", "03 BEDRAG", cFieldTypeNumeric, 7, 5)
+        let leTypeOperRecordAmount = newLeTypeOfValueType(4, 3, "BED123", "03 BEDRAG", cFieldTypeNumeric, 7, 5, UnsignedAmountValueType)
         let leTypeOperRecordCode = newLeType(4, 5, "COD123", "04 PAD", cFieldTypeAlphaNum, 12, 4)
         let leTypeOperElements = @[leTypeOperRecordId, leTypeOperRecordNr, leTypeOperRecordAmount, leTypeOperRecordCode]
         let lTypeOper = newLineType(4, cLineLength, "Verrichting", emptyChildLinks, leTypeOperElements, false)
@@ -91,12 +91,12 @@ suite "Line parsing tests":
         line = document.lines[0]
         check:
             line.lineType.lineId == cTopLineId
-            line.values["0101"].kind == NaturalValueType
-            line.values["0101"].naturalValue == uint(1)
-            line.values["0102"].kind == NaturalValueType
-            line.values["0102"].naturalValue == uint(1)
-            line.values["0103"].kind == DateValueType
-        let dateRef = line.values["0103"].dateValue
+            line.elements["0101"].value.kind == NaturalValueType
+            line.elements["0101"].value.naturalValue == uint(1)
+            line.elements["0102"].value.kind == NaturalValueType
+            line.elements["0102"].value.naturalValue == uint(1)
+            line.elements["0103"].value.kind == DateValueType
+        let dateRef = line.elements["0103"].value.dateValue
         check:
             not isNil(dateRef)
             dateRef[].format("dd-MM-yyyy") == "31-12-1978"
@@ -104,22 +104,47 @@ suite "Line parsing tests":
         line = document.lines[1]
         check:
             line.lineType.lineId == cPatientLineId
-            line.values["0201"].kind == NaturalValueType
-            line.values["0201"].naturalValue == uint(2)
-            line.values["0202"].kind == NaturalValueType
-            line.values["0202"].naturalValue == uint(1)
-            line.values["0203"].kind == StringValueType
-            line.values["0203"].stringValue == "Piet"
+            line.elements["0201"].value.kind == NaturalValueType
+            line.elements["0201"].value.naturalValue == uint(2)
+            line.elements["0202"].value.kind == NaturalValueType
+            line.elements["0202"].value.naturalValue == uint(1)
+            line.elements["0203"].value.kind == StringValueType
+            line.elements["0203"].value.stringValue == "Piet"
 
-        line = document.lines[2]
-        check:
-            line.lineType.lineId == cOperationLineId
-            line.values["0403"].kind == SignedAmountValueType
-            line.values["0403"].amountValue == 100
 
-        line = document.lines[3]
+    test "Positive signed value is read correctly.":
+        activateLogging()
+        let leType = newLeTypeOfValueType(4, 3, "BED123", NIL, cFieldTypeNumeric, 1, 6, SignedAmountValueType)
+        debug("leType: $#" % leType.asString())
+        let element = leType.parse("00101D")
+
         check:
-            line.lineType.lineId == cOperationLineId
-            line.values["0403"].kind == SignedAmountValueType
-            line.values["0403"].amountValue == -10
+            element.value.kind == SignedAmountValueType
+            element.value.signedAmountValue == 101
+
+
+    test "Negative signed value is read correctly.":
+        activateLogging()
+        let leType = newLeTypeOfValueType(4, 3, "BED123", NIL, cFieldTypeNumeric, 1, 6, SignedAmountValueType)
+        debug("leType: $#" % leType.asString())
+        let element = leType.parse("00101C")
+
+        check:
+            element.value.kind == SignedAmountValueType
+            element.value.signedAmountValue == -101
+
+
+    test "Invalid sign indicator is signaled.":
+        activateLogging()
+        let leType = newLeTypeOfValueType(4, 3, "BED123", NIL, cFieldTypeNumeric, 1, 6, SignedAmountValueType)
+        debug("leType: $#" % leType.asString())
+        var msg: string
+        try:
+            let value = leType.parse("001015")
+        except (ValueError):
+            msg = getCurrentExceptionMsg()
+
+        check:
+            msg.startsWith("Invalid value for signum: '5'")
+
 

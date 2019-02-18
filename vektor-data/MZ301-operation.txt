@@ -1,0 +1,576 @@
+code    description dummy   costcategory    comments
+C11	Periodieke controle			1200/3800/8700/9301/3900/1300
+C13	Probleemgericht consult			1200/3800/8700/9301/3900/1300
+C22	Aanvullende medische anamnese na (schriftelijke) routinevragen			1200/3800/8700/3900/1300
+C28	Uitgebreid onderzoek t.b.v. opstellen en vastleggen behandelplan			1200/3800/8700/3900/1300
+C29	Studiemodellen t.b.v. behandelplan		M/T	1200/3800/8700/3900/1300
+C65	Planmatig beslijpen van alle voortanden, per boven- of onderkaak			1200/3800/3900/1300
+C80	Mondzorg aan huis			1200/3800/8700/9301/3900/1300
+C84	Voorbereiding behandeling onder algehele anesthesie			1200/3800/3900/1300
+C85	Weekendbehandeling			1200/3800/9301/3900/1300
+C86	Avondbehandeling			1200/3800/3900/1300
+C87	Nachtbehandeling			1200/3800/3900/1300
+C99	Gedeeltelijk voltooid werk consultatie en diagnostiek			Uitsluitend van toepassing voor de Wlz voor informatierecord
+X10	Maken en beoordelen kleine röntgenfoto			1200/3800/8700/3900/1300
+X11	Beoordelen kleine röntgenfoto			1200/3800/8700/3900/1300
+X21	Maken en beoordelen kaakoverzichtsfoto			1200/3800/3900/1300
+X22	Maken en beoordelen kaakoverzichtsfoto t.b.v. implantologie in de tandenloze kaak			1200/3800/3900/1300
+X23	Beoordelen kaakoverzichtsfoto			1200/3800/3900/1300
+X24	Maken en beoordelen schedelfoto			1200/3800/3900/1300
+X34	Beoordelen schedelfoto			1200/3800/3900/1300
+X25	Maken en beoordelen meerdimensionale kaakfoto			1200/3800/3900/1300
+X26	Beoordelen meerdimensionale kaakfoto			1200/3800/3900/1300
+X99	Gedeelteijk voltooid werk maken en/of beoordelen röntgenfoto's			Uitsluitend van toepassing voor de Wlz voor informatierecord
+M01	Preventieve voorlichting en/of instructie, per 5 minuten			1200/3800/8700/3900/1300
+M02	Consult voor evaluatie van preventie, per 5 minuten			1200/3800/8700/3900/1300
+M03	Gebitsreiniging, per 5 minuten			1200/3800/8700/3900/1300/9301
+M05	Niet restauratieve behandeling van cariës in het melkgebit			1200/3800/8700/3900/1300
+M32	Eenvoudig bacteriologisch- of enzymatisch onderzoek		M/T L	1200/3800/8700/3900/1300
+M30	Behandeling van gevoelige tandhalzen en (preventief) toedienen medicament			1200/3800/8700/3900/1300
+M40	Fluoridebehandeling			1200/3800/8700/3900/1300
+M61	Mondbeschermer		M/T	1200/3800/8700/3900/1300
+M99	Gedeelteijk voltooid werk preventieve mondzorg			Uitsluitend van toepassing voor de Wlz voor informatierecord
+M10	Fluoridebehandeling, methode I			1200/3800/8700/3900/1300
+M20	Fluoridebehandeling, methode II			1200/3800/8700/3900/1300
+A15	Oppervlakte verdoving			1200/3800/8700/3900/1300
+A10	Geleidings-, infiltratie- en/of intraligamentaire verdoving			1200/3800/8700/3900/1300
+A20	Behandeling onder algehele anesthesie of sedatie			1200/3800/3900/1300
+B10	Introductie roesje (lachgassedatie)			1200/3800/3900/1300
+B11	Toediening roesje (lachgassedatie)			1200/3800/3900/1300
+B12	Overheadkosten roesje (lachgassedatie)			1200/3800/3900/1300
+V71	Eénvlaksvulling amalgaam			1200/3800/8700/3900/1300
+V72	Tweevlaksvulling amalgaam			1200/3800/8700/3900/1300
+V73	Drievlaksvulling amalgaam			1200/3800/8700/3900/1300
+V74	Meervlaksvulling amalgaam			1200/3800/3900/1300
+V81	Eénvlaksvulling glasionomeer/glascarbomeer/compomeer			1200/3800/8700/3900/1300
+V82	Tweevlaksvulling glasionomeer/glascarbomeer/compomeer			1200/3800/8700/3900/1300
+V83	Drievlaksvulling glasionomeer/glascarbomeer/compomeer			1200/3800/8700/3900/1300
+V84	Meervlaksvulling glasionomeer/glascarbomeer/compomeer			1200/3800/3900/1300
+V91	Eénvlaksvulling composiet			1200/3800/8700/3900/1300
+V92	Tweevlaksvulling composiet			1200/3800/8700/3900/1300
+V93	Drievlaksvulling composiet			1200/3800/8700/3900/1300
+V94	Meervlaksvulling composiet			1200/3800/3900/1300
+V15	Aanbrengen schildje van tandkleurig plastisch materiaal			1200/3800/3900/1300
+V30	Fissuurlak, eerste element			1200/3800/8700/3900/1300
+V35	Fissuurlak, ieder volgend element in dezelfde zitting			1200/3800/8700/3900/1300
+V40	Het polijsten, beslijpen en bijwerken van oude vullingen	 		1200/3800/8700/3900/1300
+V50	Droogleggen van elementen door middel van een rubberen lapje			1200/3800/8700/3900/1300
+V70	Parapulpaire stift		M/T	1200/3800/8700/3900/1300
+V80	Wortelkanaalstift		M/T	1200/3800/3900/1300
+V85	Elke volgende wortelkanaalstift in hetzelfde element		M/T	1200/3800/3900/1300
+V99	Gedeeltelijk voltooid werk vullingen			Uitsluitend van toepassing voor de Wlz voor informatierecord
+V11	Eénvlaksvulling			1200/3800/8700/3900/1300
+V12	Tweevlaksvulling			1200/3800/8700/3900/1300
+V13	Drievlaksvulling			1200/3800/8700/3900/1300
+V14	Kroon van plastisch materiaal			1200/3800/8700/3900/1300
+V20	Etsen ten behoeve van composietvulling			1200/3800/8700/3900/1300
+V21	Etsen in combinatie met etsbare onderlaag ten behoeve van composietvulling			1200/3800/8700/3900/1300
+V60	Indirecte pulpa-overkapping			1200/3800/8700/3900/1300
+E01	Wortelkanaalbehandeling consult			1200/3800/3900/1300
+E02	Uitgebreid wortelkanaalbehandeling consult			1200/3800/3900/1300
+E03	Consult na tandheelkundig ongeval			1200/3800/3900/1300
+E60	Geheel of gedeeltelijk weghalen van pulpaweefsel		M/T	1200/3800/3900/1300
+E04	Toeslag voor kosten bij gebruik van roterende nikkel-titanium instrumenten			1200/3800/3900/1300
+E13	Wortelkanaalbehandeling per element met 1 kanaal			1200/3800/3900/1300
+E14	Wortelkanaalbehandeling per element met 2 kanalen			1200/3800/3900/1300
+E16	Wortelkanaalbehandeling per element met 3 kanalen			1200/3800/3900/1300
+E17	Wortelkanaalbehandeling per element met 4 of meer kanalen			1200/3800/3900/1300
+E85	Elektronische lengtebepaling			1200/3800/3900/1300
+E19	Insluiten calciumhydroxide of daarmee vergelijkbare desinfectans per element, per zitting			1200/3800/3900/1300
+E66	Wortelkanaalbehandeling van melkelement			1200/3800/3900/1300
+E51	Verwijderen van kroon of brug			1200/3800/3900/1300
+E52	Moeilijke wortelkanaalopening			1200/3800/3900/1300
+E53	Verwijderen van wortelstift			1200/3800/3900/1300
+E54	Verwijderen van wortelkanaalvulmateriaal			1200/3800/3900/1300
+E55	Behandeling dichtgeslibd of verkalkt wortelkanaal			1200/3800/3900/1300
+E56	Voortgezette behandeling met iatrogene schade		M/T	1200/3800/3900/1300
+E57	Behandeling van element met uitzonderlijke anatomie			1200/3800/3900/1300
+E61	Behandelen van open wortelpunt met calciumhydroxide, eerste zitting			1200/3800/3900/1300
+E62	Behandelen van open wortelpunt met calciumhydroxide, elke volgende zitting			1200/3800/3900/1300
+E63	Toeslag voor afsluiting met Mineral Trioxide Aggregate (MTA) of een vergelijkbaar biokeramisch materiaal	 	M/T	1200/3800/3900/1300
+E64	Afsluiting van open wortelpunt			1200/3800/3900/1300
+E77	Initiële wortelkanaalbehandeling, eerste kanaal			1200/3800/3900/1300
+E78	Initiële wortelkanaalbehandeling, elk volgend kanaal			1200/3800/3900/1300
+E90	Inwendig bleken, eerste zitting			1200/3800/3900/1300
+E95	Inwendig bleken, elke volgende zitting			1200/3800/3900/1300
+E97	Uitwendig bleken per kaak		M/T	1200/3800/3900/1300/8700
+E40	Directe pulpa-overkapping			1200/3800/3900/1300
+E42	Terugzetten van een verplaatst element na tandheelkundig ongeval			1200/3800/3900/1300
+E43	Vastzetten element d.m.v. een spalk na tandheelkundig ongeval		M/T	1200/3800/3900/1300
+E44	Verwijderen spalk, per element			1200/3800/8700/3900/1300
+E45	Aanbrengen rubberdam			1200/3800/3900/1300
+E31	Snij-/ hoektand			1200/3800/3900/1300
+E32	Premolaar			1200/3800/3900/1300
+E33	Molaar			1200/3800/3900/1300
+E34	Aanbrengen retrograde vulling		M/T	1200/3800/3900/1300
+E36	Het trekken van een element met re-implantatie		M/T	1200/3800/3900/1300
+E37	Kijkoperatie			1200/3800/3900/1300
+E86	Gebruik operatiemicroscoop bij wortelkanaalbehandeling			1200/3800/3900/1300
+E87	Gebruiksklaar maken van praktijkruimte voor wortelkanaalbehandeling			1200/3800/3900/1300
+E99	Gedeeltelijk voltooid werk wortelkanaalbehandelingen			Uitsluitend van toepassing voor de Wlz voor informatierecord
+E98	Materialen voor thuisbleken			1200/3800/3900/1300/8700
+R08	Eenvlaks composiet inlay		M/T	1200/3800/3900/1300
+R09	Tweevlaks composiet inlay		M/T	1200/3800/3900/1300
+R10	Drievlaks composiet inlay		M/T	1200/3800/3900/1300
+R11	Eenvlaksinlay		M/T	1200/3800/3900/1300
+R12	Tweevlaksinlay		M/T	1200/3800/3900/1300
+R13	Drievlaksinlay		M/T	1200/3800/3900/1300
+R14	Toeslag voor extra retentie bij het plaatsen van indirecte restauraties			1200/3800/3900/1300
+R24	Kroon		M/T	1200/3800/3900/1300
+R28	Endokroon, indirect vervaardigd		M/T	1200/3800/3900/1300
+R29	Confectiekroon		M/T	1200/3800/3900/1300
+R31	Opbouw plastisch materiaal 			1200/3800/3900/1300
+R32	Gegoten opbouw, indirecte methode		M/T	1200/3800/3900/1300
+R33	Gegoten opbouw, directe methode		M/T	1200/3800/3900/1300
+R40	Eerste brugtussendeel		M/T	1200/3800/3900/1300
+R45	Tweede en volgende brugdeel in hetzelfde tussendeel		M/T	1200/3800/3900/1300
+R46	Brugverankering, per anker		M/T	1200/3800/3900/1300
+R49	Toeslag voor brug op vijf- of meer pijlerelementen			1200/3800/3900/1300
+R50	Metalen fixatiekap met afdruk		M/T	1200/3800/3900/1300
+R55	Gipsslot met extra afdruk		M/T	1200/3800/3900/1300
+R60	Plakbrug zonder preparatie		M/T	1200/3800/3900/1300
+R61	Plakbrug met preparatie		M/T	1200/3800/3900/1300
+R65	Toeslag voor elk volgende brugdeel in hetzelfde tussendeel			1200/3800/3900/1300
+R66	Toeslag voor elke volgende bevestiging boven het aantal van twee			1200/3800/3900/1300
+R70	Toeslag voor kroon onder bestaand frame-anker			1200/3800/3900/1300
+R71	Vernieuwen porseleinen schildje, reparatie metalen/porseleinen kroon in de mond	 	M/T	1200/3800/3900/1300
+R72	Vernieuwen schildje van plastisch materiaal			1200/3800/3900/1300
+R73	Aanbrengen extra retentie of pinnen in schildje			1200/3800/3900/1300
+R74	Opnieuw vastzetten niet plastische restauraties		M/T	1200/3800/3900/1300
+R75	Opnieuw vastzetten plakbrug		M/T	1200/3800/3900/1300
+R76	Toeslag voor gegoten opbouw onder bestaande kroon			1200/3800/3900/1300
+R77	Moeizaam verwijderen van oud kroon- en brugwerk per (pijler)element			1200/3800/3900/1300
+R78	Schildje van keramiek of kunststof, zonder preparatie		M/T	1200/3800/3900/1300
+R79	Schildje van keramiek of kunststof, met preparatie		M/T	1200/3800/3900/1300
+R80	Temporaire, eerste voorziening		M/T	1200/3800/3900/1300
+R85	Temporaire, volgende voorziening		M/T	1200/3800/3900/1300
+R90	Gedeeltelijk voltooid werk		M/T	1200/3800/3900/1300
+R99	Gedeeltelijk voltooid werk kronen en bruggen			Uitsluitend van toepassing voor de Wlz voor informatierecord
+G01	Uitgebreid functie-onderzoek (UFO)			1200/3800/3900/1300
+G02	Spieractiviteitsmeting en registratie			1200/3800/3900/1300
+G03	Gedocumenteerde verwijzing kaakgewrichtsbehandeling			1200/3800/3900/1300
+G61	Instructie spieroefeningen			1200/3800/3900/1300
+G62	Occlusale spalk		M/T	1200/3800/3900/1300
+G63	Repositiespalk		M/T	1200/3800/3900/1300
+G64	Controlebezoek spalk inclusief kleine correcties			1200/3800/3900/1300
+G65	Indirect planmatig inslijpen		M/T	1200/3800/3900/1300
+G66	Biofeedbacktherapie			1200/3800/3900/1300
+G67	Behandeling triggerpoint		M/T	1200/3800/3900/1300
+G68	Reparatie occlusale- of repositiespalk, met afdruk		M/T	1200/3800/3900/1300
+G33	Aanbrengen front/hoektandgeleiding		M/T	1200/3800/3900/1300
+G69	Opbeetplaat		M/T	1200/3800/3900/1300
+G10	Niet-standaard beetregistratie	 		1200/3800/3900/1300
+G11	Scharnierasbepaling			1200/3800/3900/1300
+G12	Centrale relatiebepaling			1200/3800/3900/1300
+G13	Protrale/laterale bepalingen			1200/3800/3900/1300
+G14	Instellen volledig instelbare articulator, pantograaf en registratie			1200/3800/3900/1300
+G15	Toeslag voor het behouden van beethoogte			1200/3800/3900/1300
+G16	Therapeutische positiebepaling			1200/3800/3900/1300
+G20	Beetregistratie intra-oraal			1200/3800/3900/1300
+G71	Apparaat voor snurk- en slaapstoornissen (MRA)		M/T	1200/3800/3900/1300
+G72	Controlebezoek MRA			1200/3800/3900/1300
+G73	Reparatie MRA met afdruk		M/T	1200/3800/3900/1300
+G99	Gedeeltelijk voltooid werk kaakgewrichtsbehandelingen			Uitsluitend van toepassing voor de Wlz voor informatierecord
+H11	Trekken tand of kies			1200/3800/3900/1300
+H16	Trekken volgende tand of kies, in dezelfde zitting en hetzelfde kwadrant			1200/3800/3900/1300
+H21	Kosten hechtmateriaal			1200/3800/3900/1300
+H26	Hechten weke delen			1200/3800/3900/1300
+H50	Terugzetten/ terugplaatsen tand of kies, eerste element exclusief wortelkanaalbehandeling	 		1200/3800/3900/1300
+H55	Terugzetten/ terugplaatsen tand of kies, buurelement, exclusief wortelkanaalbehandeling	 		1200/3800/3900/1300
+H90	Voorbereiding praktijkruimte ten behoeve van chirurgische verrichtingen vallend onder onderdeel B	 	 	1200/3800/3900/1300
+H33	Hemisectie van een molaar			1200/3800/3900/1300
+H35	Moeizaam trekken tand of kies, met mucoperiostale opklap			1200/3800/3900/1300
+H40	Corrigeren van de vorm van de kaak, per kaak			1200/3800/3900/1300
+H41	Verwijderen van het lipbandje of tongriempje			1200/3800/3900/1300
+H42	Wortelpuntoperatie, per tandwortel, zonder afsluiting			1200/3800/3900/1300
+H43	Wortelpuntoperatie, per tandwortel, met ante of retrogradeafsluiting			1200/3800/3900/1300
+H44	Primaire antrumsluiting			1200/3800/3900/1300
+H59	Behandeling kaakbreuk, per kaak			1200/3800/3900/1300
+H60	Marsupialisatie			1200/3800/3900/1300
+H65	Primaire sluiting			1200/3800/3900/1300
+H70	Lappige fibromen, Schlotterkamm tubercorrectie e.d., enkelzijdig per kaak			1200/3800/3900/1300
+H75	Lappige fibromen, Schlotterkamm, tubercorrectie e.d., dubbelzijdig per kaak			1200/3800/3900/1300
+H80	Alveolotomie torus, vergelijkbare praeprothetische botcorrecties, enkelzijdig per kaak	 		1200/3800/3900/1300
+H85	Alveolotomie torus, vergelijkbare praeprothetische botcorrecties, dubbelzijdig per kaak	 		1200/3800/3900/1300
+H99	Gedeeltelijk voltooid werk chirurgische ingrepen			Uitsluitend van toepassing voor de Wlz voor informatierecord
+P60	Uitgebreid onderzoek naar functioneren van het bestaande kunstgebit			1200/3800/9301/3900/1300
+P65	Planmatig inslijpen van het bestaande kunstgebit			1200/3800/9301/3900/1300
+P17	Toeslag voor beetregistratie met specifieke apparatuur			1200/3800/9301/3900/1300
+P10	Gedeeltelijk kunstgebit van kunsthars, 1-4 elementen		M/T	1200/3800/9301/3900/1300
+P15	Gedeeltelijk kunstgebit van kunsthars, 5-13 elementen		M/T	1200/3800/9301/3900/1300
+P16	Toeslag voor individuele afdruk met randopbouw bij gedeeltelijk kunstgebit van kunsthars	 		1200/3800/9301/3900/1300
+P18	Toeslag voor gegoten anker bij gedeeltelijk kunstgebit van kunsthars			1200/3800/9301/3900/1300
+P34	Frame kunstgebit, 1-4 elementen		M/T	1200/3800/9301/3900/1300
+P35	Frame kunstgebit, 5-13 elementen		M/T	1200/3800/9301/3900/1300
+P31	Wortelkap met stift		M/T	1200/3800/3900/1300
+P32	Toeslag voor maken precisiekoppeling per koppeling c.q. staafhuls			1200/3800/3900/1300
+P33	Toeslag voor aanbrengen telescoopkroon met precisiekoppeling			1200/3800/3900/1300
+P40	Toeslag immediaat kunstgebit, kunstgebittarief verhoogd met per immediaat te vervangen element	 		1200/3800/9301/3900/1300
+P45	Noodkunstgebit		M/T	1200/3800/9301/3900/1300
+P21	Volledig kunstgebit bovenkaak		M/T	1200/3800/9301/3900/1300
+P25	Volledig kunstgebit onderkaak		M/T	1200/3800/9301/3900/1300
+P30	Volledig kunstgebit boven- en onderkaak		M/T	1200/3800/9301/3900/1300
+P36	Individuele afdruk zonder randopbouw			1200/3800/9301/3900/1300
+P14	Individuele afdruk met randopbouw			1200/3800/9301/3900/1300
+P37	Frontopstelling in aparte zitting			1200/3800/9301/3900/1300
+P27	Reoccluderen			1200/3800/9301/3900/1300
+P28	Naregistratie en remounten			1200/3800/9301/3900/1300
+P38	Toeslag voor bepaling verticale beethoogte met behulp van specifieke apparatuur	 		1200/3800/9301/3900/1300
+P39	Toeslag voor bepaling neutrale zone			1200/3800/9301/3900/1300
+P41	Toeslag voor relinen van alginaatafdruk			1200/3800/9301/3900/1300
+P42	Toeslag voor specifieke A-zone-bepaling			1200/3800/9301/3900/1300
+P43	Toeslag voor extra beetbepaling met waswallen			1200/3800/9301/3900/1300
+P29	Toeslag te berekenen voor elk element bij een overkappingskunstgebit			1200/3800/3900/1300
+P06	Tissue conditioning volledig kunstgebit, per kaak			1200/3800/9301/3900/1300
+P01	Opvullen volledig kunstgebit, indirect zonder randopbouw, per kaak		M/T	1200/3800/9301/3900/1300
+P02	Opvullen volledig kunstgebit, indirect met randopbouw, per kaak		M/T	1200/3800/9301/3900/1300
+P03	Opvullen volledig kunstgebit, direct zonder randopbouw, per kaak			1200/3800/9301/3900/1300
+P04	Opvullen volledig kunstgebit, direct met randopbouw, per kaak		M/T	1200/3800/9301/3900/1300
+P70	Opvullen overkappingsprothese op natuurlijke pijlers zonder staafdemontage, per kaak		M/T	1200/3800/9301/3900/1300
+P07	Reparatie volledig kunstgebit, zonder afdruk, per kaak		M/T	1200/3800/9301/3900/1300
+P08	Reparatie volledig kunstgebit, met afdruk, per kaak		M/T	1200/3800/9301/3900/1300
+P56	Tissue conditioning gedeeltelijk kunstgebit of framekunstgebit, per kaak			1200/3800/9301/3900/1300
+P51	Opvullen gedeeltelijk kunstgebit / framekunstgebit, indirect zonder randopbouw, per kaak		M/T	1200/3800/9301/3900/1300
+P52	Opvullen gedeeltelijk kunstgebit / framekunstgebit, indirect met randopbouw, per kaak		M/T	1200/3800/9301/3900/1300
+P53	Opvullen gedeeltelijk kunstgebit / framekunstgebit, direct zonder randopbouw, per kaak		M/T	1200/3800/9301/3900/1300
+P54	Opvullen gedeeltelijk kunstgebit / framekunstgebit, direct met randopbouw, per kaak		M/T	1200/3800/9301/3900/1300
+P57	Reparatie gedeeltelijk kunstgebit/ framekunstgebit, zonder afdruk, per kaak		M/T	1200/3800/9301/3900/1300
+P58	Reparatie gedeeltelijk kunstgebit/ framekunstgebit, met afdruk, per kaak		M/T	1200/3800/9301/3900/1300
+P78	Uitbreiding gedeeltelijk kunstgebit met element(en) tot volledig kunstgebit inclusief afdruk, per kaak	 	M/T	1200/3800/9301/3900/1300
+P79	Uitbreiding gedeeltelijk kunstgebit met element of anker inclusief afdruk, per kaak		M/T	1200/3800/9301/3900/1300
+P99	Gedeeltelijk voltooid werk kunstgebitten			Uitsluitend van toepassing voor de Wlz voor informatierecord
+T11	Onderzoek van het tandvlees met pocketstatus			1200/3800/8700/3900/1300
+T12	Onderzoek van het tandvlees met parodontiumstatus			1200/3800/8700/3900/1300
+T21	Grondig reinigen wortel, complex			1200/3800/3900/1300
+T22	Grondig reinigen wortel, standaard			1200/3800/8700/3900/1300
+T31	Herbeoordeling met pocketstatus, na initiële tandvleesbehandeling			1200/3800/8700/3900/1300
+T32	Herbeoordeling met parodontiumstatus, na initiële tandvleesbehandeling			1200/3800/8700/3900/1300
+T33	Uitgebreid bespreken vervolgtraject na herbeoordeling			1200/3800/8700/3900/1300
+T41	Beperkt consult parodontale nazorg			1200/3800/8700/3900/1300
+T42	Consult parodontale nazorg			1200/3800/8700/3900/1300
+T43	Uitgebreid consult parodontale nazorg			1200/3800/8700/3900/1300
+T44	Complex consult parodontale nazorg			1200/3800/8700/3900/1300
+T60	Evaluatie-onderzoek met pocketstatus			1200/3800/8700/3900/1300
+T61	Evaluatie-onderzoek met parodontiumstatus			1200/3800/8700/3900/1300
+T70	Flapoperatie tussen 2 elementen			1200/3800/3900/1300
+T71	Flapoperatie per sextant (één zesde deel)			1200/3800/3900/1300
+T72	Flapoperatie uitgebreid per sextant ( één zesde deel)			1200/3800/3900/1300
+T73	Directe post-operatieve zorg, kort			1200/3800/3900/1300/8700
+T74	Directe post-operatieve zorg, uitgebreid			1200/3800/3900/1300/8700
+T75	Post-operatief evaluatie-onderzoek met parodontiumstatus			1200/3800/3900/1300/8700
+T76	Tuber- of retromolaarplastiek			1200/3800/3900/1300
+T80	Tandvleestransplantaat			1200/3800/3900/1300
+T81	Tuber- of retromolaarplastiek			1200/3800/3900/1300
+T82	Tandvleescorrectie per element			1200/3800/3900/1300
+T83	Tandvleescorrectie per sextant (één zesde deel)			1200/3800/3900/1300
+T84	Aanbrengen regeneratiemateriaal als zelfstandige verrichting, per sextant (één zesde deel)	 	M/T	1200/3800/3900/1300
+T85	"Aanbrengen regeneratiemateriaal als niet-zelfstandige verrichting, gelijktijdig met flapoperatie in hetzelfde sextant (één zesde deel), per element
+verrichting, gelijktijdig met flapoperatie"		M/T	1200/3800/3900/1300
+T86	Operatieve verwijdering van regeneratiemateriaal			1200/3800/3900/1300
+T87	Kroonverlenging per element			1200/3800/3900/1300
+T88	Kroonverlenging per sextant			1200/3800/3900/1300
+T89	Directe post-operatieve zorg, kort			1200/3800/3900/1300/8700
+T90	Directe postoperatieve zorg, uitgebreid			1200/3800/3900/1300/8700
+T91	Pocketregistratie			1200/3800/8700/3900/1300
+T92	Parodontiumregistratie			1200/3800/8700/3900/1300
+T93	Bacteriologisch onderzoek ten behoeve van tandvleesbehandeling		L	1200/3800/8700/3900/1300
+T94	Behandeling tandvleesabces			1200/3800/3900/1300/8700
+T57	Toepassing lokaal medicament		M/T	1200/3800/8700/3900/1300
+T95	(Draad)Spalk		M/T	1200/3800/3900/1300/8700
+T96	Uitgebreide Voedingsanalyse			1200/3800/3900/1300/8700
+T99	Gedeeltelijk voltooid werk tandvleesbehandelingen			Uitsluitend van toepassing voor de Wlz voor informatierecord
+T51	Kort consult nazorg tandvleesbehandeling door een tandarts			1200/3800/3900/1300
+T52	Kort consult nazorg tandvleesbehandeling door een mondhygiënist			1200/3800/8700/3900/1300
+T53	Standaard consult nazorg tandvleesbehandeling door een tandarts			1200/3800/3900/1300
+T54	Standaard consult nazorg tandvleesbehandeling door een mondhygiënist			1200/3800/8700/3900/1300
+T55	Uitgebreid consult nazorg tandvleesbehandeling door een tandarts			1200/3800/3900/1300
+T56	Uitgebreid consult nazorg tandvleesbehandeling door een mondhygiënist			1200/3800/8700/3900/1300
+J97	Overheadkosten implantaten			1200/3800/3900/1300
+J98	Overheadkosten pre-implantologische chirurgie 			1200/3800/3900/1300
+J01	Initieel onderzoek implantologie			1200/9301/3800/3900/1300
+J02	Verlengd onderzoek implantologie		M/T	1200/3800/3900/1300
+J03	Proefopstelling		M/T	1200/3800/3900/1300
+J05	Implantaatpositionering op grond van CT-scan			1200/3800/3900/1300
+J09	Ophoging bodem bijholte, eerste kaakhelft		M/T	1200/3800/3900/1300
+J10	Ophoging bodem bijholte, tweede kaakhelft in dezelfde zitting		M/T	1200/3800/3900/1300
+J11	Prepareren donorplaats			1200/3800/3900/1300
+J12	Kaakverbreding en/of verhoging in frontregio of eerste kaakhelft		M/T	1200/3800/3900/1300
+J13	Kaakverbreding en/of verhoging in tweede kaakhelft in dezelfde zitting		M/T	1200/3800/3900/1300
+J07	Toeslag kosten boren voor eenmalig gebruik of toeslag kosten inzetstukken van een Implant Removal Set voor eenmalig gebrui			1200/3800/3900/1300
+J06	Vrijleggen foramen mentale			1200/3800/3900/1300
+J15	Kaakverbreding en/of verhoging per kaakhelft of in frontregio		M/T	1200/3800/3900/1300
+J17	Aanvullende ophoging bodem bijholte		M/T	1200/3800/3900/1300
+J18	Ophoging bodem bijholte orthograad		M/T	1200/3800/3900/1300
+J19	Toeslag esthetische zone			1200/3800/3900/1300
+J20	Plaatsen eerste implantaat per kaak			1200/3800/3900/1300
+J28	Plaatsen volgend implantaat			1200/3800/3900/1300
+J23	Plaatsen eerste Healing Abutment (wondheler)		M/T	1200/3800/3900/1300
+J29	Plaatsen volgende Healing Abutment (wondheler)		M/T	1200/3800/3900/1300
+J26	Moeizaam verwijderen implantaat			1200/3800/3900/1300
+J36	Verwijderen implantaat			1200/3800/3900/1300
+J27	Vervangen (eerste) implantaat			1200/3800/3900/1300
+J37	Vervangen volgend implantaat			1200/3800/3900/1300
+J08	Aanbrengen botvervangers in extractie wond		M/T	1200/3800/3900/1300
+J30	Bindweefseltransplantaat per donorplaats			1200/3800/3900/1300
+J32	Verwijderen gefractureerd abutment/ occlusale schroef		M/T	1200/3800/3900/1300
+J33	Kosten implantaat			1200/3800/3900/1300
+J34	Bepaling stabiliteit implantaat middels ISQ-meting			1200/3800/3900/1300
+J40	Twee magneten/drukknoppen		M/T	1200/9301/3800/3900/1300
+J41	Elke volgende magneet, drukknop		M/T	1200/9301/3800/3900/1300
+J42	Staaf tussen twee implantaten in dezelfde kaak		M/T	1200/9301/3800/3900/1300
+J43	Elke volgende staaf tussen implantaten in dezelfde kaak		M/T	1200/9301/3800/3900/1300
+J44	Plaatsen opbouw ten behoeve van implantaatkroon		M/T	1200/9301/3800/3900/1300
+J50	Gelijktijdig plaatsen volledig kunstgebit en klikgebit		M/T	1200/9301/3800/3900/1300
+J51	Onder-klikgebit		M/T	1200/9301/3800/3900/1300
+J52	Boven-klikgebit		M/T	1200/9301/3800/3900/1300
+J53	Omvorming klikgebit		M/T	1200/9301/3800/3900/1300
+J54	Omvorming klikgebit bij staven tussen twee implantaten		M/T	1200/9301/3800/3900/1300
+J55	Omvorming klikgebit bij staven tussen drie of vier implantaten		M/T	1200/9301/3800/3900/1300
+J56	Omvorming klikgebit bij staven tussen meer dan vier implantaten		M/T	1200/9301/3800/3900/1300
+J57	Toeslag vervangings- klikgebit op bestaande stegconstructie tussen twee implantaten	 		1200/9301/3800/3900/1300
+J58	Toeslag vervangings- klikgebit op bestaande stegcontructie tussen drie of vier implantaten	 		1200/9301/3800/3900/1300
+J59	Toeslag vervangings- klikgebit op bestaande stegcontructie tussen meer dan vier implantaten	 		1200/9301/3800/3900/1300
+J60	Specifiek consult nazorg implantologie			1200/3800/3900/1300
+J61	Uitgebreid consult nazorg implantologie			1200/3800/3900/1300
+J70	Opvullen zonder staafdemontage		M/T	1200/9301/3800/3900/1300
+J71	Opvullen met staafdemontage op twee implantaten		M/T	1200/9301/3800/3900/1300
+J72	Opvullen met staafdemontage op drie of vier implantaten		M/T	1200/9301/3800/3900/1300
+J73	Opvullen met staafdemontage op meer dan vier implantaten		M/T	1200/9301/3800/3900/1300
+J74	Reparatie zonder staafdemontage		M/T	1200/9301/3800/3900/1300
+J75	Reparatie met staafdemontage op twee implantaten		M/T	1200/9301/3800/3900/1300
+J76	Reparatie met staafdemontage op drie of vier implantaten		M/T	1200/9301/3800/3900/1300
+J77	Reparatie met staafdemontage op meer dan vier implantaten		M/T	1200/9301/3800/3900/1300
+J78	Verwijderen en vervangen drukknop		M/T	1200/9301/3800/3900/1300
+J79	Verwijderen en vervangen steg		M/T	1200/9301/3800/3900/1300
+J80	Twee implantaten in de onderkaak voor een implantaatgedragen kunstgebit			1200/3800/3900/1300
+J99	Gedeeltelijk voltooid werk implantaten			Uitsluitend van toepassing voor de Wlz voor informatierecord
+J16	Kaakverbreding en/of verhoging in tweede kaakhelft		M/T	1200/3800/3900/1300
+J21	Plaatsen elk volgend implantaat in dezelfde kaak, door dezelfde wond			1200/3800/3900/1300
+J22	Plaatsen elk volgend implantaat in dezelfde kaak, andere wond			1200/3800/3900/1300
+J24	Plaatsen volgende Healing Abutment (wondheler), dezelfde wond		M/T	1200/3800/3900/1300
+J25	Plaatsen volgende Healing Abutment (wondheler), andere wond		M/T	1200/3800/3900/1300
+J31	Volgende bindweefseltransplantaat			1200/3800/3900/1300
+U25	Tijdtarief tandheelkundige hulp aan patiënten die behandeld worden in de Wlz-instelling in eenheden van vijf minuten		M/T	1200/1300/3800/3900/8700/9301
+U35	Tijdtarief tandheelkundige hulp aan patiënten die verblijven in de Wlz-instelling en behandeld worden in de eigen praktijk van de zorgaanbieder in eenheden van vijf minuten		M/T	1200/1300/3800/3900/8700/9301
+U05	Tijdtarief begeleiding moeilijk behandelbare patiënten in eenheden van vijf minuten		M/T	1200/1300/3800/3900/8700/9301
+U20	Second opinion verricht door de Stichting TIP			1200/3800/3900/1300
+U10	Tijdtarief begeleiding moeilijk behandelbare patiënten		M/T	1200/3800/8700/9301/3900/1300
+U01	Tandheelkundige hulp aan patiënten die behandeld worden in de Wlz-instelling door zorgaanbieder zonder eigen huispraktijk 	 	M/T	1200/1300
+U015	Tandheelkundige hulp aan patiënten die behandeld worden in de Wlz-instelling door zorgaanbieder zonder eigen huispraktijk - Vijfminutentarief	 	M/T	1200/1300
+U02	Tijdtarief tandheelkundige hulp aan patiënten die behandeld worden in de Wlz-instelling	 	M/T	1200/1300
+U025	Tandheelkundige hulp aan patiënten die behandeld worden in de Wlz-instelling door zorgaanbieder met een eigen huispraktijk - Vijfminutentarief	 	M/T	1200/1300
+U03	Tijdtarief tandheelkundige hulp aan patiënten die verblijven in de Wlz-instelling en behandeld worden in de eigen praktijk van de zorgaanbieder		M/T	1200/1300
+U035	Tandheelkundige hulp aan patiënten die verblijven in de Wlz-instelling in de eigen huispraktijk van de zorgaanbieder - Vijfminutentarief		M/T	1200/1300
+Z10	Abonnement categorie A per maand		M/T	1200/3800/3900/1300
+Z20	Abonnement categorie B per maand		M/T	1200/3800/3900/1300
+Z30	Abonnement categorie C per maand		M/T	1200/3800/3900/1300
+Z40	Abonnement categorie D per maand		M/T	1200/3800/3900/1300
+Z50	Abonnement categorie E per maand		M/T	1200/3800/3900/1300
+Z60	Abonnement categorie F per maand		M/T	1200/3800/3900/1300
+JTV010	Toeslag haal- en/of brengservice			3900
+JTV001	Instellingstoeslag			3900
+K01	Toeslag haal- en/of brengservice			3900
+K02	Instellingstoeslag			3900
+X731CU	Uurtarief mondzorg aan bijzondere groepen	In een CBT	M/T	3800
+X731CV	5-minutentarief mondzorg aan bijzondere groepen	In een CBT	M/T	3800
+X611C	Verdoving door middel van een roesje	In een CBT		3800
+X631CU	Uurtarief voor verdoving door middel van algehele narcose	In een CBT		3800
+X631CV	5-minutentarief voor verdoving door middel van algehele narcose	In een CBT		3800
+X831	Collectief maximum tijdstarief mondzorg aan bijzondere zorggroepen	In een CBT	M/T	3800
+X631C	Verdoving door middel van algehele narcose	In een CBT		3800
+F121A	Eerste consult	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F122A	Vervolgconsult	Behandeling van patiënten, niet vallend onder B en/of C	  	1200/1300/3800/3900
+F123A	Controlebezoek	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F124A	Second opinion	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F125A	Maken gebitsmodellen	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F126A	Beoordelen gebitsmodellen inclusief bespreken behandelplan	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F127A	Multidisciplinair consult, per uur (multidisciplinair consult bij een patiënt met een vermoedelijke afwijking in de zin van schisis of (een) in ernst met schisis vergelijkbare aangeboren afwijking (per uur, deelbaar in eenheden van vijf minuten)	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F127AV	Multidisciplinair consult, vijf minuten tarief (multidisciplinair consult bij een patiënt met een vermoedelijke afwijking in de zin van schisis of (een) in ernst met schisis vergelijkbare aangeboren afwijking 	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F130A	Uitgebreid onderzoek t.b.v. opstellen en vastleggen van complex behandelplan door orthodontisch zorgaanbieder	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F131A	Vervaardigen van een diagnostische setup	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F132A	Maken van extra gebitsmodellen t.b.v. behandelingsevaluatie	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F133A	Beoordelen van extra gebitsmodellen t.b.v. behandelingsevaluatie	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F151A	Intra-orale röntgenfoto (3x4 cm.)	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F152A	Occlusale opbeet röntgenfoto	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F155A	Vervaardiging orthopantomogram	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F156A	Beoordeling orthopantomogram	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F157A	Vervaardiging laterale schedelröntgenfoto	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F158A	Beoordeling laterale schedelröntgenfoto	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F159A	Vervaardiging voor-achterwaartse schedelröntgenfoto	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F160A	Beoordeling voor-achterwaartse schedelröntgenfoto	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F161A	Meerdimensionale kaakfoto	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F162A	Beoordelen meerdimensionale kaakfoto	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F401A	Plaatsen beugel categorie 0	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F411A	Plaatsen beugel categorie 1	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F421A	Plaatsen beugel categorie 2	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F431A	Plaatsen beugel categorie 3	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F441A	Plaatsen beugel categorie 4	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F451A	Plaatsen beugel categorie 5	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F461A	Plaatsen beugel categorie 6	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F471A	Plaatsen beugel categorie 7	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F481A	Plaatsen beugel categorie 8	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F491A	Plaatsen beugel categorie 9	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F492A	Verwijderen beugel categorie 5 t/m 9 per kaak	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F511A	Beugelconsult per maand categorie 1	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F512A	Beugelconsult per maand categorie 2	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F513A	Beugelconsult per maand categorie 3	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F514A	Beugelconsult per maand categorie 4	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F515A	Beugelconsult per maand categorie 5	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F516A	Beugelconsult per maand categorie 6	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F517A	Beugelconsult per maand categorie 7	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F518A	Beugelconsult per maand categorie 8	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F519A	Beugelconsult per maand categorie 9	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F521A	Beugelconsult vanaf 25e behandelingsmaand (beugel categorie 1 t/m 9)	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F531A	Nacontrole per drie maanden beugel categorie 1 t/m 4	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F532A	Nacontrole per drie maanden beugel categorie 5, 7, 8	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F533A	Nacontrole per drie maanden beugel categorie 6, 9	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F611A	Documenteren en bespreken gegevens elektronische chip in uitneembare apparatuur	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F612A	Plaatsen intermaxillaire correctieveren	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F716A	Mondbeschermer tijdens behandeling met apparatuur	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F721A	Trekken tand of kies	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F722A	Trekken volgende tand of kies, in dezelfde zitting en hetzelfde kwadrant	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F723A	Plaatsen micro-implantaat (voor beugel)	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F724A	Preventieve voorlichting en/ of instructie	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F810A	Reparatie of vervanging beugel categorie 1 tot en met 4 vanwege slijtage	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F811A	Reparatie of vervanging van beugel	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F812A	Herstel en plaatsen van retentie-apparatuur	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F813A	Plaatsen extra retentiebeugel, per kaak	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F814A	Plaatsen retentie-apparatuur bij orthodontisch niet behandelde of door andere zorgaanbieder orthodontisch behandelde patiënt	Behandeling van patiënten, niet vallend onder B en/of C	M/T	1200/1300/3800/3900
+F815A	Verwijderen spalk, per element	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F911A	Inkopen op uitkomst orthodontie	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F153A	Extra-orale röntgenfoto (13x18 cm.)	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F154A	Röntgenonderzoek d.m.v. hand/pols-foto’s	Behandeling van patiënten, niet vallend onder B en/of C	 	1200/1300/3800/3900
+F121B	Eerste consult	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F122B	Vervolgconsult	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F123B	Controlebezoek	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F124B	Second opinion	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F125B	Maken gebitsmodellen	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F126B	Beoordelen gebitsmodellen inclusief bespreken behandelplan	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F127B	Multidisciplinair consult, per uur (deelbaar in eenheden van vijf minuten)	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F127BV	Multidisciplinair consult, vijf minuten tarief	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F130B	Uitgebreid onderzoek t.b.v. opstellen en vastleggen van complex behandelplan door orthodontisch zorgaanbieder	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F131B	Vervaardigen van een diagnostische setup	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F132B	Maken van extra gebitsmodellen t.b.v. behandelingsevaluatie	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F133B	Beoordelen van extra gebitsmodellen t.b.v. behandelingsevaluatie	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F151B	intra-orale röntgenfoto (3x4 cm.)	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F152B	occlusale opbeet röntgenfoto	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F153B	extra-orale röntgenfoto (13x18 cm.)	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F154B	röntgenonderzoek d.m.v. hand/pols-foto’s	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F155B	vervaardiging orthopantomogram	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F156B	beoordeling orthopantomogram	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F157B	vervaardiging laterale schedelröntgenfoto	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F158B	beoordeling laterale schedelröntgenfoto	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F159B	vervaardiging voor-achterwaartse schedelröntgenfoto	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F160B	Beoordeling voor-achterwaartse schedelröntgenfoto	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F161B	Meerdimensionale kaakfoto	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	  	1200/1300/3800/3900
+F162B	Beoordelen meerdimensionale kaakfoto	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F401B	Plaatsen beugel categorie 0	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F411B	Plaatsen beugel categorie 1	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F421B	Plaatsen beugel categorie 2	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F431B	Plaatsen beugel categorie 3	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F441B	Plaatsen beugel categorie 4	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F451B	Plaatsen beugel categorie 5	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F461B	Plaatsen beugel categorie 6	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F471B	Plaatsen beugel categorie 7	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F481B	Plaatsen beugel categorie 8	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F491B	Plaatsen beugel categorie 9	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F492B	Verwijderen beugel categorie 5 t/m 9 per kaak	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F511B	Beugelconsult per maand categorie 1	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F512B	Beugelconsult per maand categorie 2	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F513B	Beugelconsult per maand categorie 3	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F514B	Beugelconsult per maand categorie 4	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F515B	Beugelconsult per maand categorie 5	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F516B	Beugelconsult per maand categorie 6	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F517B	Beugelconsult per maand categorie 7	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F518B	Beugelconsult per maand categorie 8	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F519B	Beugelconsult per maand categorie 9	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F531B	Nacontrole beugel per drie maanden categorie 1 t/m 4	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F532B	Nacontrole beugel per drie maanden categorie 5, 7, 8	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F533B	Nacontrole beugel per drie maanden categorie 6, 9	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	  	1200/1300/3800/3900
+F611B	Documenteren en bespreken gegevens elektronische chip in uitneembare apparatuur	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F612B	Plaatsen intermaxillaire correctieveren	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F716B	Mondbeschermer tijdens behandeling met apparatuur	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F721B	Trekken tand of kies	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F722B	Trekken volgende tand of kies, in dezelfde zitting en hetzelfde kwadrant	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F723B	Plaatsen micro-implantaat (voor beugel)	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F724B	Preventieve voorlichting en/ of instructie	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F810B	Reparatie of vervanging beugel categorie 1 tot en met 4 vanwege slijtage	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F811B	Reparatie of vervanging van beugel	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F812B	Herstel en plaatsen van retentieapparatuur	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F813B	Plaatsen extra retentiebeugel, per kaak	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F814B	Plaatsen retentie-apparatuur bij orthodontisch niet behandelde of door andere zorgaanbieder orthodontisch behandelde patiënt	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	M/T	1200/1300/3800/3900
+F815B	Verwijderen spalk, per element	Behandeling van patiënten met (een) in ernst met schisis vergelijkbare afwijking(en)	 	1200/1300/3800/3900
+F121C	Eerste consult	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F122C	Vervolgconsult	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F123C	Controlebezoek	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F124C	Second opinion	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F125C	Maken gebitsmodellen	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F126C	Beoordelen gebitsmodellen, inclusief bespreken behandelplan	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F127C	Multidisciplinair consult, per uur (deelbaar in eenheden van vijf minuten)	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F127CV	Multidisciplinair consult, vijf minuten tarief	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F128C	Prenataal consult (deelbaar in eenheden van vijf minuten)	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F128CV	Prenataal consult, vijf minuten tarief	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F129C	Orthodontie in de eerste twee levensjaren	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F130C	Uitgebreid onderzoek t.b.v. opstellen en vastleggen van complex behandelplan door orthodontisch zorgaanbieder	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F131C	Vervaardigen van een diagnostische setup	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F132C	Maken van extra gebitsmodellen t.b.v. behandelingsevaluatie	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F133C	Beoordelen van extra gebitsmodellen t.b.v. behandelingsevaluatie	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F151C	Intra-orale röntgenfoto (3x4 cm.)	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F152C	Occlusale opbeet röntgenfoto	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F153C	Extra-orale röntgenfoto (13x18 cm.)	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F154C	Röntgenonderzoek d.m.v. hand/pols-foto’s	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F155C	Vervaardiging orthopantomogram	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F156C	Beoordeling orthopantomogram	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F157C	Vervaardiging laterale schedelröntgenfoto	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F158C	Beoordeling laterale schedelröntgenfoto	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F159C	Vervaardiging voor-achterwaartse schedelröntgenfoto	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F160C	Beoordeling voor-achterwaartse schedelröntgenfoto	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F161C	Meerdimensionale kaakfoto	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F162C	Beoordelen meerdimensionale kaakfoto	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F401C	Plaatsen beugel categorie 0	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F411C	Plaatsen beugel categorie 1	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F421C	Plaatsen beugel categorie 2	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F431C	Plaatsen beugel categorie 3	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F441C	Plaatsen beugel categorie 4	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F451C	Plaatsen beugel categorie 5	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F461C	Plaatsen beugel categorie 6	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F471C	Plaatsen beugel categorie 7	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F481C	Plaatsen beugel categorie 8	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F491C	Plaatsen beugel categorie 9	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F492C	Verwijderen beugel categorie 5 t/m 9 per kaak	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F511C	Beugelconsult per maand categorie 1	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F512C	Beugelconsult per maand categorie 2	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F513C	Beugelconsult per maand categorie 3	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F514C	Beugelconsult per maand categorie 4	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F515C	Beugelconsult per maand categorie 5	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F516C	Beugelconsult per maand categorie 6	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F517C	Beugelconsult per maand categorie 7	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F518C	Beugelconsult per maand categorie 8	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F519C	Beugelconsult per maand categorie 9	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F531C	Nacontrole beugel per drie maanden categorie 1 t/m 4	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F532C	Nacontrole beugel per drie maanden categorie 5, 7, 8	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F533C	Nacontrole beugel per drie maanden categorie 6, 9	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F611C	Documenteren en bespreken gegevens elektronische chip in uitneembare apparatuur	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F612C	Plaatsen intermaxillaire correctieveren	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F716C	Mondbeschermer tijdens behandeling met apparatuur 	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F721C	Trekken tand of kies	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F722C	Trekken volgende tand of kies, in dezelfde zitting en hetzelfde kwadrant	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F723C	Plaatsen micro-implantaat (voor beugel)	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F724C	Preventieve voorlichting en/ of instructie	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F810C	Reparatie of vervanging beugel categorie 1 tot en met 4 vanwege slijtage	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+F811C	Reparatie of vervanging van beugel	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F812C	Herstel en plaatsen van retentieapparatuur	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F813C	Plaatsen extra retentiebeugels, per kaak	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F814C	Plaatsen retentie-apparatuur bij orthodontisch niet behandelde of door andere zorgaanbieder orthodontisch behandelde patiënt	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	M/T	1200/1300/3800/3900
+F815C	Verwijderen spalk, per element	Behandeling van patiënten met een cheilo-/gnatho-/palatoschisis	 	1200/1300/3800/3900
+AWB001	Reiskosten die de tandarts maakt van en naar de Wlz-inrichting (deze tarieven zijn exclusief techniekkosten	 		1200
+AWB010	Tandtechnische kosten die de tandarts maakt t.b.v. behandeling in een Wlz-inrichting		M/T	1200
+C70	Keuringsrapport met bitewingfoto's	Geen WMG prestatie  		1200/3800/8700/3900/1300
+C75	Keuringsrapport zonder bitewingfoto's	Geen WMG prestatie  		1200/3800/8700/3900/1300
+C76	Afgifte gezondheidsverklaring	Geen WMG prestatie  		1200/3800/8700/3900/1300
+C90	Niet nagekomen afspraak	Geen WMG prestatie  		1200/9301/3800/8700/3900/1300
+11	Autokostenvergoeding		 	1200
+12	Reiskostenvergoeding		 	1200/3800/8700/9301/3900
+WRK001	Reiskosten per kilometer			1200/3800/8700/9301/3900
+WRK002	Reiskosten pont / tol			1200/3800/8700/9301/3900
+G201	Intraveneuze sedatie of narcose			1200

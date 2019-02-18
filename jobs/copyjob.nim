@@ -66,13 +66,15 @@ proc writeContextToStream(context: var Context, stream: Stream) =
       writeContextToStream(sub, stream)
 
 proc updateDependentLineElements(rootContext: Context, linebuffer: var openArray[char]) =
+  debug("updateDependentLineElements: context $#" % [rootContext.currentSubContext.toString()])
   let context = rootContext.currentSubContext
   if context.lineType.hasDependentElements:
+     debug("updateDependentLineElements: line has dependent elements")
      for leType in context.lineType.lineElementTypes:
-        if leType.sourceId != "":
-           debug("maw: getting source value for '$#'" % [leType.sourceId])
-           let newValue = rootContext.getElementValueFullString(leType)
-           debug("maw: got new source value: '$#'" % [newValue])
+        if leType.sourceId != NIL:
+           debug("updateDependentLineElements: getting source value for '$#'" % [leType.sourceId])
+           let newValue = rootContext.getSourceElementValueFullString(leType)
+           debug("updateDependentLineElements: got new source value: '$#'" % [newValue])
            copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
 
 
@@ -96,16 +98,12 @@ proc mutateAndWrite*(job: var CopyJob, outStream: Stream) =
          debug("maw: selection qualifier is met")
          if rootContext.conditionIsMet(job.replacementQualifier):
             debug("maw: replacement qualifier is met")
-            # Only attempt replacement if there are target fields defined
-            if job.fieldValues != @[]:
-               for field in job.fieldValues:
-                  let leType = field.leType
-                  if leType.isElementOfLine(context.line):
-                     # if debtor record then field.leType is the default debtor record type, so get the real leType
-                     # let leType = if line.isDebtorLine(): lineType.getLineElementType(field.leType.lineElementId) else: field.leType
-                     let newValue = field.value.evaluate(context).serialize(leType.length)
-                     debug("maw: setting new value for leId '$#': '$#'" % [leType.lineElementId, newValue])
-                     copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
+            for field in job.fieldValues:
+               let leType = field.leType
+               if leType.isElementOfLine(context.line):
+                  let newValue = field.value.evaluate(context).serialize(leType.length)
+                  debug("maw: setting new value for leId '$#': '$#'" % [leType.lineElementId, newValue])
+                  copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
          else: discard
 
          updateDependentLineElements(rootContext, linebuffer)

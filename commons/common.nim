@@ -35,6 +35,17 @@ type
    Cardinality* = enum
        ToOne, ToMany
 
+
+   ExpressionError* = object of Exception
+
+   Expression* = ref ExpressionObj
+   ExpressionObj* = object of RootObj
+      valueType*: VektisValueType
+      asStringImpl*: proc(expr: Expression): string
+      evaluateImpl*: proc(expr: Expression, context: Context): VektisValue
+      isDerived*: bool
+
+
    DebtorRecordVersion* = enum
       drvDefault, drvSB1, drvSB2
    
@@ -85,11 +96,14 @@ type
       lineLength*: int
       lineTypes*: seq[LineType]
 
+   LineElement* = ref object
+      leType*: LineElementType
+      value*: VektisValue
 
    Line* = ref object
       lineType*: LineType
       parent*: Line
-      values*: OrderedTable[string, VektisValue]
+      elements*: OrderedTable[string, LineElement]
       sublines*: OrderedTableRef[string, SublineLink]
 
 
@@ -101,6 +115,7 @@ type
    
    ContextState* = enum
       csInitial, csRegistered, csExported
+
    Context* = ref object
       parent*: Context
       state*: ContextState
@@ -128,15 +143,6 @@ type
         showElementSets*: TableRef[string, seq[string]]
 
 
-   ExpressionError* = object of Exception
-
-   Expression* = ref ExpressionObj
-   ExpressionObj* = object of RootObj
-      valueType*: VektisValueType
-      asStringImpl*: proc(expr: Expression): string
-      evaluateImpl*: proc(expr: Expression, context: Context): VektisValue
-      isDerived*: bool
-
    ExpressionReader* = ref ExpressionReaderObj
    ExpressionReaderObj* = object of RootObj
       name*: string
@@ -159,6 +165,8 @@ type
       cmdCopy, cmdQuery, cmdInfo, cmdHelp, cmdPrint, cmdValidate
 
 const
+   NIL* = ""
+   EMPTY* = @[]
    cAlphaLower* = "abcdefghijklmnopqrstuvwxyz"
    cAlphaUpper* = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
    cAlphaDigit* = "0123456789"
@@ -208,6 +216,8 @@ let
 var
    gAppConfig: TableRef[string, string]
 
+proc isEmpty*(value: string): bool =
+    value == ""
 
 proc firstItemMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.}): T {.inline.} =
    for i in 0..<list.len:
@@ -226,7 +236,7 @@ proc firstIndexMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.})
 proc asString*(value: VektisValue): string =
    case value.kind:
    of StringValueType:
-       let normalized = if value.stringValue == "": "nil" else: value.stringValue
+       let normalized = if value.stringValue == NIL: "nil" else: value.stringValue
        result = "\"$#\"" % normalized
    of NaturalValueType:
         result = intToStr(int(value.naturalValue))
@@ -342,14 +352,17 @@ proc asString*(lt: LineType): string =
    ]
 
 proc asString*(leType: LineElementType): string =
-   "LET[leId:'$#', code: '$#', fType: '$#', start: '$#', len: '$#', dsc: '$#', cnt: '$#']" % [
+   "LET[leId:'$#', code: '$#', fType: '$#', start: '$#', len: '$#', desc: '$#', cntbl: '$#', srcId: '$#', slvId: '$#' vtype: $#]" % [
       leType.lineElementId,
       leType.code,
       leType.fieldType,
       intToStr(leType.startPosition),
       intToStr(leType.length),
       leType.description,
-      (if leType.countable == "": "nil" else: leType.countable)
+      leType.countable,
+      leType.sourceId,
+      leType.slaveId,
+      $(leType.valueType)
    ]
 
 

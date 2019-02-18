@@ -56,12 +56,12 @@ suite "Serialization tests":
         let leTypeOperElements = @[leTypeOperRecordId, leTypeOperRecordNr, leTypeOperRecordAmount, leTypeOperRecordCode]
         let lTypeOper = newLineType(4, cLineLength, "Verrichting", emptyChildLinks, leTypeOperElements, false)
         # Create a line, first create the values
-        var values = newOrderedTable[string, VektisValue]()
-        values["0401"] = VektisValue(kind: NaturalValueType, naturalValue: 1)
-        values["0402"] = VektisValue(kind: NaturalValueType, naturalValue: 130)
-        values["0403"] = VektisValue(kind: SignedAmountValueType, signedAmountValue: -1234)
-        values["0405"] = VektisValue(kind: StringValueType, stringValue: "OK")
-        let line = createLine(lTypeOper, values[])
+        var elements = newOrderedTable[string, LineElement]()
+        elements["0401"] = LineElement(leType: leTypeOperRecordId, value: VektisValue(kind: NaturalValueType, naturalValue: 1))
+        elements["0402"] = LineElement(leType: leTypeOperRecordNr, value: VektisValue(kind: NaturalValueType, naturalValue: 130))
+        elements["0403"] = LineElement(leType: leTypeOperRecordAmount, value: VektisValue(kind: SignedAmountValueType, signedAmountValue: -1234))
+        elements["0405"] = LineElement(leType: leTypeOperRecordCode, value: VektisValue(kind: StringValueType, stringValue: "OK"))
+        let line = createLine(lTypeOper, elements[])
         line.serialize(outStream)
         check:
             outStream.data == "0101301234COK  "

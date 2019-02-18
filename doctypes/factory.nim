@@ -63,8 +63,8 @@ proc newSublineLink(cardinality: Cardinality): SublineLink =
     else:
         SublineLink(kind: ToOne, subline: nil)
 
-proc createLine*(lType: LineType, values: OrderedTable[string, VektisValue]): Line =
-    result = Line(lineType: lType, values: values, sublines: newOrderedTable[string, SublineLink]())
+proc createLine*(lType: LineType, elements: OrderedTable[string, LineElement]): Line =
+    result = Line(lineType: lType, elements: elements, sublines: newOrderedTable[string, SublineLink]())
     for typeLink in lType.childLinks:
         result.sublines[typeLink.subLineId] = newSublineLink(typeLink.cardinality)
 

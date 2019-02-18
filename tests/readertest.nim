@@ -1,9 +1,9 @@
 import unittest, common, context, expressions, literal, randomdate, number, times, valueset, tables, copyjob
 
-suite "Expression reader tests":
+suite "Reader tests":
 
     setup:
-        let context = createContext(nil, nil, nil)
+        let context = createContext(nil, nil, NIL)
         gValueSets = newTable[string, seq[VektisValue]]()
 
     test "Reading non-empty literal text":
@@ -29,7 +29,7 @@ suite "Expression reader tests":
         check:
             not isNil(value)
             value.kind == StringValueType
-            isNil(value.stringValue)
+            isEmpty(value.stringValue)
 
 
     test "Reading natural number is accurate":
@@ -45,7 +45,7 @@ suite "Expression reader tests":
 
 
     test "Reading amount is accurate":
-        let reader = newLiteralUnsigAmountReader()
+        let reader = newLiteralUnsignedAmountReader()
         let exp = reader.read("1234.56")
         check:
             not isNil(exp)
@@ -78,7 +78,8 @@ suite "Expression reader tests":
         let value = exp.evaluate(context)
         check:
             not isNil(value)
-            value.kind == EmptyValueType
+            value.kind == DateValueType
+            isNil(value.dateValue)
 
     test "Reading random natural expression":
         let reader = newRandomNaturalExpressionReader()

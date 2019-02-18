@@ -1,6 +1,9 @@
 import sugar, sequtils, strutils, logging, tables, times, streams, os, ospaths,
     common, vektorjson, formatting, utils, jsondoctypes
 
+const
+    cGeneratedSourcesDir = "generated"
+
 proc quoteStr(value: string): string =
     "\"$#\"" % value
 
@@ -62,7 +65,8 @@ $#
 """
 
 proc genCreateLineTypeFunction(docType: DocumentType, lType: LineType): string =
-    createLineTypeFunctionTemplate % [
+   let hasDependentEls = ltype.lineElementTypes.anyIt(it.sourceId != "")
+   createLineTypeFunctionTemplate % [
         docType.ext(lType),
         genCreateLineElementTypes(lType),
         quoteStr(lType.name),
@@ -132,7 +136,11 @@ proc genCreateDocTypeCode*(docType: DocumentType): string =
 proc createDocTypeSource*(docType: DocumentType) =
     echo "Create source: $#" % (if isNil(docType): "nil" else: docType.name)
     if not isNil(docType):
-        let outputPath = "$#.nim" % docType.ext
+        let fileName = "$#.nim" % docType.ext
+        let parent = parentDir(getAppDir())
+        let outDir = joinPath(parent, cGeneratedSourcesDir)
+        discard existsOrCreateDir(outDir)
+        let outputPath = joinPath(outDir, fileName)
         echo "Creating source file '$#'" % outputPath
         var outStream: Stream = newFileStream(outputPath, fmWrite)
         outStream.write(genCreateDocTypeCode(docType))

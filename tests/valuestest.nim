@@ -1,4 +1,4 @@
-import unittest, common, context, expressions, literal, number, times
+import unittest, common, context, expressions, serialization, literal, number, times, factory
 
 suite "Vektis value tests":
 
@@ -19,14 +19,20 @@ suite "Vektis value tests":
             value.serialize(6) == "000023"
 
 
-    test "Amount value serialized is padded to length":
+    test "Positive amount value serialized is padded to length":
         let value = VektisValue(kind: SignedAmountValueType, signedAmountValue: 12345)
         check:
-            value.serialize(9) == "000012345"
+            value.serialize(9) == "00012345D"
+
+
+    test "Negative amount value serialized is padded to length":
+        let value = VektisValue(kind: SignedAmountValueType, signedAmountValue: -12345)
+        check:
+            value.serialize(9) == "00012345C"
 
 
     test "Date value serialized":
-        let value = VektisValue(kind: DateValueType, dateValue: parse("2012-11-30", cReadableDateFormat))
+        let value = VektisValue(kind: DateValueType, dateValue: newDateTimeRef(parse("2012-11-30", cReadableDateFormat)))
         check:
             value.serialize(9) == "20121130"
 

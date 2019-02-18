@@ -30,7 +30,11 @@ proc serialize*(value: VektisValue, length: int): string =
         result = ""
 
 
+proc serialize(element: LineElement): string =
+    serialize(element.value, element.leType.length)
+
 proc serialize*(line: Line, stream: Stream) =
+    # Rumor has it OrderedTable is not ordered
     for leType in line.lineType.lineElementTypes:
-        stream.write(serialize(line.values[leType.lineElementId], leType.length))
+        stream.write(serialize(line.elements[leType.lineElementId]))
 

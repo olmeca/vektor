@@ -1,4 +1,4 @@
-import os, parseopt2, strutils, sequtils, json, sugar, streams, random, pegs, times, tables, logging
+import os, parseopt, strutils, sequtils, json, sugar, streams, random, pegs, times, tables, logging
 import doctype, context, qualifiers, common, accumulator, vektorhelp, validation, formatting, expressions, vektorjson, job, copyjob, infojob, showjob, validatejob, utils, codegen
 
 const
