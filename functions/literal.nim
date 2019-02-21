@@ -40,7 +40,7 @@ let
    literalSignedAmountPattern* = peg"""
    Pattern <- ^ Spc Number Spc !.
    Number <- {Sign} {IntegerPart} '.' {DecimalPart}
-   Sign <- '+' / '-'
+   Sign <- ('+' / '-')?
    IntegerPart <- \d+
    DecimalPart <- \d \d
    Spc <- \s*
@@ -129,13 +129,17 @@ proc readLiteralNatural(valueSpec: string): Expression =
       result = nil
 
 
-proc readLiteralAmount(valueSpec: string): Expression =
+proc readLiteralSignedAmount(valueSpec: string): Expression =
    if valueSpec =~ literalSignedAmountPattern:
       let sign = if matches[0] == "-": -1 else: 1
       let integerValue = parseInt(matches[1] & matches[2]) * sign
       let amtVektisValue = VektisValue(kind: SignedAmountValueType, signedAmountValue: integerValue)
       result = newLiteralAmountExpression(amtVektisValue, SignedAmountValueType)
-   elif valueSpec =~ literalUnsignedAmountPattern:
+   else:
+      result = nil
+
+proc readLiteralUnsignedAmount(valueSpec: string): Expression =
+   if valueSpec =~ literalUnsignedAmountPattern:
       let integerValue = parseInt(matches[0] & matches[1])
       let amtVektisValue = VektisValue(kind: UnsignedAmountValueType, amountValue: integerValue)
       result = newLiteralAmountExpression(amtVektisValue, UnsignedAmountValueType)
@@ -158,10 +162,10 @@ proc newLiteralNaturalReader*(): ExpressionReader =
    ExpressionReader(name: "literal natural exp. reader", valueType: NaturalValueType, pattern: literalNaturalPattern, readImpl: readLiteralNatural)
 
 proc newLiteralSignedAmountReader*(): ExpressionReader =
-   ExpressionReader(name: "literal signed amount exp. reader", valueType: SignedAmountValueType, pattern: literalSignedAmountPattern, readImpl: readLiteralAmount)
+   ExpressionReader(name: "literal signed amount exp. reader", valueType: SignedAmountValueType, pattern: literalSignedAmountPattern, readImpl: readLiteralSignedAmount)
 
 proc newLiteralUnsignedAmountReader*(): ExpressionReader =
-   ExpressionReader(name: "literal unsigned amount exp. reader", valueType: UnsignedAmountValueType, pattern: literalUnsignedAmountPattern, readImpl: readLiteralAmount)
+   ExpressionReader(name: "literal unsigned amount exp. reader", valueType: UnsignedAmountValueType, pattern: literalUnsignedAmountPattern, readImpl: readLiteralUnsignedAmount)
 
 proc newLiteralTextReader*(): ExpressionReader =
    ExpressionReader(name: "literal text exp. reader", valueType: StringValueType, pattern: literalValuePattern, readImpl: readLiteralText)

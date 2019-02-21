@@ -44,6 +44,7 @@ proc accumulate*(acc: Accumulator, line: string) =
    debug("accumulator.accumulate: " & line[0..13])
    for total in acc.totals.mitems():
       let leId = total.leType.countable
+      debug("accumulator.accumulate: leId: $#" % leId)
       # match any line type, except bottom line
       if getLineId(leId) == cAnyId and line.isContentLine():
          total.increment(1)
@@ -55,11 +56,14 @@ proc accumulate*(acc: Accumulator, line: string) =
             total.increment(1)
             acc.empty = false
          else:
+            debug("accumulator.accumulate: adding to total leType: $#" % leId)
             let leType = acc.docType.getLineElementType(leId)
             let elemValue = getIntegerValue(acc.docType, leType, line)
             total.increment(elemValue)
             #debug("inc $# -> $#" % [intToStr(elemValue), intToStr(total.value)])
             acc.empty = false
+   debug("accumulator:accumulate done.")
+
 
 proc isEmpty*(acc: Accumulator): bool =
    acc.empty
@@ -68,7 +72,7 @@ proc isEmpty*(acc: Accumulator): bool =
 #   addLine(acc, buf.toString())
 
 proc writeNumber(value: int, buf: var openArray[char], start: int, length: int) =
-   assert(len(buf) >= start +  length)
+   assert(len(buf) >= start + length)
    let newValue = intToStr(value, length)
    let newValueSeq = toSeq(newValue.items)
    # Nim range is inclusive
@@ -77,9 +81,26 @@ proc writeNumber(value: int, buf: var openArray[char], start: int, length: int) 
       buf[start+i] = newValueSeq[i]
    
 
+proc writeTotal(total: Total, buf: var openArray[char]) =
+   var newValue: string
+   let leType = total.leType
+
+   case leType.valueType
+   of SignedAmountValueType:
+        let signum = if total.value < 0: cSignumCredit else: cSignumDebit
+        newValue = intToStr(abs(total.value), leType.length-1) & signum
+   else:
+        newValue = intToStr(total.value, leType.length)
+   debug("accumulator.writeTotal: new value: '$#'" % newValue)
+
+   let newValueSeq = toSeq(newValue.items)
+   for i in 0..len(newValueSeq) - 1:
+        buf[leType.startPosition - 1 + i] = newValueSeq[i]
+
+
 proc write*(acc: Accumulator, buf: var seq[char]) =
    for total in acc.totals:
-      writeNumber(total.value, buf, total.leType.startPosition-1, total.leType.length)
+      writeTotal(total, buf)
 
 proc asString*(acc: Accumulator): string =
    let items = lc[t.asString() | (t <- acc.totals), string]

@@ -20,6 +20,10 @@ var
 #let gDocTypes = lc[readDocumentType(node) | (node <- getJsonData(cDocTypesJsonFileName)), DocumentType]
 #let gDebtorRecordTypes = lc[readDocumentType(node) | (node <- getJsonData(cSB311TypesJsonFileName)), DocumentType]
 
+proc `$`(spec: DocTypeSpec): string =
+    let (tid, version, sub, drv) = spec
+    "(typeId: $#, version: $#, sub: $#, debRecType: $#)" % [intToStr(tid), intToStr(version), intToStr(sub), repr(drv)]
+
 proc getLineId*(line: string): string =
    # TODO: first condition below should be superfluous if strings always initialized to empty
    if line == "" or line.len < cRecordIdSize:
@@ -245,20 +249,24 @@ proc nextLeId(leId: string): string =
    let leSuccessorIndex = parseInt(leId[2..3]) + 1
    result = leId[0..1] & intToStr(leSuccessorIndex, 2)
 
-proc sign(docType: DocumentType, leType: LineElementType, line: string): int =
-   result = 1
-   let sucLeType = docType.getLineElementType(nextLeId(leType.lineElementId))
-   if sucLeType.code.startsWith("COD") and sucLeType.length == 1:
-      if line.getElementValueFullString(sucLeType) == cSignumCredit:
-         result = -result
-      else: discard
-   else: discard
-
 proc getElementValueSigned*(docType: DocumentType, leType: LineElementType, line: string): int =
    if not isElementOfLine(leType, line):
       raise newException(LineTypeMisMatch, "Cannot get value of type $# on line of type $#" % [leType.lineElementId, getLineId(line)])
    # Precondition: leType must be of type "BED***"
-   result = getElementValueInt(line, leType) * sign(docType, leType, line)
+   if leType.valueType != SignedAmountValueType:
+      raise newException(LineTypeMisMatch, "Cannot get signed value for line elment '$#'" % leType.lineElementId)
+   let source = getElementValueString(docType, line, leType.lineElementId)
+   debug("doctype.getElementValueSigned: '$#'" % source)
+   let digits = source[0..^2]
+   let signum = source[^1..^1]
+   let intValue = parseInt(digits)
+   case signum
+   of cSignumDebit:
+      result = intValue
+   of cSignumCredit:
+      result = -1 * intValue
+   else:
+      raise newException(ValueError, "Invalid value for signum in line element of type '$#', value: '$#'" % [leType.lineElementId, source])
 
 proc summary*(doctype: DocumentType): string =
    "$# v$#.$#   $#" %

@@ -11,7 +11,7 @@ proc initializeExpressionReaders*(job: CopyJob) =
 
 proc readFieldValueSpec(job: CopyJob, spec: string): FieldValueSpec =
    if spec =~ fieldValueSpecPattern:
-      debug("readFieldValueSpec: matches: '$#', '$#'" % [matches[0], matches[1]])
+      debug("copyjob.readFieldValueSpec: matches: '$#', '$#'" % [matches[0], matches[1]])
       let leTypeId = matches[0]
       checkProcessableLineType(leTypeId)
       let value = matches[1]
@@ -21,6 +21,7 @@ proc readFieldValueSpec(job: CopyJob, spec: string): FieldValueSpec =
             "Setting the value of derived field '$#' is not allowed. \nSet value of field $# instead and Vektor will also update field $# accordingly." %
                 [leType.lineElementId, leType.sourceId, leType.lineElementId])
       let expression = job.expressionReader.readExpression(value, leType.valueType)
+      debug("copyjob.readFieldValueSpec: value expression: $#" % expression.asString())
       # Short circuit the following check by preemptively setting the value type correctly
       expression.valuetype = leType.valueType
       # Sanity check on interpreted expression value type
@@ -28,25 +29,29 @@ proc readFieldValueSpec(job: CopyJob, spec: string): FieldValueSpec =
           raise newException(ExpressionError, "readFieldValueSpec: Wrong value type for field '$#'. Expected $#, but got $#" % [leType.lineElementId, $(leType.valueType), $(expression.valueType)])
       else: discard
       result = FieldValueSpec(leType: leType, value: expression)
-      debug("readFieldValueSpec: leType: '$#', value: $#" % [leType.asString, expression.asString])
+      debug("copyjob.readFieldValueSpec: leType: '$#', value: $#" % [leType.asString, expression.asString])
    else:
       raise newException(FieldSpecError, "Invalid line element specification: '$#'" % [spec])
 
 
 proc initializeFieldValueSpecs*(job: CopyJob) =
-    if job.fieldValuesString == "" and job.fieldValuesFile != "":
+    debug("copyjob.initializeFieldValueSpecs entered")
+    if job.fieldValuesString == NIL and job.fieldValuesFile != NIL:
+        debug("copyjob.initializeFieldValueSpecs: reading field value specs from file '$#'" % job.fieldValuesFile)
         job.fieldValuesString = system.readFile(job.fieldValuesFile)
     else: discard
 
     if job.fieldValuesString != "":
+        debug("copyjob.initializeFieldValueSpecs: reading field value specs from string '$#'" % job.fieldValuesString)
         if job.fieldValuesString =~ fieldSpecsPattern:
             job.fieldValues = lc[readFieldValueSpec(job, spec)|(spec <- matches, spec != ""), FieldValueSpec]
         else:
             raise newException(ValueError, "Invalid replacement values specified: $#" % job.fieldValuesString)
     else: discard
+    debug("copyjob.initializeFieldValueSpecs exiting")
 
 proc initializeReplacementQualifier*(job: CopyJob) =
-    if job.replacementQualifierString != "":
+    if job.replacementQualifierString != NIL:
         job.replacementQualifier = job.docType.parseQualifier(job.replacementQualifierString)
     else: discard
 
@@ -66,27 +71,29 @@ proc writeContextToStream(context: var Context, stream: Stream) =
       writeContextToStream(sub, stream)
 
 proc updateDependentLineElements(rootContext: Context, linebuffer: var openArray[char]) =
-  debug("updateDependentLineElements: context $#" % [rootContext.currentSubContext.toString()])
+  debug("copyjob.updateDependentLineElements: context $#" % [rootContext.currentSubContext.toString()])
   let context = rootContext.currentSubContext
   if context.lineType.hasDependentElements:
-     debug("updateDependentLineElements: line has dependent elements")
+     debug("copyjob.updateDependentLineElements: line has dependent elements")
      for leType in context.lineType.lineElementTypes:
         if leType.sourceId != NIL:
-           debug("updateDependentLineElements: getting source value for '$#'" % [leType.sourceId])
+           debug("copyjob.updateDependentLineElements: getting source value for $# -> $#" % [leType.lineElementId, leType.sourceId])
            let newValue = rootContext.getSourceElementValueFullString(leType)
-           debug("updateDependentLineElements: got new source value: '$#'" % [newValue])
+           debug("copyjob.updateDependentLineElements: got new source value: '$#'" % [newValue])
            copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
+           debug("copyjob.updateDependentLineElements: done writing source value")
 
 
 proc mutateAndWrite*(job: var CopyJob, outStream: Stream) =
    var rootContext = job.context
+   debug("copyjob.maw: context $#" % [rootContext.currentSubContext.toString()])
    let context = rootContext.currentSubContext
    var lineBuffer = toSeq(context.line.mitems)
 
    # Bottom line cumulative values get updated
    # We don't allow bottom line values to be modified
    if context.lineType.lineId == cBottomLineId:
-      debug("maw: writing bottom line")
+      debug("copyjob.maw: writing bottom line")
       # Clean up context from residual content
       rootContext.dropContentSubContexts()
       # Bottom line needs to first be updated with accumulated values
@@ -95,14 +102,15 @@ proc mutateAndWrite*(job: var CopyJob, outStream: Stream) =
       writeCharsToStream(lineBuffer, outStream)
    else:
       if rootContext.conditionIsMet(job.selectionQualifier):
-         debug("maw: selection qualifier is met")
+         debug("copyjob.maw: selection qualifier is met")
          if rootContext.conditionIsMet(job.replacementQualifier):
-            debug("maw: replacement qualifier is met")
+            debug("copyjob.maw: replacement qualifier is met")
             for field in job.fieldValues:
+               debug("copyjob.maw: FieldSpec: $#" % field.value.asString())
                let leType = field.leType
                if leType.isElementOfLine(context.line):
                   let newValue = field.value.evaluate(context).serialize(leType.length)
-                  debug("maw: setting new value for leId '$#': '$#'" % [leType.lineElementId, newValue])
+                  debug("copyjob.maw: setting new value for leId '$#': '$#'" % [leType.lineElementId, newValue])
                   copyChars(lineBuffer, leType.startPosition-1, leType.length, newValue)
          else: discard
 

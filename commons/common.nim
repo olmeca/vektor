@@ -237,17 +237,17 @@ proc asString*(value: VektisValue): string =
    case value.kind:
    of StringValueType:
        let normalized = if value.stringValue == NIL: "nil" else: value.stringValue
-       result = "\"$#\"" % normalized
+       result = "StringValueType: \"$#\"" % normalized
    of NaturalValueType:
-        result = intToStr(int(value.naturalValue))
+        result =  "NaturalValueType: " & intToStr(int(value.naturalValue))
    of UnsignedAmountValueType:
-        result = (value.amountValue.float / 100).formatFloat(ffDecimal, 2)
+        result = "UnsignedAmountValueType: " & (value.amountValue.float / 100).formatFloat(ffDecimal, 2)
    of SignedAmountValueType:
-        result = (value.signedAmountValue.float / 100).formatFloat(ffDecimal, 2)
+        result = "SignedAmountValueType: " & (value.signedAmountValue.float / 100).formatFloat(ffDecimal, 2)
    of DateValueType:
-        result = format(value.dateValue[], cReadableDateFormat)
+        result = "DateValueType: " & format(value.dateValue[], cReadableDateFormat)
    of EmptyValueType:
-        result = "nil"
+        result ="EmptyValueType: " & "nil"
 
 proc `$`*(valueType: VektisValueType): string =
    case valueType

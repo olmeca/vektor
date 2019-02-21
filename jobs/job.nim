@@ -372,7 +372,7 @@ proc accumulate*(acc: Accumulator, context: var Context) =
         accumulate(acc, subcontext)
 
 proc initializeSelectionQualifier*(job: SelectiveJob) =
-    if job.selectionQualifierString != "":
+    if job.selectionQualifierString != NIL:
         job.selectionQualifier = job.docType.parseQualifier(job.selectionQualifierString)
     else: discard
 
@@ -425,6 +425,7 @@ proc readDocumentTypeSpec(job: DocumentJob): DocTypeSpec =
         else:
             close(input)
             raise newException(ValueError, "Document is not a Vektis declaration.")
+    debug("readDocumentTypeSpec -> $#" % $(result) )
 
 
 

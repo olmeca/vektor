@@ -48,6 +48,7 @@ proc backupPath(filePath: string): string =
     "$#.bak" % filePath
 
 proc createBackup(filePath: string) =
+    debug("createBackup: '$#'" % filePath)
     if existsFile(filePath):
         copyFile(filePath, backupPath(filePath))
     else:
@@ -77,7 +78,7 @@ proc run(job: ShowJob) =
     input.close()
 
 proc checkOutputPath(job: var CopyJob) =
-    if job.outputPath == "":
+    if job.outputPath == NIL:
         createBackup(job.documentPath)
         job.outputPath = job.documentPath
     else: discard
@@ -94,7 +95,7 @@ proc run(job: var CopyJob) =
     let inStream = newFileStream(job.documentPath, fmRead)
     var outStream: Stream = newFileStream(job.outputPath, fmWrite)
     if isNil(outStream):
-        raise newException(DocumentWriteError, "Could not write to path: $#" % job.documentPath)
+        raise newException(DocumentWriteError, "Could not write to path: $#" % job.outputPath)
     else:
         try:
             job.process(inStream, outStream)

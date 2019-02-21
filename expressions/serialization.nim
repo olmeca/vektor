@@ -3,11 +3,12 @@ import formatting, common
 
 
 proc serializeSignedAmount(amount: int, length: int): string =
-    let signum = if amount < 0: "C" else: "D"
+    let signum = if amount < 0: cSignumCredit else: cSignumDebit
     result = intToStr(abs(amount), length - 1) & signum
 
 
 proc serialize*(value: VektisValue, length: int): string =
+   debug("serialization.serialize: serializing $#" % value.asString())
    case value.kind:
    of StringValueType:
        let normalized = value.stringValue
@@ -28,6 +29,7 @@ proc serialize*(value: VektisValue, length: int): string =
             result = format(value.dateValue[], cVektisDateFormat)
    of EmptyValueType:
         result = ""
+   debug("serialization.serialize -> '$#'" % result)
 
 
 proc serialize(element: LineElement): string =
