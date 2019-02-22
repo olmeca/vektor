@@ -1,5 +1,5 @@
 import strutils, sequtils, tables, logging
-import common, doctype, utils
+import common, doctype, utils, lineparsing, serialization
 
 proc createSubContext*(parentContext: var Context, lineType: LineType, line: string): Context =
    result = Context(docType: parentContext.docType, parent: parentContext, state: csInitial, lineType: linetype, line: line, subContexts: newOrderedTable[string, Context](4), currentSubContext: nil)
@@ -12,10 +12,13 @@ proc createContext*(dType: DocumentType, lineType: LineType, line: string): Cont
    result.state = csRegistered
 
 
+proc `$`*(ctx: Context): string =
+   "Context[lt: $#, ln: $#]" % [ctx.lineType.lineId, ctx.line[0..13]]
+
 
 proc contextWithLineId*(context: Context, lineId: string): Context =
    assert(lineId != "")
-   debug( "contextWithLineId: ctx:$#, lid: $#" % [context.lineType.lineId, lineId])
+   debug( "context.contextWithLineId: ctx:$#, lid: $#" % [context.lineType.lineId, lineId])
    if context.lineType.lineId == lineId:
       result = context
    elif len(context.subContexts) == 0:
@@ -29,12 +32,14 @@ proc contextWithLineId*(context: Context, lineId: string): Context =
             result = found
             break
          else: discard
-
+   debug("context.contextWithLineId -> $#" % $(result))
 
 proc getElementValueFullString*(rootContext: Context, leType: LineElementType): string =
+   debug("context.getElementValueFullString: leType: $#, rootContext: $#" % [leType.asString(), $(rootContext)])
    let context = rootContext.contextWithLineId(leType.lineId)
-   getElementValueFormatted(context.line, leType)
-
+   #result = getElementValueFormatted(context.line, leType)
+   result = leType.parse(context.line).serialize()
+   debug("context.getElementValueFullString -> '$#'" % result)
 
 proc getSourceElementValueFullString*(rootContext: Context, leType: LineElementType): string =
    let sourceLeType = rootContext.doctype.getLineElementType(leType.sourceId)
@@ -73,9 +78,6 @@ proc findParentContextForLineType*(context: Context, lineId: string): Context =
    if isNil(result):
         raise newException(ContextWithLineIdNotFoundError, "No context found supporting child record type $#" % lineId)
 
-proc toString*(ctx: Context): string = 
-   "Context[lt: $#, ln: $#]" % [ctx.lineType.lineId, ctx.line[0..13]]
-
 proc root*(context: Context): Context =
     if isNil(context.parent):
         context
@@ -86,7 +88,7 @@ proc current*(context: Context): Context =
     context.currentSubContext
 
 proc addLine*(context: var Context, line: string) =
-    debug("context.addLine: ctx: $#, line: '$#'" % [context.toString(), line[0..13]])
+    debug("context.addLine: ctx: $#, line: '$#'" % [$(context), line[0..13]])
     let lType = context.docType.getLineTypeForLine(line)
     let lineId = getLineId(line)
     var parentContext = findParentContextForLineType(context.currentSubContext, lineId)

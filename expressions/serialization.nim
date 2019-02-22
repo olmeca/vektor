@@ -2,12 +2,41 @@ import tables, json, os, ospaths, logging, strutils, sequtils, sugar, times, peg
 import formatting, common
 
 
-proc serializeSignedAmount(amount: int, length: int): string =
-    let signum = if amount < 0: cSignumCredit else: cSignumDebit
-    result = intToStr(abs(amount), length - 1) & signum
+proc serializeSignedAmount(value: int, length: int, format: OutputFormat): string =
+    case format
+    of ReadableFormat:
+        formatEng(float32(value) / 100.0, 2, trim=false)|R(length)
+    of VektisFormat:
+        let signum = if value < 0: cSignumCredit else: cSignumDebit
+        intToStr(abs(value), length - 1) & signum
 
 
-proc serialize*(value: VektisValue, length: int): string =
+proc serializeUnsignedAmount(value: int, length: int, format: OutputFormat): string =
+    case format
+    of ReadableFormat:
+        formatEng(float32(value) / 100.0, 2, trim=false)|R(length)
+    of VektisFormat:
+        intToStr(value, length)
+
+
+proc serializeNaturalValue(value: uint, length: int, format: OutputFormat): string =
+    case format
+    of ReadableFormat:
+        intToStr(int(value - 0))|R(length)
+    of VektisFormat:
+        intToStr(int(value - 0), length)
+
+proc serializeDateValue(value: DateTimeRef, length: int, format: OutputFormat): string =
+    case format
+    of ReadableFormat:
+        format(value[], cReadableDateFormat)
+    of VektisFormat:
+        if isNil(value):
+            cVektisEmptyDate
+        else:
+            format(value[], cVektisDateFormat)
+
+proc serialize*(value: VektisValue, length: int, format: OutputFormat): string =
    debug("serialization.serialize: serializing $#" % value.asString())
    case value.kind:
    of StringValueType:
@@ -17,23 +46,24 @@ proc serialize*(value: VektisValue, length: int): string =
        else:
         result = normalized[0..length-1]
    of NaturalValueType:
-        result = intToStr(int(value.naturalValue - 0), length)
+        result = serializeNaturalValue(value.naturalValue, length, format)
    of UnsignedAmountValueType:
-        result = intToStr(abs(value.amountValue), length)
+        result = serializeUnsignedAmount(value.amountValue, length, format)
    of SignedAmountValueType:
-        result = serializeSignedAmount(value.signedAmountValue, length)
+        result = serializeSignedAmount(value.signedAmountValue, length, format)
    of DateValueType:
-        if isNil(value.dateValue):
-            result = cVektisEmptyDate
-        else:
-            result = format(value.dateValue[], cVektisDateFormat)
-   of EmptyValueType:
-        result = ""
+        result = serializeDateValue(value.dateValue, length, format)
    debug("serialization.serialize -> '$#'" % result)
 
 
-proc serialize(element: LineElement): string =
+proc serialize*(value: VektisValue, length: int): string =
+    serialize(value, length, VektisFormat)
+
+proc serialize*(element: LineElement): string =
     serialize(element.value, element.leType.length)
+
+proc serialize*(element: LineElement, format: OutputFormat): string =
+    serialize(element.value, element.leType.length, format)
 
 proc serialize*(line: Line, stream: Stream) =
     # Rumor has it OrderedTable is not ordered

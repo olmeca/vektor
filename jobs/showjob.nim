@@ -1,6 +1,6 @@
 import os, parseopt, strutils, sequtils, json, sugar, streams, random, pegs, times, tables, logging
 
-import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting
+import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting, lineparsing, serialization
 
 const
    gTableLinePrefix = "| "
@@ -50,11 +50,11 @@ proc initializeFieldSpecs*(job: ShowJob) =
 proc colwidth(leType: LineElementType): int =
     case leType.valueType
     of DateValueType:
-        leType.length # + 2
+        leType.length + 2
     of SignedAmountValueType:
-        leType.length # + 2
+        leType.length
     of UnsignedAmountValueType:
-        leType.length # + 1
+        leType.length
     else:
         leType.length
 
@@ -66,10 +66,10 @@ proc columnTitle(field: FieldSpec): string =
 proc length(field: FieldSpec): int =
     max(colwidth(field.leType), field.columnTitle.len)
 
-proc getHeaderForField(field: FieldSpec): string =
+proc getHeaderForField(field: FieldSpec, ctx: Context): string =
    let colWidth = field.length
    let leType = field.leType
-   let leTitle = if field.leTitle == "": leType.lineElementId else: field.leTitle
+   let leTitle = if field.leTitle == NIL: leType.lineElementId else: field.leTitle
    if colWidth >= leTitle.len:
       if leType.isNumericType or leType.isAmountType:
          leTitle|R(colWidth)
@@ -78,24 +78,26 @@ proc getHeaderForField(field: FieldSpec): string =
    else:
       spaces(colWidth)
 
-proc tabularLine(ctx: Context, fields: seq[FieldSpec], stringValue: proc(field: FieldSpec): string,
+
+proc getValueForField(field: FieldSpec, rootContext: Context): string =
+    let context = rootContext.contextWithLineId(getLineId(field.leType.lineElementId))
+    parse(field.leType, context.line).serialize(ReadableFormat)
+
+proc tabularLine(ctx: Context, fields: seq[FieldSpec], serialize: proc(field: FieldSpec, ctx: Context): string,
                   prefix: string, infix: string, postfix: string): string =
-   let values = lc[stringValue(field) | (field <- fields), string]
+   let values = lc[serialize(field, ctx) | (field <- fields), string]
    result = prefix & values.join(infix) & postfix
 
 proc printColumnHeaders(job: ShowJob, stream: Stream) =
    stream.write(tabularLine(job.context, job.fields, getHeaderForField, gTableLinePrefix, gTableLineInfix, gTableLinePostfix))
    stream.write("\n")
 
-proc pad(value: string, field: FieldSpec): string =
-    if field.leType.isNumeric or field.leType.isAmountType:
-        value|R(field.length)
-    else:
-        value|L(field.length)
 
 proc printLine*(job: ShowJob, stream: Stream) =
-   stream.write(tabularLine(job.context, job.fields,
-                            proc (fs: FieldSpec): string = pad(getElementValueFullString(job.context, fs.leType), fs),
+   debug("showjob.printLine: linenr: $#, rootCtx: $#, ctx: $#" % [intToStr(job.lineNr), $(job.context), $(job.context.current())])
+   stream.write(tabularLine(job.context,
+                            job.fields,
+                            getValueForField,
                             gTableLinePrefix,
                             gTableLineInfix,
                             gTableLinePostfix))
@@ -122,6 +124,7 @@ proc conditionallyPrintLine*(job: ShowJob, outStream: Stream) =
    let currentContext = rootContext.current()
    var tempStream = newStringStream()
    # Do not print subtypes of the subbest record type in the field specs (index > maxLineTypeIndex)
+   debug("showjob.conditionallyPrintLine: rootCtx: $#, currentContext: $#" % [$(rootContext), $(currentContext)])
    if currentContext.lineType.index <= job.maxLineTypeIndex and rootContext.conditionIsMet(job.selectionQualifier):
       try:
          printLine(job, tempStream)
@@ -132,7 +135,8 @@ proc conditionallyPrintLine*(job: ShowJob, outStream: Stream) =
          debug(">>>>>> Referring to line id '$#' out of context." % [currentContext.lineType.lineId])
 
 proc process*(job: ShowJob, input: Stream, output: Stream) =
-    var line: string = ""
+    debug("showjob.process entered")
+    var line: string = NIL
     if input.readLine(line):
         job.initializeContext(line)
         job.printHeaders(output)

@@ -25,7 +25,7 @@ proc readFieldValueSpec(job: CopyJob, spec: string): FieldValueSpec =
       # Short circuit the following check by preemptively setting the value type correctly
       expression.valuetype = leType.valueType
       # Sanity check on interpreted expression value type
-      if expression.valueType != leType.valueType and expression.valueType != EmptyValueType:
+      if expression.valueType != leType.valueType:
           raise newException(ExpressionError, "readFieldValueSpec: Wrong value type for field '$#'. Expected $#, but got $#" % [leType.lineElementId, $(leType.valueType), $(expression.valueType)])
       else: discard
       result = FieldValueSpec(leType: leType, value: expression)
@@ -71,7 +71,7 @@ proc writeContextToStream(context: var Context, stream: Stream) =
       writeContextToStream(sub, stream)
 
 proc updateDependentLineElements(rootContext: Context, linebuffer: var openArray[char]) =
-  debug("copyjob.updateDependentLineElements: context $#" % [rootContext.currentSubContext.toString()])
+  debug("copyjob.updateDependentLineElements: context $#" % [$(rootContext.currentSubContext)])
   let context = rootContext.currentSubContext
   if context.lineType.hasDependentElements:
      debug("copyjob.updateDependentLineElements: line has dependent elements")
@@ -86,7 +86,7 @@ proc updateDependentLineElements(rootContext: Context, linebuffer: var openArray
 
 proc mutateAndWrite*(job: var CopyJob, outStream: Stream) =
    var rootContext = job.context
-   debug("copyjob.maw: context $#" % [rootContext.currentSubContext.toString()])
+   debug("copyjob.maw: context $#" % [$(rootContext.currentSubContext)])
    let context = rootContext.currentSubContext
    var lineBuffer = toSeq(context.line.mitems)
 

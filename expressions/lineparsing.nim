@@ -1,4 +1,4 @@
-import strutils, times, sugar, tables
+import strutils, times, sugar, tables, logging
 import common, factory, doctype, expressions, expressionsreader
 
 
@@ -21,6 +21,7 @@ proc parseDateValue*(source: string): VektisValue =
 
 
 proc parse*(leType: LineElementType, valueType: VektisValueType, source: string): LineElement =
+    debug("lineparsing.parse: leType: $#, valueType: $#" % [leType.asString(), $(valueType)])
     var value: VektisValue
     case valueType
     of StringValueType:
@@ -29,14 +30,15 @@ proc parse*(leType: LineElementType, valueType: VektisValueType, source: string)
         value = VektisValue(kind: NaturalValueType, naturalValue: uint(parseInt(source)))
     of SignedAmountValueType:
         value = parseAmountValue(source)
+    of UnsignedAmountValueType:
+        value = VektisValue(kind: UnsignedAmountValueType, amountValue: parseInt(source))
     of DateValueType:
         value = parseDateValue(source)
-    else:
-        value = VektisValue(kind: EmptyValueType)
     LineElement(leType: leType, value: value)
 
 
 proc parse*(leType: LineElementType, line: string): LineElement =
+    debug("lineparsing.parse: leType: $#, line: $#" % [leType.lineElementId, line[0..13]])
     parse(leType, leType.valueType, getElementValueString(line, leType))
 
 proc parse*(lType: LineType, line: string): Line =

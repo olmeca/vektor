@@ -362,7 +362,7 @@ proc addLine*(job: DocumentJob, line: string) =
 
 
 proc accumulate*(acc: Accumulator, context: var Context) =
-    debug("jobs.accumulate  ctx: $#" % (context.toString()))
+    debug("jobs.accumulate  ctx: $#" % $(context))
     if context.state != csExported:
         if context.line.isContentLine():
             acc.accumulate(context.line)

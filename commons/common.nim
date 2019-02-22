@@ -13,9 +13,13 @@ type
 
    DateTimeRef* = ref DateTime
 
+   # Output formats
+   OutputFormat* = enum
+       VektisFormat, ReadableFormat
+
    # Vektis value types
    VektisValueType* = enum
-       StringValueType, NaturalValueType, DateValueType, SignedAmountValueType, UnsignedAmountValueType, EmptyValueType
+       StringValueType, NaturalValueType, DateValueType, SignedAmountValueType, UnsignedAmountValueType
 
    VektisValue* = ref object
        case kind*: VektisValueType
@@ -29,8 +33,6 @@ type
             amountValue*: int
        of DateValueType:
             dateValue*: DateTimeRef
-       of EmptyValueType:
-            nil
 
    Cardinality* = enum
        ToOne, ToMany
@@ -246,8 +248,6 @@ proc asString*(value: VektisValue): string =
         result = "SignedAmountValueType: " & (value.signedAmountValue.float / 100).formatFloat(ffDecimal, 2)
    of DateValueType:
         result = "DateValueType: " & format(value.dateValue[], cReadableDateFormat)
-   of EmptyValueType:
-        result ="EmptyValueType: " & "nil"
 
 proc `$`*(valueType: VektisValueType): string =
    case valueType
@@ -261,8 +261,6 @@ proc `$`*(valueType: VektisValueType): string =
         "SignedAmountValueType"
    of DateValueType:
         "DateValueType"
-   of EmptyValueType:
-        "EmptyValueType"
 
 proc defaultDataDir*(): string =
     joinPath(getAppDir(), cDataDir)
