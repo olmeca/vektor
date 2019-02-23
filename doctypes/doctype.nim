@@ -114,6 +114,8 @@ proc isContentLine*(line: string): bool =
 proc isTypeOfLine*(lineType: LineType, line: string): bool =
     lineHasId(line, lineType.lineId)
 
+# TODO: refactor following functions to use VektisValueType
+
 proc isDate*(leType: LineElementType): bool =
    leType.length == 8 and leType.code.startsWith(cDateCodePrefix)
 
@@ -124,7 +126,7 @@ proc isNumeric*(leType: LineElementType): bool =
    leType.fieldType == cFieldTypeNumeric
 
 proc isAmountType*(leType: LineElementType): bool = 
-    leType.isNumeric() and leType.code.startsWith(cAmountCodePrefix)
+    leType.isNumeric() and (leType.code.startsWith(cAmountCodePrefix) or leType.code.startsWith(cCountCodePrefix))
 
 proc isNumericType*(leType: LineElementType): bool = 
     leType.isNumeric() and leType.code.startsWith(cNumberCodePrefix)

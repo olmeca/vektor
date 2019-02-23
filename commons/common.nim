@@ -187,6 +187,7 @@ const
    cVektisEmptyDate* = "00000000"
    cAmountCodePrefix* = "BED"
    cNumberCodePrefix* = "NUM"
+   cCountCodePrefix* = "ANT"
    cDateCodePrefix* = "DAT"
    cAlphaNumCodePrefix* = "COD"
    cReserveCodePrefix* = "TEC"

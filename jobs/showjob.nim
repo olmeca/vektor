@@ -81,7 +81,7 @@ proc getHeaderForField(field: FieldSpec, ctx: Context): string =
 
 proc getValueForField(field: FieldSpec, rootContext: Context): string =
     let context = rootContext.contextWithLineId(getLineId(field.leType.lineElementId))
-    parse(field.leType, context.line).serialize(ReadableFormat)
+    parse(field.leType, context.line).serialize(field.length, ReadableFormat)
 
 proc tabularLine(ctx: Context, fields: seq[FieldSpec], serialize: proc(field: FieldSpec, ctx: Context): string,
                   prefix: string, infix: string, postfix: string): string =

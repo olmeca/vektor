@@ -65,6 +65,9 @@ proc serialize*(element: LineElement): string =
 proc serialize*(element: LineElement, format: OutputFormat): string =
     serialize(element.value, element.leType.length, format)
 
+proc serialize*(element: LineElement, length: int, format: OutputFormat): string =
+    serialize(element.value, length, format)
+
 proc serialize*(line: Line, stream: Stream) =
     # Rumor has it OrderedTable is not ordered
     for leType in line.lineType.lineElementTypes:
