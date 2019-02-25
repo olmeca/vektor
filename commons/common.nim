@@ -26,7 +26,7 @@ type
        of StringValueType:
             stringValue*: string
        of NaturalValueType:
-            naturalValue*: uint
+            naturalValue*: Natural
        of SignedAmountValueType:
             signedAmountValue*: int
        of UnsignedAmountValueType:
@@ -185,6 +185,7 @@ const
    cVektisDateFormat* = "yyyyMMdd"
    cReadableDateFormat* = "yyyy-MM-dd"
    cVektisEmptyDate* = "00000000"
+   cReadableEmptyDate* = NIL
    cAmountCodePrefix* = "BED"
    cNumberCodePrefix* = "NUM"
    cCountCodePrefix* = "ANT"

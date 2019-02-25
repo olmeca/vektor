@@ -29,7 +29,10 @@ proc serializeNaturalValue(value: uint, length: int, format: OutputFormat): stri
 proc serializeDateValue(value: DateTimeRef, length: int, format: OutputFormat): string =
     case format
     of ReadableFormat:
-        format(value[], cReadableDateFormat)
+        if isNil(value):
+            cReadableEmptyDate
+        else:
+            format(value[], cReadableDateFormat)
     of VektisFormat:
         if isNil(value):
             cVektisEmptyDate
