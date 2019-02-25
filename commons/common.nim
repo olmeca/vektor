@@ -185,7 +185,7 @@ const
    cVektisDateFormat* = "yyyyMMdd"
    cReadableDateFormat* = "yyyy-MM-dd"
    cVektisEmptyDate* = "00000000"
-   cReadableEmptyDate* = NIL
+   cReadableEmptyDate* = "          "
    cAmountCodePrefix* = "BED"
    cNumberCodePrefix* = "NUM"
    cCountCodePrefix* = "ANT"

@@ -37,8 +37,8 @@ proc formatToReadableOutput(value: VektisValue, length: Natural): string =
     of NaturalValueType:
         intToStr(int(value.naturalValue - 0))|R(length)
     of DateValueType:
-        if isNil(value):
-            cReadableEmptyDate|R(length)
+        if isNil(value.dateValue):
+            repeat(' ',length)
         else:
             format(value.dateValue[], cReadableDateFormat)
     of UnsignedAmountValueType:
