@@ -1,11 +1,16 @@
 import common, logging, strutils, sequtils, sugar, times, formatting
 
 type
-    FieldFormatter* = object of Formatter
+    FieldFormatterObj = object of Formatter
         format*: proc (value: VektisValue, length: Natural): string
 
-    VektisFieldFormatter* = object of FieldFormatter
-    ReadableFieldFormatter* = object of FieldFormatter
+    FieldFormatter* = ref FieldFormatterObj
+
+    VektisFieldFormatterObj = object of FieldFormatterObj
+    VektisFieldFormatter* = ref VektisFieldFormatterObj
+
+    ReadableFieldFormatterObj = object of FieldFormatterObj
+    ReadableFieldFormatter* = ref ReadableFieldFormatterObj
 
 
 proc formatToVektisOutput(value: VektisValue, length: Natural): string =

@@ -1,5 +1,5 @@
 import os, streams, logging, sets, strutils, sequtils, parseopt, tables
-import common, qualifiers, doctype, accumulator, context, expressionsreader
+import common, qualifiers, doctype, accumulator, context, expressionsreader, formatters
 
 const cCommandInfo* = "info"
 const cCommandShow* = "show"
@@ -90,6 +90,7 @@ type
         fieldsConfigKey*: string
         fields*: seq[FieldSpec]
         maxLineTypeIndex*: int
+        formatter*: FieldFormatter
 
     CopyJob* = ref CopyJobObject
     CopyJobObject = object of SelectiveJobObject

@@ -1,6 +1,6 @@
 import os, parseopt, strutils, sequtils, json, sugar, streams, random, pegs, times, tables, logging
 
-import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting, lineparsing, serialization
+import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting, formatters, lineparsing, serialization
 
 const
    gTableLinePrefix = "| "
@@ -36,6 +36,7 @@ proc initializeFieldSpecs*(job: ShowJob) =
         else:
             let configKey = "fieldset.$#.$#" % [job.docType.name, job.fieldsConfigKey]
             job.fieldsString = getAppConfig(configKey)
+        job.formatter = newReadableFieldFormatter()
     else: discard
 
     if job.fieldsString != "":
@@ -66,7 +67,7 @@ proc columnTitle(field: FieldSpec): string =
 proc length(field: FieldSpec): int =
     max(colwidth(field.leType), field.columnTitle.len)
 
-proc getHeaderForField(field: FieldSpec, ctx: Context): string =
+proc getHeaderForField(field: FieldSpec, job: ShowJob): string =
    let colWidth = field.length
    let leType = field.leType
    let leTitle = if field.leTitle == NIL: leType.lineElementId else: field.leTitle
@@ -79,25 +80,25 @@ proc getHeaderForField(field: FieldSpec, ctx: Context): string =
       spaces(colWidth)
 
 
-proc getValueForField(field: FieldSpec, rootContext: Context): string =
-    let context = rootContext.contextWithLineId(getLineId(field.leType.lineElementId))
-    parse(field.leType, context.line).serialize(field.length, ReadableFormat)
+proc serializeField(field: FieldSpec, job: ShowJob): string =
+    let context = job.context.contextWithLineId(getLineId(field.leType.lineElementId))
+    let lineElement = parse(field.leType, context.line)
+    job.formatter.format(lineElement.value, field.length)
 
-proc tabularLine(ctx: Context, fields: seq[FieldSpec], serialize: proc(field: FieldSpec, ctx: Context): string,
+proc tabularLine(job: ShowJob, serialize: proc(field: FieldSpec, job: ShowJob): string,
                   prefix: string, infix: string, postfix: string): string =
-   let values = lc[serialize(field, ctx) | (field <- fields), string]
+   let values = lc[serialize(field, job) | (field <- job.fields), string]
    result = prefix & values.join(infix) & postfix
 
 proc printColumnHeaders(job: ShowJob, stream: Stream) =
-   stream.write(tabularLine(job.context, job.fields, getHeaderForField, gTableLinePrefix, gTableLineInfix, gTableLinePostfix))
+   stream.write(tabularLine(job, getHeaderForField, gTableLinePrefix, gTableLineInfix, gTableLinePostfix))
    stream.write("\n")
 
 
 proc printLine*(job: ShowJob, stream: Stream) =
    debug("showjob.printLine: linenr: $#, rootCtx: $#, ctx: $#" % [intToStr(job.lineNr), $(job.context), $(job.context.current())])
-   stream.write(tabularLine(job.context,
-                            job.fields,
-                            getValueForField,
+   stream.write(tabularLine(job,
+                            serializeField,
                             gTableLinePrefix,
                             gTableLineInfix,
                             gTableLinePostfix))
