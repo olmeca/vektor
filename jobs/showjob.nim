@@ -2,7 +2,12 @@ import os, parseopt, strutils, sequtils, json, sugar, streams, random, pegs, tim
 
 import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting, formatters, lineparsing, serialization
 
+const cParamNameFieldsString = 'e'
+const cParamNameFieldSet = 'E'
+const cParamNameShowTotals = 't'
 const
+   cShowParamSet = cSelectiveParamSet + { cParamNameFieldsString, cParamNameFieldSet, cParamNameShowTotals }
+
    gTableLinePrefix = "| "
    gTableLineInfix = " | "
    gTableLinePostfix = " |"
@@ -36,8 +41,8 @@ proc initializeFieldSpecs*(job: ShowJob) =
         else:
             let configKey = "fieldset.$#.$#" % [job.docType.name, job.fieldsConfigKey]
             job.fieldsString = getAppConfig(configKey)
-        job.formatter = newReadableFieldFormatter()
     else: discard
+    job.formatter = newReadableFieldFormatter()
 
     if job.fieldsString != "":
         if job.fieldsString =~ fieldSpecsPattern:
@@ -147,6 +152,41 @@ proc process*(job: ShowJob, input: Stream, output: Stream) =
             job.conditionallyPrintLine(output)
 
         job.printHorLine(output)
-        #stderr.writeLine ( "Totals |$#" % [job.accumulator.asString()] )
+        if job.printTotals:
+            let totalsline = job.accumulator.asString()
+            let bottomline = repeat('-', len(totalsline) + 10)
+            output.writeLine ( "| Totals |$# |" %  totalsline)
+            output.writeline("+$#+" % bottomline)
     else:
         raise newException(DocumentReadError, "Could not read from stream.")
+
+
+proc applyShowJobNamedParam(job: VektorJob, param: NamedJobParam) =
+    debug("applyShowJobNamedParam: $#" % [$param])
+    let showJob = ShowJob(job)
+    showJob.printTotals = false
+    case param.name
+    of cParamNameFieldsString:
+        showJob.fieldsString = param.rawValue
+    of cParamNameFieldSet:
+        showJob.fieldsConfigKey = param.rawValue
+    of cParamNameShowTotals:
+        showJob.printTotals = true
+    else:
+        applySelectiveJobNamedParam(job, param)
+
+
+proc initializeShowJob*(job: VektorJob) =
+    initializeSelectiveJob(job)
+    ShowJob(job).initializeFieldSpecs()
+
+
+proc newShowJob*(): ShowJob =
+    new(result)
+    result.name = cCommandShow
+    result.paramNames = cShowParamSet
+    result.applyIndexedImpl = applyDocJobIndexedParam
+    result.applyNamedImpl = applyShowJobNamedParam
+    result.initializeImpl = initializeShowJob
+    result.logLevel = lvlNone
+

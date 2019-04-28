@@ -126,10 +126,10 @@ proc isNumeric*(leType: LineElementType): bool =
    leType.fieldType == cFieldTypeNumeric
 
 proc isAmountType*(leType: LineElementType): bool = 
-    leType.isNumeric() and (leType.code.startsWith(cAmountCodePrefix) or leType.code.startsWith(cCountCodePrefix))
+    leType.isNumeric() and leType.code.startsWith(cAmountCodePrefix)
 
 proc isNumericType*(leType: LineElementType): bool = 
-    leType.isNumeric() and leType.code.startsWith(cNumberCodePrefix)
+    leType.isNumeric() and (leType.code.startsWith(cNumberCodePrefix) or leType.code.startsWith(cCountCodePrefix))
 
 proc isEmptyValue*(leType: LineElementType, value: string): bool =
    if value.len == 0:

@@ -9,8 +9,6 @@ const cCommandRevert* = "revert"
 const cCommandValidate* = "validate"
 const cCommandHelp* = "help"
 
-const cParamNameFieldsString* = 'e'
-const cParamNameFieldSet* = 'E'
 const cParamNameFieldValuesString* = 'r'
 const cParamNameFieldValuesFile* = 'R'
 const cParamNameSelection* = 's'
@@ -18,14 +16,13 @@ const cParamNameCondition* = 'c'
 const cParamNameOutputPath* = 'o'
 const cParamNameDebugLevel* = 'D'
 const cParamNameLineId* = 'l'
+const cParamNameTotals* = 't'
 
 const cParamIntValueNone* = -1
 
-const cCommonParamSet = { cParamNameDebugLevel }
+const cCommonParamSet* = { cParamNameDebugLevel }
 const cInfoParamSet = cCommonParamSet + { cParamNameLineId }
-const cSelectiveParamSet = cCommonParamSet + { cParamNameSelection }
-const cCopyParamSet = cSelectiveParamSet + { cParamNameCondition, cParamNameFieldValuesString, cParamNameFieldValuesFile, cParamNameOutputPath }
-const cShowParamSet = cSelectiveParamSet + { cParamNameFieldsString, cParamNameFieldSet }
+const cSelectiveParamSet* = cCommonParamSet + { cParamNameSelection }
 
 const cHelpParamCount = 1
 const cHelpParamIndexSubject = 0
@@ -41,13 +38,13 @@ type
     VektorJobObject = object of RootObj
         name*: string
         logLevel*: Level
-        applyIndexedImpl: proc (job: VektorJob, param: JobParam)
-        applyNamedImpl: proc (job: VektorJob, param: NamedJobParam)
-        initializeImpl: proc (job: VektorJob)
+        applyIndexedImpl*: proc (job: VektorJob, param: JobParam)
+        applyNamedImpl*: proc (job: VektorJob, param: NamedJobParam)
+        initializeImpl*: proc (job: VektorJob)
         runImpl*: proc(job: VektorJob)
-        paramNames: set[char]
-        paramIndex: int
-        maxParamIndex: int
+        paramNames*: set[char]
+        paramIndex*: int
+        maxParamIndex*: int
 
     HelpJob* = ref HelpJobObject
     HelpJobObject = object of VektorJobObject
@@ -83,6 +80,7 @@ type
     SelectiveJobObject = object of DocumentJobObject
         selectionQualifier*: LineQualifier
         selectionQualifierString*: string
+        expressionReader*: GeneralExpressionReader
 
     ShowJob* = ref ShowJobObject
     ShowJobObject = object of SelectiveJobObject
@@ -91,6 +89,7 @@ type
         fields*: seq[FieldSpec]
         maxLineTypeIndex*: int
         formatter*: FieldFormatter
+        printTotals*: bool
 
     CopyJob* = ref CopyJobObject
     CopyJobObject = object of SelectiveJobObject
@@ -100,16 +99,15 @@ type
         replacementQualifierString*: string
         replacementQualifier*: LineQualifier
         outputPath*: string
-        expressionReader*: GeneralExpressionReader
 
-    JobParam = ref JobParamObject
+    JobParam* = ref JobParamObject
     JobParamObject = object of RootObj
-        rawValue: string
-        apply: proc(param: JobParam, job: VektorJob)
+        rawValue*: string
+        apply*: proc(param: JobParam, job: VektorJob)
 
-    NamedJobParam = ref NamedJobParamObject
+    NamedJobParam* = ref NamedJobParamObject
     NamedJobParamObject = object of JobParamObject
-        name: char
+        name*: char
 
 proc readLogLevel(level: string): Level =
    case level
@@ -124,7 +122,16 @@ proc readLogLevel(level: string): Level =
    else:
       raise newException(ValueError, $("Invalid logging level: $#", level))
 
-proc initialize(job: VektorJob) =
+
+proc `$`*(param: JobParam): string =
+    "JobParam['$#']" % [param.rawValue]
+
+
+proc `$`*(param: NamedJobParam): string =
+    "NamedJobParam[$#: '$#']" % [repeat(param.name, 1), param.rawValue]
+
+
+proc initialize*(job: VektorJob) =
     job.initializeImpl(job)
 
 proc applyIndexedParam(job: VektorJob, param: JobParam) =
@@ -198,7 +205,7 @@ proc newJobParam*(value: string): JobParam =
 proc newNamedJobParam*(name: char, value: string): NamedJobParam =
     NamedJobParam(name: name, rawValue: value)
 
-proc applyDocJobIndexedParam (job: VektorJob, param: JobParam) =
+proc applyDocJobIndexedParam*(job: VektorJob, param: JobParam) =
     let docJob = DocumentJob(job)
     if job.paramIndex == cCommonParamIndexDocument:
         if param.rawValue == "":
@@ -216,37 +223,13 @@ proc applyRevertJobIndexedParam (job: VektorJob, param: JobParam) =
             revJob.documentPath = param.rawValue
             inc(revJob.paramIndex)
 
-proc applySelectiveJobNamedParam(job: VektorJob, param: NamedJobParam) =
+proc applySelectiveJobNamedParam*(job: VektorJob, param: NamedJobParam) =
     let selJob = SelectiveJob(job)
     case param.name
     of cParamNameSelection:
         selJob.selectionQualifierString = param.rawValue
     else:
         applyVektorJobNamedParam(job, param)
-
-proc applyShowJobNamedParam(job: VektorJob, param: NamedJobParam) =
-    let showJob = ShowJob(job)
-    case param.name
-    of cParamNameFieldsString:
-        showJob.fieldsString = param.rawValue
-    of cParamNameFieldSet:
-        showJob.fieldsConfigKey = param.rawValue
-    else:
-        applySelectiveJobNamedParam(job, param)
-
-proc applyCopyJobNamedParam(job: VektorJob, param: NamedJobParam) =
-    let copyJob = CopyJob(job)
-    case param.name
-    of cParamNameFieldValuesString:
-        copyJob.fieldValuesString = param.rawValue
-    of cParamNameFieldValuesFile:
-        copyJob.fieldValuesFile = param.rawValue
-    of cParamNameCondition:
-        copyJob.replacementQualifierString = param.rawValue
-    of cParamNameOutputPath:
-        copyJob.outputPath = param.rawValue
-    else:
-        applySelectiveJobNamedParam(job, param)
 
 proc newInfoJob*(): InfoJob =
     new(result)
@@ -276,22 +259,6 @@ proc newRevertJob*(): RevertJob =
     result.applyNamedImpl = applyVektorJobNamedParam
     result.logLevel = lvlNone
 
-proc newShowJob*(): ShowJob =
-    new(result)
-    result.name = cCommandShow
-    result.paramNames = cShowParamSet
-    result.applyIndexedImpl = applyDocJobIndexedParam
-    result.applyNamedImpl = applyShowJobNamedParam
-    result.logLevel = lvlNone
-
-proc newCopyJob*(): CopyJob =
-    new(result)
-    result.paramNames = cCopyParamSet
-    result.name = cCommandCopy
-    result.applyIndexedImpl = applyDocJobIndexedParam
-    result.applyNamedImpl = applyCopyJobNamedParam
-    result.logLevel = lvlNone
-
 proc newValidateJob*(): ValidateJob =
     new(result)
     result.paramNames = {}
@@ -299,53 +266,6 @@ proc newValidateJob*(): ValidateJob =
     result.applyIndexedImpl = applyDocJobIndexedParam
     result.applyNamedImpl = applyVektorJobNamedParam
     result.logLevel = lvlNone
-
-
-proc createJobForCommand(cmdString: string): VektorJob =
-    case cmdString
-    of cCommandInfo:
-        result = newInfoJob()
-    of cCommandHelp:
-        result = newHelpJob()
-    of cCommandShow:
-        result = newShowJob()
-    of cCommandCopy, cCommandEdit:
-        result = newCopyJob()
-    of cCommandRevert:
-        result = newRevertJob()
-    of cCommandValidate:
-        result = newValidateJob()
-    else:
-        raise newException(ValueError, "Invalid command: $#" % cmdString)
-
-proc createNamedParam(key: string, value: string): NamedJobParam =
-    if len(key) > 1:
-        raise newException(ValueError, "Invalid command option: $#" % key)
-    elif value == "":
-        raise newException(ValueError, "Missing value for option: $#" % key)
-    else:
-        result = newNamedJobParam(toSeq(key.items)[0], value)
-
-
-proc readJob*(parser: var OptParser): VektorJob =
-    for kind, key, value in getopt(parser):
-        debug("Parsing option '$#'" % [key])
-        case kind
-        of cmdArgument:
-            if isNil(result):
-                result = createJobForCommand(key)
-            else:
-                let param = newJobParam(key)
-                apply(param, result)
-        of cmdShortOption:
-            if isNil(result):
-                raise newException(ValueError, "Missing vektor command.")
-            else:
-                debug("Option value: $#" % value)
-                let param = createNamedParam(key, value)
-                apply(param, result)
-        else:
-            raise newException(ValueError, "Invalid command option: $#" % key)
 
 
 proc initializeContext*(job: DocumentJob, line: string) =
@@ -371,11 +291,6 @@ proc accumulate*(acc: Accumulator, context: var Context) =
     for subcontext in context.subContexts.mvalues:
         # recurse into subcontext
         accumulate(acc, subcontext)
-
-proc initializeSelectionQualifier*(job: SelectiveJob) =
-    if job.selectionQualifierString != NIL:
-        job.selectionQualifier = job.docType.parseQualifier(job.selectionQualifierString)
-    else: discard
 
 proc checkLine*(job: DocumentJob, line: string) =
     if line.isDebtorLine and not line.matchesDebtorRecordVersion(job.debRecVersion):
@@ -437,3 +352,27 @@ proc loadDocumentType*(job: DocumentJob) =
    job.accumulator = newAccumulator(job.docType)
 
 
+
+proc initializeDocumentJob*(job: VektorJob) =
+    DocumentJob(job).loadDocumentType()
+
+
+proc parseQualifier*(job: SelectiveJob, qualString: string): LineQualifier =
+    parseQualifier(job.docType, qualString, job.expressionReader)
+
+
+proc initializeSelectionQualifier*(job: SelectiveJob) =
+    if job.selectionQualifierString != NIL:
+        job.selectionQualifier = job.parseQualifier(job.selectionQualifierString)
+    else: discard
+
+
+proc initializeExpressionReaders(job: SelectiveJob) =
+    job.expressionReader = newGeneralExpressionReader(getUserExpressionReaders())
+
+
+proc initializeSelectiveJob*(job: VektorJob) =
+    initializeDocumentJob(job)
+    let selectiveJob = SelectiveJob(job)
+    selectiveJob.initializeSelectionQualifier()
+    selectiveJob.initializeExpressionReaders()

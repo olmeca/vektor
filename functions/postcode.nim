@@ -27,7 +27,7 @@ proc asStringPCE(exp: Expression): string =
 proc newRandomPostcodeExpression(): RandomPostcodeExpression =
     RandomPostcodeExpression(evaluateImpl: evaluatePCE, asStringImpl: asStringPCE)
 
-proc readPCE(valueSpec: string): Expression =
+proc readPCE(reader: ExpressionReader, valueSpec: string): Expression =
     if valueSpec =~ randomPostcodePattern:
         result = newRandomPostcodeExpression()
     else:

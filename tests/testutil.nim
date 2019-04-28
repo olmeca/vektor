@@ -1,4 +1,4 @@
-import utils, common, doctype, factory, context, job, logging
+import os, utils, common, doctype, factory, context, job, logging
 
 
 proc newLeType*(recordNr: int, fieldNr: int, code: string, title: string, datatype: string, start: int, len: int): LineElementType =
@@ -56,7 +56,7 @@ proc newDocType*(docTypeId: int, docTypeVersion: int, docTypeSubversion: int, li
 
 
 proc activateLogging*() =
-   let filePath = "/Users/rudi/Scratch/vektor.log"
+   let filePath = getEnv(cLogPathKey, "/tmp/vektor.log")
    var fileLogger = newFileLogger(filePath, fmtStr = verboseFmtStr)
    addHandler(fileLogger)
    setLogFilter(lvlDebug)

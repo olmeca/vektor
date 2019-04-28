@@ -1,5 +1,5 @@
 import unittest, logging, parseopt
-import common, qualifiers, doctype, job
+import common, qualifiers, doctype, job, jobs
 
 suite "info command":
     setup:

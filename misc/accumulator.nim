@@ -19,13 +19,27 @@ proc toString*(str: seq[char]): string =
   for ch in str:
     add(result, ch)
 
+proc parseValue*(total: Total): VektisValue =
+    case total.leType.valueType
+    of NaturalValueType:
+        VektisValue(kind: NaturalValueType, naturalValue: total.value)
+    of UnsignedAmountValueType:
+        VektisValue(kind: UnsignedAmountValueType, amountValue: total.value)
+    of SignedAmountValueType:
+        VektisValue(kind: SignedAmountValueType, signedAmountValue: total.value)
+    else:
+        raise newException(ValueError, "Invalid value type for Total value.")
+
 proc asString(total: Total): string =
-   let width = if total.leType.isAmountType(): 8 else: 5
-   "$#: $#" % [total.leType.lineElementId, total.value|R(width)]
+   if total.leType.isAmountType():
+        let valString = formatEng(float32(total.value) / 100.0, 2, trim=false)|R(10)
+        "$#: $#" % [total.leType.lineElementId, valString]
+   else:
+        "$#: $#" % [total.leType.lineElementId, total.value|R(5)]
 
 proc newAccumulator*(dType:DocumentType): Accumulator =
-   let bottomline = dType.getLineTypeForLineId(cBottomLineId)
-   let totals = lc[Total(leType: t, value: 0) | (t <- bottomLine.lineElementTypes, t.countable != ""), Total]
+   let bottomLineType = dType.getLineTypeForLineId(cBottomLineId)
+   let totals = lc[Total(leType: t, value: 0) | (t <- bottomLineType.lineElementTypes, t.countable != ""), Total]
    result = Accumulator(docType: dType, totals: totals, empty: true)
 
 proc increment(total: var Total, extra: int) =
@@ -43,24 +57,26 @@ proc getIntegerValue*(docType: DocumentType, leType: LineElementType, line: stri
 proc accumulate*(acc: Accumulator, line: string) =
    debug("accumulator.accumulate: " & line[0..13])
    for total in acc.totals.mitems():
-      let leId = total.leType.countable
-      debug("accumulator.accumulate: leId: $#" % leId)
-      # match any line type, except bottom line
-      if getLineId(leId) == cAnyId and line.isContentLine():
+      let sourceLeId = total.leType.countable
+      let sourceLineId = getLineId(sourceLeId)
+      debug("accumulator.accumulate: sourceLeId: $#" % sourceLeId)
+      # source id is not specific then just count the line (if it is a content line)
+      if sourceLineId == cAnyId and line.isContentLine():
+         debug("accumulator.accumulate: counting content line")
          total.increment(1)
          acc.empty = false
-      # match line ID
-      elif getLineId(leId) == getLineId(line):
-         # match the whole line
-         if getLineElementSubId(leId) == cAnyId:
+      # if source id is specific and matches this line
+      elif sourceLineId == getLineId(line):
+         # if line elt not specific then count line
+         if getLineElementSubId(sourceLeId) == cAnyId:
+            debug("accumulator.accumulate: counting line of type $#" % sourceLineId)
             total.increment(1)
             acc.empty = false
          else:
-            debug("accumulator.accumulate: adding to total leType: $#" % leId)
-            let leType = acc.docType.getLineElementType(leId)
+            let leType = acc.docType.getLineElementType(sourceLeId)
             let elemValue = getIntegerValue(acc.docType, leType, line)
             total.increment(elemValue)
-            #debug("inc $# -> $#" % [intToStr(elemValue), intToStr(total.value)])
+            debug("accumulator.accumulate: inc $# -> $#" % [intToStr(elemValue), intToStr(total.value)])
             acc.empty = false
    debug("accumulator:accumulate done.")
 

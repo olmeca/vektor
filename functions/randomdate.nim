@@ -65,7 +65,7 @@ proc newRandomDateExpression*(min: string, max: string): RandomDateExpression =
     newRandomDateExpression(min.parseVektisDate, max.parseVektisDate)
 
 
-proc readRDE(valueSpec: string): Expression =
+proc readRDE(reader: ExpressionReader, valueSpec: string): Expression =
     if valueSpec =~ randomDatePattern:
         let fromSeconds = parseLiteralDateExpression(matches[0]).toTime().toUnix()
         let toSeconds = parseLiteralDateExpression(matches[1]).toTime().toUnix()

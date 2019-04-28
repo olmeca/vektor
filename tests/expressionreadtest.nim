@@ -28,7 +28,6 @@ suite "Expressions reader tests":
         check:
             not isNil(vektisValue)
             vektisValue.stringValue == "test"
-            vektisValue.asString == "\"test\""
 
 
     test "Read literal string with padding works.":
@@ -41,7 +40,6 @@ suite "Expressions reader tests":
         check:
             not isNil(vektisValue)
             vektisValue.stringValue == "test"
-            vektisValue.asString == "\"test\""
 
 
     test "Read literal natural without padding works.":
@@ -54,7 +52,6 @@ suite "Expressions reader tests":
         check:
             not isNil(vektisValue)
             vektisValue.naturalValue == 123456789
-            vektisValue.asString == "123456789"
 
     test "Read literal amount without padding works.":
         let readers = @[newLiteralUnsignedAmountReader()]
@@ -66,7 +63,6 @@ suite "Expressions reader tests":
         check:
             not isNil(vektisValue)
             vektisValue.amountValue == 123456789
-            vektisValue.asString == "1234567.89"
 
 
     test "Read negative literal signed amount without padding works.":
@@ -79,7 +75,6 @@ suite "Expressions reader tests":
         check:
             not isNil(vektisValue)
             vektisValue.signedAmountValue == -123456789
-            vektisValue.asString == "-1234567.89"
 
 
     test "Read positive literal signed amount without padding works.":
@@ -92,7 +87,6 @@ suite "Expressions reader tests":
         check:
             not isNil(vektisValue)
             vektisValue.signedAmountValue == 123456789
-            vektisValue.asString == "1234567.89"
 
 
     test "Read arbitrary value from value set with padding works.":

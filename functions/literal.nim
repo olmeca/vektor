@@ -103,7 +103,7 @@ proc newLiteralStringExpression(value: VektisValue): LiteralStringExpression =
 
 
 
-proc readLiteralDate(valueSpec: string): Expression =
+proc readLiteralDate(reader: ExpressionReader, valueSpec: string): Expression =
    debug("readLiteralDate: '$#'" % valueSpec)
    if valueSpec =~ literalDatePattern:
       var dateVektisValue: VektisValue
@@ -118,7 +118,7 @@ proc readLiteralDate(valueSpec: string): Expression =
       result = nil
 
 
-proc readLiteralNatural(valueSpec: string): Expression =
+proc readLiteralNatural(reader: ExpressionReader, valueSpec: string): Expression =
    if valueSpec =~ literalNaturalPattern:
       var natValue: uint
       if parseUInt(matches[0], natValue) == 0:
@@ -129,7 +129,7 @@ proc readLiteralNatural(valueSpec: string): Expression =
       result = nil
 
 
-proc readLiteralSignedAmount(valueSpec: string): Expression =
+proc readLiteralSignedAmount(reader: ExpressionReader, valueSpec: string): Expression =
    if valueSpec =~ literalSignedAmountPattern:
       let sign = if matches[0] == "-": -1 else: 1
       let integerValue = parseInt(matches[1] & matches[2]) * sign
@@ -138,7 +138,7 @@ proc readLiteralSignedAmount(valueSpec: string): Expression =
    else:
       result = nil
 
-proc readLiteralUnsignedAmount(valueSpec: string): Expression =
+proc readLiteralUnsignedAmount(reader: ExpressionReader, valueSpec: string): Expression =
    if valueSpec =~ literalUnsignedAmountPattern:
       let integerValue = parseInt(matches[0] & matches[1])
       let amtVektisValue = VektisValue(kind: UnsignedAmountValueType, amountValue: integerValue)
@@ -146,7 +146,7 @@ proc readLiteralUnsignedAmount(valueSpec: string): Expression =
    else:
       result = nil
 
-proc readLiteralText(valueSpec: string): Expression =
+proc readLiteralText(reader: ExpressionReader, valueSpec: string): Expression =
    if valueSpec =~ literalTextPattern:
       # Interpret empty string as nil
       let stringValue = matches[0]

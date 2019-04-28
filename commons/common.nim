@@ -150,7 +150,7 @@ type
       name*: string
       valueType*: VektisValueType
       pattern*: Peg
-      readImpl*: proc(valueSpec: string): Expression
+      readImpl*: proc(reader: ExpressionReader, valueSpec: string): Expression
 
    # FieldSpecs
    FieldSpec* = ref FieldSpecObj
@@ -195,6 +195,7 @@ const
    cSignumCredit* = "C"
    cSignumDebit* = "D"
    cVektorConfigFileKey* = "VEKTOR_CONFIG"
+   cLogPathKey* = "VEKTOR_LOG"
    cVektorDataDirKey* = "vektor.datadir"
    cVektorLogFileKey* = "vektor.logfile"
    cLogFileName* = "vektor.log"
@@ -251,6 +252,7 @@ proc asString*(value: VektisValue): string =
    of DateValueType:
         result = "DateValueType: " & format(value.dateValue[], cReadableDateFormat)
 
+
 proc `$`*(valueType: VektisValueType): string =
    case valueType
    of StringValueType:
@@ -263,6 +265,7 @@ proc `$`*(valueType: VektisValueType): string =
         "SignedAmountValueType"
    of DateValueType:
         "DateValueType"
+
 
 proc defaultDataDir*(): string =
     joinPath(getAppDir(), cDataDir)
@@ -294,7 +297,7 @@ proc getConfigPath*(): string =
     getEnv(cVektorConfigFileKey, joinPath(getAppDir(), cDefaultConfigFileName))
 
 proc readProperties*(input: Stream): TableRef[string, string] =
-    var line: string = ""
+    var line: string = NIL
     var i = 0
     result = newTable[string, string]()
     while input.readLine(line):

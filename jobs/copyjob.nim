@@ -2,11 +2,8 @@ import os, parseopt, strutils, sequtils, json, sugar, streams, random, pegs, tim
 
 import doctype, context, qualifiers, expressions, common, accumulator, job, utils, formatting, expressionsreader, serialization
 
+const cCopyParamSet = cSelectiveParamSet + { cParamNameCondition, cParamNameFieldValuesString, cParamNameFieldValuesFile, cParamNameOutputPath }
 
-
-
-proc initializeExpressionReaders*(job: CopyJob) =
-    job.expressionReader = newGeneralExpressionReader(getUserExpressionReaders())
 
 
 proc readFieldValueSpec(job: CopyJob, spec: string): FieldValueSpec =
@@ -50,9 +47,10 @@ proc initializeFieldValueSpecs*(job: CopyJob) =
     else: discard
     debug("copyjob.initializeFieldValueSpecs exiting")
 
+
 proc initializeReplacementQualifier*(job: CopyJob) =
     if job.replacementQualifierString != NIL:
-        job.replacementQualifier = job.docType.parseQualifier(job.replacementQualifierString)
+        job.replacementQualifier = job.parseQualifier(job.replacementQualifierString)
     else: discard
 
 
@@ -63,12 +61,14 @@ proc isDerivedValue(valueSpec: string): bool =
 proc writeLineToStream(line: string, stream: Stream) =
    writeCharsToStream(toSeq(line.items), stream)
 
+
 proc writeContextToStream(context: var Context, stream: Stream) =
    if context.state != csExported:
       writeLineToStream(context.line, stream)
       context.state = csExported
    for sub in context.subContexts.mvalues:
       writeContextToStream(sub, stream)
+
 
 proc updateDependentLineElements(rootContext: Context, linebuffer: var openArray[char]) =
   debug("copyjob.updateDependentLineElements: context $#" % [$(rootContext.currentSubContext)])
@@ -131,4 +131,37 @@ proc process*(job: var CopyJob, inStream: Stream, outStream: Stream) =
             job.mutateAndWrite(outStream)
     else:
         raise newException(DocumentReadError, "Could not read from input.")
+
+
+proc applyCopyJobNamedParam(job: VektorJob, param: NamedJobParam) =
+    debug("applyCopyJobNamedParam: $#" % [$param])
+    let copyJob = CopyJob(job)
+    case param.name
+    of cParamNameFieldValuesString:
+        copyJob.fieldValuesString = param.rawValue
+    of cParamNameFieldValuesFile:
+        copyJob.fieldValuesFile = param.rawValue
+    of cParamNameCondition:
+        copyJob.replacementQualifierString = param.rawValue
+    of cParamNameOutputPath:
+        copyJob.outputPath = param.rawValue
+    else:
+        applySelectiveJobNamedParam(job, param)
+
+
+proc initializeCopyJob*(job: VektorJob) =
+    initializeSelectiveJob(job)
+    let copyJob = CopyJob(job)
+    copyJob.initializeFieldValueSpecs()
+    copyJob.initializeReplacementQualifier()
+
+
+proc newCopyJob*(): CopyJob =
+    new(result)
+    result.paramNames = cCopyParamSet
+    result.name = cCommandCopy
+    result.applyIndexedImpl = applyDocJobIndexedParam
+    result.applyNamedImpl = applyCopyJobNamedParam
+    result.initializeImpl = initializeCopyJob
+    result.logLevel = lvlNone
 

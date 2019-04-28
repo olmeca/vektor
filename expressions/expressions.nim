@@ -9,7 +9,7 @@ proc evaluate*(expr: Expression, context: Context): VektisValue =
     if isNil(expr): nil else: expr.evaluateImpl(expr, context)
 
 proc read*(exprReader: ExpressionReader, valueSpec: string): Expression =
-   exprReader.readImpl(valueSpec)
+   exprReader.readImpl(exprReader, valueSpec)
 
 let
    fieldSpecPatternSpec = """

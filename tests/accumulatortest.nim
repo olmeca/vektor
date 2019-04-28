@@ -15,8 +15,7 @@ proc createShowJob(docType: DocumentType, fields: string, qualifier: string): Sh
     job.debRecVersion = drvDefault
     job.fieldsString = fields
     job.selectionQualifierString = qualifier
-    job.initializeFieldSpecs()
-    job.initializeSelectionQualifier()
+    job.initialize()
     job.accumulator = newAccumulator(job.docType)
     job
 

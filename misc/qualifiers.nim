@@ -1,4 +1,4 @@
-import pegs, strutils, sequtils, lists, sugar, logging, times
+import pegs, strutils, sequtils, lists, sugar, logging, times, vektisvalues, expressions, expressionsreader
 import "common", doctype, "context"
 
 type
@@ -23,12 +23,7 @@ type
    ElementaryQualifierObj* = object of LineQualifierObj
       leType*: LineElementType
       operator*: QualifierOperator
-   StringQualifier* = ref object of ElementaryQualifier
-      refValue*: string
-   NumberQualifier* = ref object of ElementaryQualifier
-      refValue*: int
-   DateQualifier* = ref object of ElementaryQualifier
-      refValue*: DateTime
+      refValue*: Expression
 
 
    CompositeQualifier* = ref CompositeQualifierObj
@@ -39,50 +34,58 @@ type
 let cAndOperator = "&"
 let cOrOperator = "|"
 
+let naturalLiteralValuePattern = r"\d+"
+let textLiteralValuePattern = """#
+Quote (!Quote .)* Quote
+Quote <- '"'
+"""
+let dateLiteralValuePattern = r"DateValue <- \d \d \d \d '-' \d \d '-' \d \d"
+
 let elementaryQualifierPatternSpec = """
-Qualifier <- ^ Sp {Key} Sp {Operator} Sp Value Sp !.
+ElementaryQualifier <- Sp {Key} Sp {Comparator} Sp {Value} Sp
 Key <- \d \d \d \d
-Value <- '"' {TextValue} '"' / {DateValue} / {NumericalValue}
+Value <- '"' {TextValue} '"' / {DateValue} / {SignedAmountValue} / {UnsignedAmountValue} / {NaturalValue}
 TextValue <- (!'"' .)*
-DateValue <- ('19' / '20') \d \d \d \d \d \d
-NumericalValue <- \d+
-Operator <- '=' / '!=' / '<' / '>'
+DateValue <- ('19' / '20') \d \d '-' \d \d '-' \d \d
+SignedAmountValue <- '-'? UnsignedAmountValue
+UnsignedAmountValue <- \d+ '.' \d \d
+NaturalValue <- \d+
+Comparator <- '=' / '!=' / '<' / '>'
 Sp <- \s*
 """
 
 let cCompositeQualifierPatternSpec = """
-Pattern <- ^ Sp Qualifier Sp !.
-Qualifier <- Open ChainedQualifier Close
-ChainedQualifier <- Sp {ElementaryQualifier} Sp Link Sp ChainedQualifier Sp / {ElementaryQualifier}
-ElementaryQualifier <- Key Sp Comparator Sp Value
-Key <- \d \d \d \d
-Value <- Number / Text
-Comparator <- '=' / '!=' / '<' / '>'
-Number <- \d+
-Text <- '"' (!'"' .)* '"'
-Open <- '('
-Close <- ')'
-Link <- '&'
-Sp <- \s*
-"""
+Chain <- Sp {Item} Link {Item}
+Item <- Container / Elem
+Container <- Open Sp Chain Sp Close
+Elem <- (!NonElemChar .)+ Sp
+NonElemChar <- AndChar / OrChar / OpenChar / CloseChar
+Open <- OpenChar Sp
+Close <- CloseChar Sp
+Link <- {LinkChar} Sp
+LinkChar <- AndChar / OrChar
+AndChar <- '&'
+OrChar <- '|'
+OpenChar <- '('
+CloseChar <- ')'
+Sp <- ' '*"""
 
-let elementaryQualifierPattern = peg(elementaryQualifierPatternSpec)
-let compositeQualifierPattern = peg(cCompositeQualifierPatternSpec)
 
-proc printStringQualifier(lq: LineQualifier): string =
+let cFullStringMatcherTemplate = """^ Pattern !."""
+
+proc fullStringMatcher(patternSpec: string, mainRuleName: string): Peg =
+    peg("Peg <- ^ $# !.$#" % [mainRuleName, patternSpec])
+
+let elementaryQualifierPattern = fullStringMatcher(elementaryQualifierPatternSpec, "ElementaryQualifier")
+let compositeQualifierPattern = fullStringMatcher(cCompositeQualifierPatternSpec, "Chain")
+
+
+proc printElementaryQualifier(lq: LineQualifier): string =
    if isNil(lq):
       result = "<nil>"
    else:
-      let kvq = StringQualifier(lq)
-      result = "['$#' $# '$#']" % [kvq.leType.lineElementId, $(kvq.operator), kvq.refValue]
-
-proc printNumberQualifier(lq: LineQualifier): string =
-   let kvq = NumberQualifier(lq)
-   "['$#' $# '$#']" % [kvq.leType.lineElementId, $(kvq.operator), intToStr(kvq.refValue)]
-
-proc printDateQualifier(lq: LineQualifier): string =
-   let kvq = DateQualifier(lq)
-   "['$#' $# '$#']" % [kvq.leType.lineElementId, $(kvq.operator), kvq.refValue.format(cVektisDateFormat)]
+      let kvq = ElementaryQualifier(lq)
+      result = "['$#' $# '$#']" % [kvq.leType.lineElementId, $(kvq.operator), kvq.refValue.asString()]
 
 
 proc printCompositeQualifier(lq: LineQualifier): string =
@@ -92,61 +95,37 @@ proc printCompositeQualifier(lq: LineQualifier): string =
       let cq = CompositeQualifier(lq)
       result = "( $# $# $# )" % [$(cq.qualifiers[0]), $cq.operator, $(cq.qualifiers[1])]
 
-proc kvqQualifyString(lq: LineQualifier, context: Context): bool =
-    let kvq = StringQualifier(lq)
-    let value = context.getElementValueString(kvq.leType)
-    debug("kvq: comparing '$#' to ref '$#'" % [value, kvq.refValue])
-    case kvq.operator
-    of OpEquals:
-        result = value == kvq.refValue
-    of OpUnequal:
-        result = value != kvq.refValue
-    of OpLessThan:
-        result = value < kvq.refValue
-    of OpGreaterThan:
-        result = value > kvq.refValue
-    else:
-        raise newException(ValueError, "Operator not supported in $#" % [$(kvq)] )
 
-proc kvqQualifyNumber(lq: LineQualifier, context: Context): bool =
-    let kvq = NumberQualifier(lq)
-    let valueString = context.getElementValueString(kvq.leType)
-    let value = parseInt(valueString)
-    case kvq.operator
+proc applyOperator(operator: QualifierOperator, value, refValue: VektisValue): bool =
+    case operator
     of OpEquals:
-        result = value == kvq.refValue
+        value == refValue
     of OpUnequal:
-        result = value != kvq.refValue
+        value != refValue
     of OpLessThan:
-        result = value < kvq.refValue
+        value < refValue
     of OpGreaterThan:
-        result = value > kvq.refValue
-    else:
-        raise newException(ValueError, "Operator not supported in $#" % [$(kvq)] )
+        value > refValue
+    of OpLessThanOrEqual:
+        value <= refValue
+    of OpGreaterThanOrEqual:
+        value >= refValue
 
-proc kvqQualifyDate(lq: LineQualifier, context: Context): bool =
-    let kvq = DateQualifier(lq)
-    let valueString = context.getElementValueString(kvq.leType)
-    let valueTime = parseVektisDate(valueString).toTime()
-    let refTime = kvq.refValue.toTime()
-    case kvq.operator
-    of OpEquals:
-        result = valueTime == refTime
-    of OpUnequal:
-        result = valueTime != refTime
-    of OpLessThan:
-        result = valueTime < refTime
-    of OpGreaterThan:
-        result = valueTime > refTime
-    else:
-        raise newException(ValueError, "Operator not supported in $#" % [$(kvq)] )
+
+proc qualifyKeyValue(lq: LineQualifier, context: Context): bool =
+    let kvq = ElementaryQualifier(lq)
+    let refValue = kvq.refValue.evaluate(context)
+    let value = getElementValue(kvq.leType, context)
+    applyOperator(kvq.operator, value, refValue)
 
 
 proc andQualify(cq: CompositeQualifier, context: Context): bool =
    all(cq.qualifiers, proc(lq: LineQualifier): bool = lq.qualifies(context))
 
+
 proc orQualify(cq: CompositeQualifier, context: Context): bool =
    any(cq.qualifiers, proc(lq: LineQualifier): bool = lq.qualifies(context))
+
 
 proc compositeQualify(lq: LineQualifier, context: Context): bool =
    let cq = CompositeQualifier(lq)
@@ -154,6 +133,7 @@ proc compositeQualify(lq: LineQualifier, context: Context): bool =
       result = andQualify(cq, context)
    else:
       result = orQualify(cq, context)
+
 
 proc operatorFromString(source: string): QualifierOperator =
    case source
@@ -177,32 +157,16 @@ proc compositionOperatorFromString(source: string): CompositionOperator =
    else:
       raise newException(ValueError, "Unknown composition operator: '$#'" % [source])
 
-proc newStringQualifier*(leType: LineElementType, op: QualifierOperator, value: string): StringQualifier =
-   new(result)
-   result.leType = leType
-   result.operator = op
-   result.refValue = value
-   result.qualifiesImpl = kvqQualifyString
-   result.toStringImpl = printStringQualifier
-   debug("new String Qualifier -> $#" % [$result])
 
-proc newNumberQualifier*(leType: LineElementType, op: QualifierOperator, value: int): NumberQualifier =
+proc newElementaryQualifier*(leType: LineElementType, op: QualifierOperator, value: Expression): ElementaryQualifier =
    new(result)
    result.leType = leType
    result.operator = op
    result.refValue = value
-   result.qualifiesImpl = kvqQualifyNumber
-   result.toStringImpl = printNumberQualifier
-   debug("new Number Qualifier -> $#" % [$result])
+   result.qualifiesImpl = qualifyKeyValue
+   result.toStringImpl = printElementaryQualifier
+   debug("newElementaryQualifier -> $#" % [$result])
 
-proc newDateQualifier*(leType: LineElementType, op: QualifierOperator, value: DateTime): DateQualifier =
-   new(result)
-   result.leType = leType
-   result.operator = op
-   result.refValue = value
-   result.qualifiesImpl = kvqQualifyDate
-   result.toStringImpl = printDateQualifier
-   debug("new Date Qualifier -> $#" % [$result])
 
 proc newCompositeQualifier*(): CompositeQualifier =
    new(result)
@@ -210,6 +174,7 @@ proc newCompositeQualifier*(): CompositeQualifier =
    result.operator = OpNone
    result.qualifiers = @[]
    result.toStringImpl = printCompositeQualifier
+
 
 proc newCompositeQualifier*(oper: CompositionOperator, qualifiers: seq[LineQualifier]): CompositeQualifier =
    new(result)
@@ -219,44 +184,41 @@ proc newCompositeQualifier*(oper: CompositionOperator, qualifiers: seq[LineQuali
    result.toStringImpl = printCompositeQualifier
    debug("newCompositeQualifier: $#" % [$result])
 
+
 proc backtrack(cqStack: SinglyLinkedNode[CompositeQualifier]): SinglyLinkedNode[CompositeQualifier] =
       result = cqStack
       while result != nil and result.value.operator != OpNone and result.value.qualifiers.len() > 1:
          debug("backtracking from $#" % $result.value)
          result = result.next
 
+
 proc newAndQualifier(qualifiers: seq[LineQualifier]): CompositeQualifier =
     new(result)
     result.operator = OpAnd
     result.qualifiers = qualifiers
 
-proc newElementaryQualifier(leType: LineElementType, operator: QualifierOperator, refValueString: string): LineQualifier =
-    if leType.isDate():
-        let refValue = parse(refValueString, cVektisDateFormat)
-        result = newDateQualifier(leType, operator, refValue)
-    elif leType.isNumeric():
-        let refValue = parseInt(refValueString)
-        result = newNumberQualifier(leType, operator, refValue)
-    else:
-        result = newStringQualifier(leType, operator, refValueString)
+
+process(tokens: OpenArray[string], index: int, var qual: CompositeQualifier) =
+    if tokens[i] =~ elementaryQualifierPattern:
 
 
-proc parseQualifier*(docType: DocumentType, qualString: string): LineQualifier =
-   debug("parseQualifier: '$#'" % qualString)
+proc parseQualifier*(docType: DocumentType, qualString: string, expressionReader: GeneralExpressionReader): LineQualifier =
+   debug("qualifiers.parseQualifier: '$#'" % qualString)
    if qualString =~ elementaryQualifierPattern:
-      debug("parseQualifier: ElementaryQualifier '$#' '$#' '$#'" % matches)
+      debug("qualifiers.parseQualifier: ElementaryQualifier '$#' '$#' '$#'" % matches)
       let leType = docType.getLineElementType(matches[0])
       let operator = operatorFromString(matches[1])
-      let refValueString = matches[2]
-      result = newElementaryQualifier(leType, operator, refValueString)
+      let refValueExpression = expressionReader.readExpression(matches[2], leType.valueType)
+      result = newElementaryQualifier(leType, operator, refValueExpression)
    elif qualString =~ compositeQualifierPattern:
-      debug("parseQualifier found composite: [$#]" % [join(lc[m | (m <- matches, m != ""), string], ", ")])
-      let qualifiers = lc[LineQualifier(parseQualifier(docType, item)) | (item <- matches, item != ""), LineQualifier]
+      debug("qualifiers.parseQualifier found composite: [$#]" % [join(lc[m | (m <- matches, m != NIL), string], ", ")])
+      let qualifiers = lc[LineQualifier(parseQualifier(docType, item, expressionReader)) | (item <- matches, item != NIL), LineQualifier]
       result = LineQualifier(newAndQualifier(qualifiers))
    else:
-      let error = "Could not parse qualifier '$#'" % [qualString]
-      debug("parseQualifier: $#" % error)
+      let error = "Could not match qualifier '$#'" % [qualString]
+      debug("qualifiers.parseQualifier: $#" % error)
       raise newException(ValueError, error)
+
 
 proc conditionIsMet*(context: Context, qualifier: LineQualifier): bool =
    if isNil(qualifier):
@@ -265,7 +227,7 @@ proc conditionIsMet*(context: Context, qualifier: LineQualifier): bool =
       try:
          result = qualifier.qualifies(context)
       except ContextWithLineIdNotFoundError:
-         debug("condition Is Met: '$#'" % getCurrentExceptionMsg())
+         debug("qualifiers.parseQualifier: condition Is Met: '$#'" % getCurrentExceptionMsg())
          result = false
 
 

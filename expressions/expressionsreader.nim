@@ -1,4 +1,4 @@
-import sequtils, common, tables, expressions, valueset, literal, randomdate, randomstring, number, postcode
+import sequtils, common, tables, expressions, valueset, literal, randomdate, randomstring, number, postcode, function
 
 
 type
@@ -19,7 +19,13 @@ proc getUserExpressionReaders*(): seq[ExpressionReader] =
         newLiteralSignedAmountReader(),
         newLiteralUnsignedAmountReader(),
         newLiteralNaturalReader(),
-        newLiteralTextReader()
+        newLiteralTextReader(),
+        newFieldValueExpressionReader(StringValueType),
+        newFieldValueExpressionReader(DateValueType),
+        newFieldValueExpressionReader(NaturalValueType),
+        newFieldValueExpressionReader(SignedAmountValueType),
+        newFieldValueExpressionReader(UnsignedAmountValueType)
+
     ]
 
 

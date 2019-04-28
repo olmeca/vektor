@@ -1,5 +1,5 @@
 import os, parseopt, strutils, sequtils, json, sugar, streams, random, pegs, times, tables, logging
-import doctype, context, qualifiers, common, accumulator, vektorhelp, validation, formatting, expressions, vektorjson, job, copyjob, infojob, showjob, validatejob, utils, codegen
+import doctype, context, qualifiers, common, accumulator, vektorhelp, validation, formatting, expressions, vektorjson, job, jobs, copyjob, infojob, showjob, validatejob, utils, codegen
 
 const
    msgDocVersionMissing = "For information on a document type you also need to specify a version (e.g. -v:1.0)"
@@ -67,13 +67,11 @@ proc run(job: RevertJob) =
 
 proc run(job: ShowJob) =
     setLoggingLevel(job.logLevel)
-    job.loadDocumentType()
-    job.initializeFieldSpecs()
-    job.initializeSelectionQualifier()
+    job.initialize()
 
     let input = newFileStream(job.documentPath, fmRead)
     let output = newFileStream(stdout)
-    var line: string = ""
+    var line: string = NIL
     job.process(input, output)
     input.close()
 
@@ -85,12 +83,8 @@ proc checkOutputPath(job: var CopyJob) =
 
 proc run(job: var CopyJob) =
     setLoggingLevel(job.logLevel)
-    job.loadDocumentType()
-    job.initializeExpressionReaders()
-    job.initializeFieldValueSpecs()
-    job.initializeSelectionQualifier()
-    job.initializeReplacementQualifier()
-    job.checkOutputPath()
+    job.initialize()
+    # job.checkOutputPath()
 
     let inStream = newFileStream(job.documentPath, fmRead)
     var outStream: Stream = newFileStream(job.outputPath, fmWrite)

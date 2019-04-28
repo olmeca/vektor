@@ -35,7 +35,7 @@ proc newRandomNaturalExpression(num: int): RandomNaturalExpression =
         evaluateImpl: evaluateRNrE,
         isDerived: true)
 
-proc readRNrE(valueSpec: string): Expression =
+proc readRNrE(reader: ExpressionReader, valueSpec: string): Expression =
     if valueSpec =~ randomNaturalPattern:
         debug("NumberExpression.readRNrE: match: '$#'" % valueSpec)
         let maxNum = parseInt(matches[0])

@@ -69,7 +69,7 @@ proc newRandomItemExpression*(valueSetName: string): RandomItemExpression =
     RandomItemExpression(source: valueSetName, evaluateImpl: evaluateRIE, asStringImpl: asStringRIE, isDerived: true)
 
 
-proc readRIE(valueSpec: string): Expression =
+proc readRIE(reader: ExpressionReader, valueSpec: string): Expression =
     debug("readRIE: '$#'" % valueSpec)
     if valueSpec =~ randomValueSetItemPattern:
         debug("readRIE: matched '$#'" % matches[0])

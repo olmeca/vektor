@@ -79,15 +79,15 @@ proc readRandomStringExpression(valueSpec: string, pattern: PEG, source: string,
         result = nil
 
 
-proc readRSE(valueSpec: string): Expression =
+proc readRSE(reader: ExpressionReader, valueSpec: string): Expression =
     readRandomStringExpression(valueSpec, randomStringPattern, cAlphaLower, "random lowercase text")
 
 
-proc readRCE(valueSpec: string): Expression =
+proc readRCE(reader: ExpressionReader, valueSpec: string): Expression =
     readRandomStringExpression(valueSpec, randomCapsPattern, cAlphaUpper, "random uppercase text")
 
 
-proc readRDE(valueSpec: string): Expression =
+proc readRDE(reader: ExpressionReader, valueSpec: string): Expression =
     readRandomStringExpression(valueSpec, randomDigitsPattern, cAlphaDigit, "random digits")
 
 

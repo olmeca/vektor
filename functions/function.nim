@@ -7,6 +7,10 @@ type
       name: string
       parameters: seq[Expression]
 
+   FieldValueExpression* = ref FieldValueExpressionObj
+   FieldValueExpressionObj = object of ExpressionObj
+      leId*: string
+
 let
    functionPattern* = peg"""#
    Pattern <- ^ Spc Expression Spc !.
@@ -40,6 +44,8 @@ let
    Spc <- \s*
    """
 
+   lineElementValuePattern = peg"""'$' \d \d \d \d"""
+
 proc newFunctionExpression(name: string, params: seq[Expression]): FunctionExpression =
     FunctionExpression(name: name, parameters: params)
 
@@ -50,3 +56,26 @@ proc readFE(valueSpec: string, leId: string, vektisTypeCode: string, length: int
         newFunctionExpression(name, params)
     else:
         raise newException(ExpressionError, "Invalid function expression: $#" % valueSpec)
+
+
+proc asStringFVE(exp: Expression): string =
+    "valueOf($#)" % FieldValueExpression(exp).leId
+
+
+proc evaluateFVE(exp: Expression, context: Context): VektisValue =
+    FieldValueExpression(exp).leId.getElementValue(context)
+
+
+proc newFieldValueExpression(leId: string): FieldValueExpression =
+    FieldValueExpression(leId: leId, asStringImpl: asStringFVE, evaluateImpl: evaluateFVE)
+
+
+proc readFVE(reader: ExpressionReader, valueSpec: string): FieldValueExpression =
+    if valueSpec =~ lineElementValuePattern:
+        newFieldValueExpression(matches[0])
+    else:
+        result = nil
+
+
+proc newFieldValueExpressionReader*(valueType: ValueType): ExpressionReader =
+   ExpressionReader(name: "field value exp. reader", valueType: valueType, pattern: lineElementValuePattern, readImpl: readFVE)

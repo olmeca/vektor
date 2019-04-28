@@ -34,12 +34,24 @@ proc contextWithLineId*(context: Context, lineId: string): Context =
          else: discard
    debug("context.contextWithLineId -> $#" % $(result))
 
-proc getElementValueFullString*(rootContext: Context, leType: LineElementType): string =
-   debug("context.getElementValueFullString: leType: $#, rootContext: $#" % [leType.asString(), $(rootContext)])
+
+proc getElement*(leType: LineElementType, rootContext: Context): LineElement =
+   debug("context.getElement: leType: $#, rootContext: $#" % [leType.asString(), $(rootContext)])
    let context = rootContext.contextWithLineId(leType.lineId)
-   #result = getElementValueFormatted(context.line, leType)
-   result = leType.parse(context.line).serialize()
-   debug("context.getElementValueFullString -> '$#'" % result)
+   result = leType.parse(context.line)
+
+
+proc getElementValue*(leType: LineElementType, rootContext: Context): VektisValue =
+    getElement(leType, rootContext).value
+
+
+proc getElementValue*(leId: string, rootContext: Context): VektisValue =
+    let leType = rootContext.docType.getLineElementType(leId)
+    getElementValue(leType, rootContext)
+
+proc getElementValueFullString*(rootContext: Context, leType: LineElementType): string =
+    getElement(leType, rootContext).serialize()
+
 
 proc getSourceElementValueFullString*(rootContext: Context, leType: LineElementType): string =
    let sourceLeType = rootContext.doctype.getLineElementType(leType.sourceId)
