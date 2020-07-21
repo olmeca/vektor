@@ -39,14 +39,14 @@ proc genCreateLineElementType( leType: LineElementType): string =
     ]
 
 proc genCreateLineElementTypes(lType: LineType): string =
-    join(lc[genCreateLineElementType(item) | (item <- lType.lineElementTypes), string], ",\n")
+    join(lType.lineElementTypes.map(genCreateLineElementType), ",\n")
 
 proc genCreateLink(link: LineTypeLink): string =
     let multiple: bool = (link.cardinality == ToMany)
     "createLink($#, $#, $#)" % [quoteStr(link.subLineId), boolToStr(multiple), boolToStr(link.required)]
 
 proc genCreateLinks(links: seq[LineTypeLink]): string =
-    "@[$#]" % join(lc[genCreateLink(item) | (item <- links), string], ", ")
+    "@[$#]" % links.map(genCreateLink).foldl(a & ", " & b)
 
 let createLineTypeFunctionTemplate = """
 proc createLineType$#(): LineType =
@@ -87,8 +87,8 @@ $#
 """
 
 proc genCreateLineTypesFunction(docType: DocumentType): string =
-    let createLineTypeFunction = join(lc[genCreateLineTypeFunction(docType, item) | (item <- docType.lineTypes), string] , "\n")
-    let createLineTypesFunction = createLineTypesFunctionTemplate % [docType.ext, join(lc["        createLineType$#()" % docType.ext(item) | (item <- docType.lineTypes), string], ",\n")]
+    let createLineTypeFunction = docType.lineTypes.map(item => genCreateLineTypeFunction(docType, item)).foldl(a & "\n" & b)
+    let createLineTypesFunction = createLineTypesFunctionTemplate % [docType.ext, docType.lineTypes.map(item => "        createLineType$#()" % docType.ext(item)).foldl(a & ",\n" & b)]
     result = lineSeparated % [createLineTypeFunction, createLineTypesFunction]
 
 

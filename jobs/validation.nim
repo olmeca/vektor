@@ -21,7 +21,7 @@ proc validate(leType: LineElementType, line: string, nr: int, errors: var seq[Va
                                              vrType: vrInvalidFieldValue, 
                                              info: "Invalid date: '$#'" % [stringValue]))
          else:
-            if not stringValue.isDigit:
+            if not stringValue.isNumericString:
                errors.add(ValidationResult(lineNr:nr, 
                                              leId: leType.lineElementId, 
                                              vrType: vrInvalidFieldValue, 

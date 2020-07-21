@@ -40,7 +40,7 @@ proc initializeFieldSpecs*(job: ShowJob) =
 
     if job.fieldsString != "":
         if job.fieldsString =~ fieldSpecsPattern:
-            job.fields =  lc[readFieldSpec(job, spec)|(spec <- matches, spec != ""), FieldSpec]
+            job.fields = matches.filter(notEmpty).map(spec => readFieldSpec(job, spec))
             job.maxLineTypeIndex = maxLineTypeIndex(job.fields)
         else:
             raise newException(ValueError, "Invalid fields specification: $#." % job.fieldsString)
@@ -85,7 +85,7 @@ proc getValueForField(field: FieldSpec, rootContext: Context): string =
 
 proc tabularLine(ctx: Context, fields: seq[FieldSpec], serialize: proc(field: FieldSpec, ctx: Context): string,
                   prefix: string, infix: string, postfix: string): string =
-   let values = lc[serialize(field, ctx) | (field <- fields), string]
+   let values = fields.map(field => serialize(field, ctx))
    result = prefix & values.join(infix) & postfix
 
 proc printColumnHeaders(job: ShowJob, stream: Stream) =

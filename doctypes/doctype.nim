@@ -46,7 +46,7 @@ proc lineHasId*(line: string, id: string): bool =
 
 proc indexes(leId: string): array[0..1, int] =
    assert(len(leId) == cFieldIdSize)
-   assert(isDigit(leId))
+   #assert(isDigit(leId))
    result = [parseInt(leId[0 .. cRecordIdSize - 1]), parseInt(leId[cRecordIdSize .. cFieldIdSize - 1])]
 
 proc isDependent*(leType: LineElementType): bool =
@@ -262,13 +262,13 @@ proc getElementValueSigned*(docType: DocumentType, leType: LineElementType, line
    let digits = source[0..^2]
    let signum = source[^1..^1]
    let intValue = parseInt(digits)
+   # according to ap304v80 spec: default is Debit
    case signum
-   of cSignumDebit:
-      result = intValue
    of cSignumCredit:
       result = -1 * intValue
    else:
-      raise newException(ValueError, "Invalid value for signum in line element of type '$#', value: '$#'" % [leType.lineElementId, source])
+      result = intValue
+   #   raise newException(ValueError, "Invalid value for signum in line element of type '$#', value: '$#'" % [leType.lineElementId, source])
 
 proc summary*(doctype: DocumentType): string =
    "$# v$#.$#   $#" %

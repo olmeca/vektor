@@ -65,6 +65,7 @@ proc evaluateRSE(expr: Expression, context: Context): VektisValue =
 proc newRandomStringExpression*(minlen: int, maxlen: int, source: string): RandomStringExpression =
    result = RandomStringExpression(minLength: minlen, maxLength: maxlen, source: source, isDerived: true)
    result.asStringImpl = asStringRSE
+   result.evaluateImpl = evaluateRSE
 
 
 proc readRandomStringExpression(valueSpec: string, pattern: PEG, source: string, description: string): Expression =
@@ -73,7 +74,7 @@ proc readRandomStringExpression(valueSpec: string, pattern: PEG, source: string,
         let maxlenString = matches[1]
         var minlen, maxlen: int
         minlen = parseInt(minlenString)
-        maxlen = parseInt(maxlenString)
+        maxlen = if maxlenString.isEmpty: minlen else: parseInt(maxlenString)
         result = newRandomStringExpression(minlen, maxlen, source)
     else:
         result = nil

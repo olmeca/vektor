@@ -15,11 +15,7 @@ let
    Pattern <- ^ Spc RandomDateSpec Spc !.
    RandomDateSpec <- Symbol Spc '(' Spc Date Spc ',' Spc Date Spc ')'
    Symbol <- 'date'
-   Date <- {Year '-' Month '-' Day}
-   Year <- ('19' / '20') \d \d
-   Month <- Positive / '1' [0-2]
-   Day <- Positive / [1-2] \d / '3' [0-1]
-   Positive <- '0' [1-9]
+   Date <- {\d \d \d \d \d \d \d \d}
    Spc <- \s*
    """
 
@@ -67,8 +63,8 @@ proc newRandomDateExpression*(min: string, max: string): RandomDateExpression =
 
 proc readRDE(valueSpec: string): Expression =
     if valueSpec =~ randomDatePattern:
-        let fromSeconds = parseLiteralDateExpression(matches[0]).toTime().toUnix()
-        let toSeconds = parseLiteralDateExpression(matches[1]).toTime().toUnix()
+        let fromSeconds = parseVektisDate(matches[0]).toTime().toUnix()
+        let toSeconds = parseVektisDate(matches[1]).toTime().toUnix()
         result = newRandomDateExpression(fromSeconds, toSeconds)
     else:
         result = nil

@@ -250,8 +250,8 @@ proc parseQualifier*(docType: DocumentType, qualString: string): LineQualifier =
       let refValueString = matches[2]
       result = newElementaryQualifier(leType, operator, refValueString)
    elif qualString =~ compositeQualifierPattern:
-      debug("parseQualifier found composite: [$#]" % [join(lc[m | (m <- matches, m != ""), string], ", ")])
-      let qualifiers = lc[LineQualifier(parseQualifier(docType, item)) | (item <- matches, item != ""), LineQualifier]
+      debug("parseQualifier found composite: [$#]" % [foldMatches(matches)])
+      let qualifiers = matches.filter(notEmpty).map(item => LineQualifier(parseQualifier(docType, item)))
       result = LineQualifier(newAndQualifier(qualifiers))
    else:
       let error = "Could not parse qualifier '$#'" % [qualString]

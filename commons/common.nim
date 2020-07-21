@@ -222,6 +222,18 @@ var
 proc isEmpty*(value: string): bool =
     value == ""
 
+
+proc notEmpty*(value: string): bool =
+    not value.isEmpty
+
+
+proc foldMatches*(source: array[0..19, string]): string =
+    source.foldl(a & "|" & b)
+
+
+proc isNumericString*(value: string): bool =
+    toSeq(value.items).all(isDigit)
+
 proc firstItemMatching*[T](list: seq[T], pred: proc(item: T): bool {.closure.}): T {.inline.} =
    for i in 0..<list.len:
       if pred(list[i]):

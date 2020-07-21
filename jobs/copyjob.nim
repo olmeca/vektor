@@ -44,7 +44,7 @@ proc initializeFieldValueSpecs*(job: CopyJob) =
     if job.fieldValuesString != "":
         debug("copyjob.initializeFieldValueSpecs: reading field value specs from string '$#'" % job.fieldValuesString)
         if job.fieldValuesString =~ fieldSpecsPattern:
-            job.fieldValues = lc[readFieldValueSpec(job, spec)|(spec <- matches, spec != ""), FieldValueSpec]
+            job.fieldValues = matches.filter(notEmpty).map(spec => readFieldValueSpec(job, spec))
         else:
             raise newException(ValueError, "Invalid replacement values specified: $#" % job.fieldValuesString)
     else: discard
@@ -106,7 +106,7 @@ proc mutateAndWrite*(job: var CopyJob, outStream: Stream) =
          if rootContext.conditionIsMet(job.replacementQualifier):
             debug("copyjob.maw: replacement qualifier is met")
             for field in job.fieldValues:
-               debug("copyjob.maw: FieldSpec: $#" % field.value.asString())
+               debug("copyjob.maw: Field type: $#, Spec: $#" % [field.leType.lineElementId, field.value.asString])
                let leType = field.leType
                if leType.isElementOfLine(context.line):
                   let newValue = field.value.evaluate(context).serialize(leType.length)

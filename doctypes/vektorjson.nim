@@ -31,11 +31,11 @@ proc readLineTypeLink*(node: JsonNode): LineTypeLink =
 
 proc readLineType*(node: JsonNode, lineLength: int): LineType =
    let lineId = node["lineId"].getStr()
-   var leTypes = lc[readLineElementType(item) | (item <- node["lineElementTypes"].items()), LineElementType]
+   var leTypes = node["lineElementTypes"].elems.map(item => readLineElementType(item))
    if lineId == cDebtorLineId:
       leTypes[leTypes.len-1].length = lineLength - leTypes[leTypes.len-1].startPosition
    else: discard
-   let children = lc[readLineTypeLink(item) | (item <- node["childLinks"].items()), LineTypeLink]
+   let children = node["childLinks"].elems.map(readLineTypeLink)
    let hasDependentEls = leTypes.anyIt(it.sourceId != "")
    result = LineType(
       name: node["name"].getStr(),
@@ -49,7 +49,7 @@ proc readLineType*(node: JsonNode, lineLength: int): LineType =
 
 proc readDocumentType*(node: JsonNode, lineLength: int): DocumentType =
    let docLineLength = if lineLength == 0: getInt(node{"lineLength"}, 310) else: lineLength
-   let lineTypes = lc[readLineType(item, docLineLength) | (item <- node["lineTypes"].items()), LineType]
+   let lineTypes = node["lineTypes"].elems.map(item => readLineType(item, docLineLength))
    result = DocumentType(
       name: node["name"].getStr(),
       description: node["description"].getStr(),
@@ -61,7 +61,7 @@ proc readDocumentType*(node: JsonNode, lineLength: int): DocumentType =
    )
 
 proc readElementSet(setNode: JsonNode): seq[string] =
-    lc[getStr(node) | (node <- setNode.elems), string]
+    setNode.elems.map(node => getStr(node))
 
 proc readElementSets(table: OrderedTable[string, JsonNode]): TableRef[string, seq[string]] =
     result = newTable[string, seq[string]]()

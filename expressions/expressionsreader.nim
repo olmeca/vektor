@@ -13,6 +13,7 @@ proc getUserExpressionReaders*(): seq[ExpressionReader] =
         newRandomDateExpressionReader(),
         newRandomCapsExpressionReader(),
         newRandomStringExpressionReader(),
+        newRandomDigitsExpressionReader(),
         newRandomNaturalExpressionReader(),
         newRandomPostcodeExpressionReader(),
         newLiteralDateReader(),

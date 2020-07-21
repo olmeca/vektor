@@ -6,7 +6,7 @@ const
    cSB311TypesJsonFileName = "sb311-types.json"
 
 proc getDocTypes(filePath: string, lineLength: int): seq[DocumentType] =
-    result = lc[readDocumentType(node, lineLength) | (node <- getJsonData(filePath)), DocumentType]
+    result = getJsonData(filePath).elems.map(node => readDocumentType(node, lineLength))
 
 proc getDocumentTypes*(lineLength: int): seq[DocumentType] =
    getDocTypes(cDocTypesJsonFileName, lineLength)

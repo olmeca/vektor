@@ -152,7 +152,7 @@ proc applyHelpJobIndexedParam(job: VektorJob, param: JobParam) =
 
 proc setDocTypeVersion(job: InfoJob, version: string) =
     if version != "":
-        if len(version) == 1 and isDigit(version):
+        if len(version) == 1 and isDigit(version[0]):
             job.docTypeVersion = parseInt(version)
         else:
             let items = version.split('.')

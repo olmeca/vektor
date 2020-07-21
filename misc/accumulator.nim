@@ -23,9 +23,12 @@ proc asString(total: Total): string =
    let width = if total.leType.isAmountType(): 8 else: 5
    "$#: $#" % [total.leType.lineElementId, total.value|R(width)]
 
+proc createTotal(t: LineElementType): Total =
+    Total(leType: t, value: 0)
+
 proc newAccumulator*(dType:DocumentType): Accumulator =
    let bottomline = dType.getLineTypeForLineId(cBottomLineId)
-   let totals = lc[Total(leType: t, value: 0) | (t <- bottomLine.lineElementTypes, t.countable != ""), Total]
+   let totals = bottomLine.lineElementTypes.filter(t => t.countable.notEmpty).map(createTotal)
    result = Accumulator(docType: dType, totals: totals, empty: true)
 
 proc increment(total: var Total, extra: int) =
@@ -34,11 +37,13 @@ proc increment(total: var Total, extra: int) =
 proc getSourceLineElementType*(acc: Accumulator, total: Total): LineElementType =
     acc.docType.getLineElementType(total.leType.countable)
 
+
 proc getIntegerValue*(docType: DocumentType, leType: LineElementType, line: string): int =
-    if leType.isAmountType():
+    if leType.valueType == SignedAmountValueType:
         getElementValueSigned(docType, leType, line)
     else:
         line.getElementValueInt(leType)
+
 
 proc accumulate*(acc: Accumulator, line: string) =
    debug("accumulator.accumulate: " & line[0..13])
@@ -56,8 +61,8 @@ proc accumulate*(acc: Accumulator, line: string) =
             total.increment(1)
             acc.empty = false
          else:
-            debug("accumulator.accumulate: adding to total leType: $#" % leId)
             let leType = acc.docType.getLineElementType(leId)
+            debug("accumulator.accumulate: adding to total leType: $#" % leType.asString)
             let elemValue = getIntegerValue(acc.docType, leType, line)
             total.increment(elemValue)
             #debug("inc $# -> $#" % [intToStr(elemValue), intToStr(total.value)])
@@ -103,6 +108,6 @@ proc write*(acc: Accumulator, buf: var seq[char]) =
       writeTotal(total, buf)
 
 proc asString*(acc: Accumulator): string =
-   let items = lc[t.asString() | (t <- acc.totals), string]
+   let items = acc.totals.map(asString)
    result = items.join("| ")
 
