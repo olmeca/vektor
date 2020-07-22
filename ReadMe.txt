@@ -60,13 +60,12 @@ via your PATH settings.
 Vektor commands
 Currently the following commands are supported:
 1- copy: The main function, for creating modified copies.
-2- validate: Support function. Checks a file for Vektis compliance.
-3- show: Support function. Presents a table with the specified
+2- show: Support function. Presents a table with the specified
 line elements' values in columns.
-4- info: Support function. Displays information on the structure
+3- info: Support function. Displays information on the structure
 of the specified Vektis declaration format. Useful for looking up
 line element ID's.
-5- help: Provides information on how to use Vektor.
+4- help: Provides information on how to use Vektor.
 
 All command line options have a short version (e.g. -r:"0210=Johnson")
 and a long version (e.g. --element "0210=Johnson") which is more descriptive.

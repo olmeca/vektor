@@ -46,7 +46,7 @@ proc initializeFieldValueSpecs*(job: CopyJob) =
         if job.fieldValuesString =~ fieldSpecsPattern:
             job.fieldValues = matches.filter(notEmpty).map(spec => readFieldValueSpec(job, spec))
         else:
-            raise newException(ValueError, "Invalid replacement values specified: $#" % job.fieldValuesString)
+            raise newException(ValueError, "Invalid replacement values specified: '$#'" % job.fieldValuesString)
     else: discard
     debug("copyjob.initializeFieldValueSpecs exiting")
 

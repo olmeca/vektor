@@ -410,6 +410,7 @@ proc determineDebRecVersion(input: Stream): DebtorRecordVersion =
 proc readDocumentTypeSpec(job: DocumentJob): DocTypeSpec =
     var debRecVsn = drvDefault
     var typeId, version, subversion: int
+    debug("readDocumentTypeSpec: '$#'" % job.documentPath)
     let input = newFileStream(job.documentPath, fmRead)
     var line: string = ""
     var i = 0

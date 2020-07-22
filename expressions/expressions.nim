@@ -34,16 +34,14 @@ let
    # Semicolon or line separated list of element spec
    fieldSpecsPatternSpec = """
    Pattern <- ^ ElementsSpec Sep* !.
-   ElementsSpec <- ElementSpec Sep+ ElementsSpec / ElementSpec
+   ElementsSpec <- Comment* ElementSpec Sep+ ElementsSpec / ElementSpec
    ElementSpec <- {(!SepStart .)+}
-   SepStart <- (';' / Cr / Lf)
-   Sep <- (';' / LineSep) Spc* Comment*
+   Sep <- SepStart Spc* Comment*
+   SepStart <- ';' / LineSep
    Comment <- '#' (!LineSep .)* LineSep
-   LineSep <- Cr? Lf
+   LineSep <- \n
    Spc <- ' '*
-   Cr <- \13
-   Lf <- \10
-   """
+    """
    
    fieldSpecPattern* = peg(fieldSpecPatternSpec)
    fieldValueSpecPattern* = peg(fieldValueSpecPatternSpec)
